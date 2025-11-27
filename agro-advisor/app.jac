@@ -284,16 +284,17 @@ walker GetAllAdviceCache {
 }
 
 walker AgroAdvisor {
-    has session_id: str = "";
     has crop: str;
     has problem_text: str;
     has location: str;
+    has session_id: str = "";
     has language: str = "en";
     has include_weather: bool = True;
     has include_market: bool = True;
 
     can run with `root entry;
 }
+
 
 walker LLMAnalyzeDebug {
     has crop: str;
