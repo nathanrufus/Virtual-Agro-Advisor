@@ -1,5 +1,5 @@
-import from dotenv { getenv }
-include backend.utils;  # for http_get_with_header, json_get, etc.
+import from dotenv { load_dotenv }
+include utils;  # for http_get_with_header, json_get, etc.
 
 def map_crop_to_api_name(crop_key: str) -> str {
     # Basic mapping from your internal crop keys to API Ninjas commodity names

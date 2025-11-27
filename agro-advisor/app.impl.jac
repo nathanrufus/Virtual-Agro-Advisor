@@ -1,7 +1,7 @@
 import random;
 include utils;
-include .integrations.weather_impl;
-include .integrations.market_impl;
+include integrations.weather_impl;
+include integrations.market_impl;
 
 
 #  Helper functions (pure logic, no LLM yet)
