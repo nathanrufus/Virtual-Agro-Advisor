@@ -1,5 +1,8 @@
 import random;
-include utils;  # expects get_current_datetime() to exist
+include utils;
+include .integrations.weather_impl;
+include .integrations.market_impl;
+
 
 #  Helper functions (pure logic, no LLM yet)
 
@@ -84,20 +87,14 @@ impl SessionManager.run {
 }
 
 
-
 #  WeatherAgent implementation (non-LLM, mock summary + caching)
 
-
 impl WeatherAgent.run {
-    # Entry node is a Session
     session = here;
-
-    # 1. Normalize location into a key
     loc_key = normalize_location(self.location);
 
-    # 2. Look for an existing WeatherSnapshot for this location
     existing_snapshots = [];
-    for snap in [->:HAS_WEATHER:->] {
+    for snap in [session ->:HAS_WEATHER:->] {
         if snap.location_key == loc_key {
             existing_snapshots = existing_snapshots + [snap];
         }
@@ -106,23 +103,20 @@ impl WeatherAgent.run {
     snapshot = null;
 
     if existing_snapshots {
-        # Reuse first existing snapshot for now
         snapshot = existing_snapshots[0];
     } else {
-        # 3. Create a new snapshot (mock / placeholder data for Phase 2)
-        summary_text = (
-            f"Current weather information for '{self.location}' "
-            f"as of {get_current_datetime()}. (Mock summary for now.)"
-        );
+        # Call real API here
+        raw = fetch_weather_raw(loc_key);
+        summary_text = summarize_weather(raw, self.location);
+
         snapshot = WeatherSnapshot(
             location_key=loc_key,
             summary=summary_text,
-            raw_source=""  # fill in later once you integrate a real API
+            raw_source=raw
         );
-        session +>: HAS_WEATHER:+> snapshot;
+        session +>: HAS_WEATHER() :+> snapshot;
     }
 
-    # 4. Build a WeatherSummary object for downstream use
     weather_summary = WeatherSummary(
         summary_text=snapshot.summary
     );
@@ -132,19 +126,19 @@ impl WeatherAgent.run {
 
 
 
+
 #  MarketAgent implementation (non-LLM, mock dataset + caching)
 
 
+
 impl MarketAgent.run {
-    # Entry node is a Session
     session = here;
 
     crop_key = normalize_crop(self.crop);
     region_key = normalize_region(self.region);
 
-    # 1. Look for existing MarketSnapshot for this crop+region
     existing_snapshots = [];
-    for snap in [->:HAS_MARKET:->] {
+    for snap in [session ->:HAS_MARKET:->] {
         if snap.crop_key == crop_key and snap.region_key == region_key {
             existing_snapshots = existing_snapshots + [snap];
         }
@@ -155,22 +149,18 @@ impl MarketAgent.run {
     if existing_snapshots {
         snapshot = existing_snapshots[0];
     } else {
-        # 2. Mock price/trend summary for now
-        #    Later, replace with real data or a small JSON dataset.
-        summary_text = (
-            f"Market info for crop '{self.crop}' in region '{self.region}'. "
-            "Prices and trends are currently mocked for development."
-        );
+        raw = fetch_market_raw(crop_key, region_key);
+        summary_text = summarize_market(raw, self.crop, self.region);
+
         snapshot = MarketSnapshot(
             crop_key=crop_key,
             region_key=region_key,
             summary=summary_text,
-            raw_source=""
+            raw_source=raw
         );
-        session +>: HAS_MARKET :+> snapshot;
+        session +>: HAS_MARKET() :+> snapshot;
     }
 
-    # 3. Build a MarketSummary object
     market_summary = MarketSummary(
         summary_text=snapshot.summary
     );
@@ -266,4 +256,492 @@ impl GetAllAdviceCache.run {
         "last_used_at": cache.last_used_at,
         "usage_count": cache.usage_count
     } for cache in all_cache_nodes];
+}
+
+#  LLM-related helpers
+
+
+def make_cache_key(
+    crop: str,
+    problem_text: str,
+    location: str,
+    lang: str,
+    include_weather: bool,
+    include_market: bool
+) -> str {
+    # Very simple deterministic cache key; you can improve later if needed.
+    norm_crop = normalize_crop(crop);
+    norm_loc = normalize_location(location);
+    trimmed_problem = problem_text.strip();
+    # Avoid super-long keys by truncating the problem text
+    if len(trimmed_problem) > 120 {
+        trimmed_problem = trimmed_problem[:120];
+    }
+    return f"{norm_crop}|{norm_loc}|{lang}|w={include_weather}|m={include_market}|{trimmed_problem}";
+}
+
+def translate_advice_if_needed(
+    advice: AdvicePlan,
+    target_lang: str
+) -> AdvicePlan {
+    if not target_lang or target_lang == "en" {
+        return advice;
+    }
+
+    # Translate overview
+    new_overview = translate_from_pivot(
+        text=advice.overview,
+        lang=target_lang
+    );
+
+    # Translate each step and caution
+    new_steps = [];
+    for s in advice.steps {
+        new_steps = new_steps + [
+            translate_from_pivot(text=s, lang=target_lang)
+        ];
+    }
+
+    new_cautions = [];
+    for c in advice.cautions {
+        new_cautions = new_cautions + [
+            translate_from_pivot(text=c, lang=target_lang)
+        ];
+    }
+
+    return AdvicePlan(
+        overview=new_overview,
+        steps=new_steps,
+        cautions=new_cautions
+    );
+}
+
+#  AgroAdvisor implementation
+
+
+impl AgroAdvisor.run {
+    t_start = get_current_datetime();  # for logging; simple string stamp
+
+    
+    # 1. Ensure Memory root
+
+    mem_list = [root --> (`?Memory)];
+    if not mem_list {
+        memory = Memory();
+        root ++> memory;
+    } else {
+        memory = mem_list[0];
+    }
+
+    # 2. Get or create Session
+    
+    session = null;
+
+    if not self.session_id {
+        # New session
+        new_id = generate_session_id();
+        session = Session(
+            session_id=new_id,
+            lang=self.language
+        );
+        memory +>: HAS_SESSION() :+> session;
+        self.session_id = new_id;
+    } else {
+        # Existing or new one with this id
+        session = &(self.session_id);
+        if not session {
+            session = Session(
+                session_id=self.session_id,
+                lang=self.language
+            );
+            memory +>: HAS_SESSION() :+> session;
+        } else {
+            # Keep language updated
+            session.lang = self.language;
+        }
+    }
+
+    session.last_active_at = get_current_datetime();
+
+    
+    #  3. Cache lookup
+    
+    cache_key = make_cache_key(
+        crop=self.crop,
+        problem_text=self.problem_text,
+        location=self.location,
+        lang=self.language,
+        include_weather=self.include_weather,
+        include_market=self.include_market
+    );
+
+    existing_cache = null;
+    for ac in [session ->:HAS_ADVICE:->] {
+        if ac.cache_key == cache_key {
+            existing_cache = ac;
+            break;
+        }
+    }
+
+    # We'll fill these regardless of cache hit/miss
+    weather_summary = WeatherSummary(
+        summary_text="Weather data not requested."
+    );
+    market_summary = MarketSummary(
+        summary_text="Market data not requested."
+    );
+
+    # Optional: always update weather/market snapshots even on cache hit
+    if self.include_weather {
+        # inline the same logic as WeatherAgent.run (no LLM)
+        loc_key = normalize_location(self.location);
+        existing_snapshots = [];
+        for snap in [session ->:HAS_WEATHER:->] {
+            if snap.location_key == loc_key {
+                existing_snapshots = existing_snapshots + [snap];
+            }
+        }
+        snapshot_w = null;
+        if existing_snapshots {
+            snapshot_w = existing_snapshots[0];
+        } else {
+            summary_text = (
+                f"Current weather for '{self.location}' "
+                f"as of {get_current_datetime()}. (Mock summary; API integration pending.)"
+            );
+            snapshot_w = WeatherSnapshot(
+                location_key=loc_key,
+                summary=summary_text,
+                raw_source=""
+            );
+            session +>: HAS_WEATHER :+> snapshot_w;
+        }
+        weather_summary = WeatherSummary(summary_text=snapshot_w.summary);
+    }
+
+        if self.include_market {
+        crop_key = normalize_crop(self.crop);
+        # For now, reuse location as region key
+        region_key = normalize_region(self.location);
+
+        existing_ms = [];
+        for snap in [session ->:HAS_MARKET:->] {
+            if snap.crop_key == crop_key and snap.region_key == region_key {
+                existing_ms = existing_ms + [snap];
+            }
+        }
+
+        snapshot_m = null;
+
+        if existing_ms {
+            snapshot_m = existing_ms[0];
+        } else {
+            raw_market = fetch_market_raw(crop_key, region_key);
+            summary_text = summarize_market(raw_market, self.crop, self.location);
+
+            snapshot_m = MarketSnapshot(
+                crop_key=crop_key,
+                region_key=region_key,
+                summary=summary_text,
+                raw_source=raw_market
+            );
+            session +>: HAS_MARKET() :+> snapshot_m;
+        }
+
+        market_summary = MarketSummary(
+            summary_text=snapshot_m.summary
+        );
+    }
+
+
+    #  4. If cache hit: reuse advice, log, and return
+
+    if existing_cache {
+        existing_cache.touch();
+
+        log_hit = AuditLog(
+            event="agro_advisor_cache_hit",
+            cache_hit=True,
+            latency_ms=0,  # TODO: compute if you add real timing
+            session_id=session.session_id
+        );
+        memory +>: HAS_AUDIT :+> log_hit;
+
+        advice_cached = existing_cache.advice;
+
+        # Optionally re-translate if language changed
+        final_advice_cached = translate_advice_if_needed(
+            advice=advice_cached,
+            target_lang=self.language
+        );
+
+        report {
+            "session_id": session.session_id,
+            "advice_plan": final_advice_cached,
+            "weather_summary": weather_summary,
+            "market_summary": market_summary,
+            "meta": {
+                "source": "cache",
+                "lang": self.language
+            }
+        };
+        disengage;
+    }
+
+    #  5. Cache miss: run full LLM pipeline
+    
+
+    # Build context
+    history_text = session.get_history();
+    farmer_ctx = FarmerContext(
+        region=self.location,
+        lang=self.language
+    );
+
+    # 5.1 Analyze issue (LLM)
+    issue = analyze_issue(
+        crop=self.crop,
+        problem_text=self.problem_text,
+        location=self.location,
+        history=history_text
+    );
+
+    # 5.2 Generate advice (LLM)
+    raw_advice = generate_advice(
+        analysis=issue,
+        weather=weather_summary,
+        market=market_summary,
+        context=farmer_ctx
+    );
+
+    # 5.3 Safety review (LLM)
+    safe_advice = safety_review(advice=raw_advice);
+
+    # 5.4 Translation (if needed)
+    final_advice = translate_advice_if_needed(
+        advice=safe_advice,
+        target_lang=self.language
+    );
+
+    #  6. Persistence: cache + history + audit
+    
+
+    new_cache = AdviceCache(
+        cache_key=cache_key,
+        advice=safe_advice  # store the pivot-language or base advice
+    );
+    session +>: HAS_ADVICE:+> new_cache;
+
+    # Append brief interaction to session history
+    hist_entry = (
+        "user: " + self.problem_text + "\n" +
+        "ai: " + final_advice.overview
+    );
+    session.add_history(hist_entry);
+
+    # Audit log
+    log_fresh = AuditLog(
+        event="agro_advisor_fresh",
+        cache_hit=False,
+        latency_ms=0,  # placeholder; replace with real timing if you add it
+        session_id=session.session_id
+    );
+    memory +>: HAS_AUDIT :+> log_fresh;
+
+    #  7. Final response for frontend
+    
+    report {
+        "session_id": session.session_id,
+        "advice_plan": final_advice,
+        "weather_summary": weather_summary,
+        "market_summary": market_summary,
+        "meta": {
+            "source": "fresh",
+            "lang": self.language
+        }
+    };
+}
+
+impl LLMAnalyzeDebug.run {
+    # For debug, we don't care about session history yet
+    history_text = "";
+
+    # Optional: if language is not English, normalize input with translate_to_pivot
+    problem_for_llm = self.problem_text;
+    history_for_llm = history_text;
+
+    if self.language != "en" and self.language != "" {
+        problem_for_llm = translate_to_pivot(
+            text=self.problem_text,
+            lang=self.language
+        );
+        if history_text {
+            history_for_llm = translate_to_pivot(
+                text=history_text,
+                lang=self.language
+            );
+        }
+    }
+
+    issue = analyze_issue(
+        crop=self.crop,
+        problem_text=problem_for_llm,
+        location=self.location,
+        history=history_for_llm
+    );
+
+    # Just return the raw IssueAnalysis object so you can see fields directly
+    report issue;
+}
+impl LLMAdviceDebug.run {
+    # 1. Prepare text for LLM (same pivot-language logic as AgroAdvisor)
+    history_text = "";  # no history in this debug walker
+
+    problem_for_llm = self.problem_text;
+    history_for_llm = history_text;
+
+    if self.language != "en" && self.language != "" {
+        problem_for_llm = translate_to_pivot(
+            text=self.problem_text,
+            lang=self.language
+        );
+        if history_text {
+            history_for_llm = translate_to_pivot(
+                text=history_text,
+                lang=self.language
+            );
+        }
+    }
+
+    # 2. Fake WeatherSummary / MarketSummary for now
+    weather_summary = WeatherSummary(
+        summary_text="(Debug) No real weather data. Assume typical conditions for the season."
+    );
+    if not self.include_weather {
+        weather_summary.summary_text = "(Debug) Weather ignored for this run.";
+    }
+
+    market_summary = MarketSummary(
+        summary_text="(Debug) No real market data. Assume normal local price range."
+    );
+    if not self.include_market {
+        market_summary.summary_text = "(Debug) Market conditions ignored for this run.";
+    }
+
+    # 3. FarmerContext using provided location/lang
+    farmer_ctx = FarmerContext(
+        region=self.location,
+        lang=self.language
+    );
+
+    # 4. Run the full LLM reasoning chain
+
+    # 4.1 Analyze issue
+    issue = analyze_issue(
+        crop=self.crop,
+        problem_text=problem_for_llm,
+        location=self.location,
+        history=history_for_llm
+    );
+
+    # 4.2 Generate advice
+    raw_advice = generate_advice(
+        analysis=issue,
+        weather=weather_summary,
+        market=market_summary,
+        context=farmer_ctx
+    );
+
+    # 4.3 Safety review
+    safe_advice = safety_review(advice=raw_advice);
+
+    # 4.4 Translate back to target language if needed
+    final_advice = translate_advice_if_needed(
+        advice=safe_advice,
+        target_lang=self.language
+    );
+
+    # 5. Report everything useful for debugging
+    report {
+        "issue_analysis": issue,
+        "weather_summary": weather_summary,
+        "market_summary": market_summary,
+        "advice_plan": final_advice
+    };
+}
+impl LLMAdviceDebug.run {
+    # 1. Prepare text for LLM (same pivot-language logic as AgroAdvisor)
+    history_text = "";  # no history in this debug walker
+
+    problem_for_llm = self.problem_text;
+    history_for_llm = history_text;
+
+    if self.language != "en" && self.language != "" {
+        problem_for_llm = translate_to_pivot(
+            text=self.problem_text,
+            lang=self.language
+        );
+        if history_text {
+            history_for_llm = translate_to_pivot(
+                text=history_text,
+                lang=self.language
+            );
+        }
+    }
+
+    # 2. Fake WeatherSummary / MarketSummary for now
+    weather_summary = WeatherSummary(
+        summary_text="(Debug) No real weather data. Assume typical conditions for the season."
+    );
+    if not self.include_weather {
+        weather_summary.summary_text = "(Debug) Weather ignored for this run.";
+    }
+
+    market_summary = MarketSummary(
+        summary_text="(Debug) No real market data. Assume normal local price range."
+    );
+    if not self.include_market {
+        market_summary.summary_text = "(Debug) Market conditions ignored for this run.";
+    }
+
+    # 3. FarmerContext using provided location/lang
+    farmer_ctx = FarmerContext(
+        region=self.location,
+        lang=self.language
+    );
+
+    # 4. Run the full LLM reasoning chain
+
+    # 4.1 Analyze issue
+    issue = analyze_issue(
+        crop=self.crop,
+        problem_text=problem_for_llm,
+        location=self.location,
+        history=history_for_llm
+    );
+
+    # 4.2 Generate advice
+    raw_advice = generate_advice(
+        analysis=issue,
+        weather=weather_summary,
+        market=market_summary,
+        context=farmer_ctx
+    );
+
+    # 4.3 Safety review
+    safe_advice = safety_review(advice=raw_advice);
+
+    # 4.4 Translate back to target language if needed
+    final_advice = translate_advice_if_needed(
+        advice=safe_advice,
+        target_lang=self.language
+    );
+
+    # 5. Report everything useful for debugging
+    report {
+        "issue_analysis": issue,
+        "weather_summary": weather_summary,
+        "market_summary": market_summary,
+        "advice_plan": final_advice
+    };
 }
