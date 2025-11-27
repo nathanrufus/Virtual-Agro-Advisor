@@ -295,6 +295,25 @@ walker AgroAdvisor {
     can run with `root entry;
 }
 
+walker LLMAnalyzeDebug {
+    has crop: str;
+    has problem_text: str;
+    has location: str;
+    has language: str = "en";
+
+    can run with `root entry;
+}
+
+walker LLMAdviceDebug {
+    has crop: str;
+    has problem_text: str;
+    has location: str;
+    has language: str = "en";
+    has include_weather: bool = True;
+    has include_market: bool = True;
+
+    can run with `root entry;
+}
 
 # Startup hook: load environment variables (for Groq, APIs, etc.)
 
