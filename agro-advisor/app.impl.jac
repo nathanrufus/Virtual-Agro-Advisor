@@ -1,8 +1,6 @@
 import random;
 include utils;
-include integrations.weather_impl;
-include integrations.market_impl;
-
+include intergrations;
 
 #  Helper functions (pure logic, no LLM yet)
 
@@ -59,18 +57,28 @@ impl SessionManager.run {
             session_id=new_id,
             lang=self.lang
         );
-        memory +>: HAS_SESSION :+> session;
+        memory +>: HAS_SESSION() :+> session;
         self.session_id = new_id;
     } else {
-        # Try to reference an existing session by ID
-        session = &(self.session_id);
+        # Look for an existing Session whose session_id field matches
+        session = None;
+        for s in [memory ->:HAS_SESSION:->] {
+            if s.session_id == self.session_id {
+                session = s;
+                break;
+            }
+        }
+
+        # If it doesn't exist, create and attach it
         if not session {
-            # If it doesn't exist, create and attach it
             session = Session(
                 session_id=self.session_id,
                 lang=self.lang
             );
-            memory +>: HAS_SESSION :+> session;
+            memory +>: HAS_SESSION() :+> session;
+        } else {
+            # keep language updated
+            session.lang = self.lang;
         }
     }
 
@@ -100,7 +108,7 @@ impl WeatherAgent.run {
         }
     }
 
-    snapshot = null;
+    snapshot = None;
 
     if existing_snapshots {
         snapshot = existing_snapshots[0];
@@ -137,6 +145,7 @@ impl MarketAgent.run {
     crop_key = normalize_crop(self.crop);
     region_key = normalize_region(self.region);
 
+    # 1. Check cache first
     existing_snapshots = [];
     for snap in [session ->:HAS_MARKET:->] {
         if snap.crop_key == crop_key and snap.region_key == region_key {
@@ -144,29 +153,66 @@ impl MarketAgent.run {
         }
     }
 
-    snapshot = null;
+    snapshot = None;
 
     if existing_snapshots {
+        # Reuse cached LLM-based snapshot
         snapshot = existing_snapshots[0];
     } else {
-        raw = fetch_market_raw(crop_key, region_key);
-        summary_text = summarize_market(raw, self.crop, self.region);
+        # 2. No cache -> use byLLM to estimate price
 
+        let region_for_llm = self.region if self.region else "Kenya";
+
+        print(
+            f"[MarketLLM] Using pure LLM estimate for {self.crop} "
+            f"in {region_for_llm}."
+        );
+
+        let est_price = 0.0;
+        try {
+            est_price = estimate_market_price(
+                crop=self.crop,
+                region=region_for_llm
+            );
+        } except Exception {
+            print("[MarketLLM] estimate_market_price LLM call failed.");
+            est_price = 0.0;
+        }
+
+        let summary_text = "";
+        if est_price > 0.0 {
+            summary_text = (
+                f"An AI-based estimate suggests the current price for {self.crop} "
+                f"in {region_for_llm} is around {est_price} KES/kg. "
+                f"This is NOT live market data; always confirm with local buyers, "
+                f"cooperatives, or nearby markets before making financial decisions."
+            );
+        } else {
+            summary_text = (
+                f"Market price estimates for {self.crop} in {region_for_llm} "
+                f"are currently unavailable. Please check with local buyers, "
+                f"cooperatives, or nearby markets for current prices."
+            );
+        }
+
+        # 3. Store LLM-only snapshot (no external raw_source)
         snapshot = MarketSnapshot(
             crop_key=crop_key,
             region_key=region_key,
             summary=summary_text,
-            raw_source=raw
+            raw_source=""  # no API payload
         );
         session +>: HAS_MARKET() :+> snapshot;
     }
 
+    # 4. Return MarketSummary for the advisor / frontend
     market_summary = MarketSummary(
         summary_text=snapshot.summary
     );
 
     report market_summary;
 }
+
 
 
 
@@ -184,7 +230,7 @@ impl AuditAgent.run {
         session_id=self.session_id
     );
 
-    memory +>: HAS_AUDIT :+> log;
+    memory +>: HAS_AUDIT() :+> log;
 
     report {
         "event": log.event,
@@ -322,9 +368,7 @@ def translate_advice_if_needed(
 impl AgroAdvisor.run {
     t_start = get_current_datetime();  # for logging; simple string stamp
 
-    
     # 1. Ensure Memory root
-
     mem_list = [root --> (`?Memory)];
     if not mem_list {
         memory = Memory();
@@ -334,8 +378,7 @@ impl AgroAdvisor.run {
     }
 
     # 2. Get or create Session
-    
-    session = null;
+    session = None;
 
     if not self.session_id {
         # New session
@@ -347,9 +390,16 @@ impl AgroAdvisor.run {
         memory +>: HAS_SESSION() :+> session;
         self.session_id = new_id;
     } else {
-        # Existing or new one with this id
-        session = &(self.session_id);
+        # Look up existing Session by its session_id field
+        for s in [memory ->:HAS_SESSION:->] {
+            if s.session_id == self.session_id {
+                session = s;
+                break;
+            }
+        }
+
         if not session {
+            # If it doesn't exist, create one with this ID
             session = Session(
                 session_id=self.session_id,
                 lang=self.language
@@ -363,9 +413,7 @@ impl AgroAdvisor.run {
 
     session.last_active_at = get_current_datetime();
 
-    
-    #  3. Cache lookup
-    
+    # 3. Cache lookup
     cache_key = make_cache_key(
         crop=self.crop,
         problem_text=self.problem_text,
@@ -375,7 +423,7 @@ impl AgroAdvisor.run {
         include_market=self.include_market
     );
 
-    existing_cache = null;
+    existing_cache = None;
     for ac in [session ->:HAS_ADVICE:->] {
         if ac.cache_key == cache_key {
             existing_cache = ac;
@@ -391,39 +439,44 @@ impl AgroAdvisor.run {
         summary_text="Market data not requested."
     );
 
-    # Optional: always update weather/market snapshots even on cache hit
+    # 3b. Always ensure weather/market snapshots exist, even on cache hit
     if self.include_weather {
-        # inline the same logic as WeatherAgent.run (no LLM)
         loc_key = normalize_location(self.location);
+
         existing_snapshots = [];
         for snap in [session ->:HAS_WEATHER:->] {
             if snap.location_key == loc_key {
                 existing_snapshots = existing_snapshots + [snap];
             }
         }
-        snapshot_w = null;
+
+        snapshot_w = None;
+
         if existing_snapshots {
             snapshot_w = existing_snapshots[0];
         } else {
-            summary_text = (
-                f"Current weather for '{self.location}' "
-                f"as of {get_current_datetime()}. (Mock summary; API integration pending.)"
-            );
+            # Call real API helpers from integrations/weather.jac
+            raw_weather = fetch_weather_raw(loc_key);
+            summary_text = summarize_weather(raw_weather, self.location);
+
             snapshot_w = WeatherSnapshot(
                 location_key=loc_key,
                 summary=summary_text,
-                raw_source=""
+                raw_source=raw_weather
             );
-            session +>: HAS_WEATHER :+> snapshot_w;
+            session +>: HAS_WEATHER() :+> snapshot_w;
         }
-        weather_summary = WeatherSummary(summary_text=snapshot_w.summary);
+
+        weather_summary = WeatherSummary(
+            summary_text=snapshot_w.summary
+        );
     }
 
-        if self.include_market {
+    if self.include_market {
         crop_key = normalize_crop(self.crop);
-        # For now, reuse location as region key
-        region_key = normalize_region(self.location);
+        region_key = normalize_region(self.location);  # reuse location as region key
 
+        # 1. Check if we already have a MarketSnapshot for this crop/region
         existing_ms = [];
         for snap in [session ->:HAS_MARKET:->] {
             if snap.crop_key == crop_key and snap.region_key == region_key {
@@ -431,31 +484,33 @@ impl AgroAdvisor.run {
             }
         }
 
-        snapshot_m = null;
-
-        if existing_ms {
-            snapshot_m = existing_ms[0];
-        } else {
-            raw_market = fetch_market_raw(crop_key, region_key);
-            summary_text = summarize_market(raw_market, self.crop, self.location);
-
-            snapshot_m = MarketSnapshot(
-                crop_key=crop_key,
-                region_key=region_key,
-                summary=summary_text,
-                raw_source=raw_market
+        # 2. If no snapshot, spawn MarketAgent on this Session node
+        if not existing_ms {
+            # Correct spawn syntax: node_reference spawn WalkerName(...)
+            session spawn MarketAgent(
+                crop=self.crop,
+                region=self.location
             );
-            session +>: HAS_MARKET() :+> snapshot_m;
+
+            # Re-scan snapshots after the walker runs
+            for snap in [session ->:HAS_MARKET:->] {
+                if snap.crop_key == crop_key and snap.region_key == region_key {
+                    existing_ms = existing_ms + [snap];
+                }
+            }
         }
 
-        market_summary = MarketSummary(
-            summary_text=snapshot_m.summary
-        );
+        # 3. If we now have at least one snapshot, build MarketSummary from it
+        if existing_ms {
+            snapshot_m = existing_ms[0];
+
+            market_summary = MarketSummary(
+                summary_text=snapshot_m.summary
+            );
+        }
     }
 
-
-    #  4. If cache hit: reuse advice, log, and return
-
+    # 4. If cache hit: reuse advice, log, and return
     if existing_cache {
         existing_cache.touch();
 
@@ -465,7 +520,7 @@ impl AgroAdvisor.run {
             latency_ms=0,  # TODO: compute if you add real timing
             session_id=session.session_id
         );
-        memory +>: HAS_AUDIT :+> log_hit;
+        memory +>: HAS_AUDIT() :+> log_hit;
 
         advice_cached = existing_cache.advice;
 
@@ -488,8 +543,7 @@ impl AgroAdvisor.run {
         disengage;
     }
 
-    #  5. Cache miss: run full LLM pipeline
-    
+    # 5. Cache miss: run full LLM pipeline
 
     # Build context
     history_text = session.get_history();
@@ -523,14 +577,12 @@ impl AgroAdvisor.run {
         target_lang=self.language
     );
 
-    #  6. Persistence: cache + history + audit
-    
-
+    # 6. Persistence: cache + history + audit
     new_cache = AdviceCache(
         cache_key=cache_key,
         advice=safe_advice  # store the pivot-language or base advice
     );
-    session +>: HAS_ADVICE:+> new_cache;
+    session +>: HAS_ADVICE() :+> new_cache;
 
     # Append brief interaction to session history
     hist_entry = (
@@ -543,13 +595,12 @@ impl AgroAdvisor.run {
     log_fresh = AuditLog(
         event="agro_advisor_fresh",
         cache_hit=False,
-        latency_ms=0,  # placeholder; replace with real timing if you add it
+        latency_ms=0,
         session_id=session.session_id
     );
-    memory +>: HAS_AUDIT :+> log_fresh;
+    memory +>: HAS_AUDIT() :+> log_fresh;
 
-    #  7. Final response for frontend
-    
+    # 7. Final response for frontend
     report {
         "session_id": session.session_id,
         "advice_plan": final_advice,
@@ -561,6 +612,7 @@ impl AgroAdvisor.run {
         }
     };
 }
+
 
 impl LLMAnalyzeDebug.run {
     # For debug, we don't care about session history yet
@@ -593,82 +645,8 @@ impl LLMAnalyzeDebug.run {
     # Just return the raw IssueAnalysis object so you can see fields directly
     report issue;
 }
-impl LLMAdviceDebug.run {
-    # 1. Prepare text for LLM (same pivot-language logic as AgroAdvisor)
-    history_text = "";  # no history in this debug walker
 
-    problem_for_llm = self.problem_text;
-    history_for_llm = history_text;
 
-    if self.language != "en" && self.language != "" {
-        problem_for_llm = translate_to_pivot(
-            text=self.problem_text,
-            lang=self.language
-        );
-        if history_text {
-            history_for_llm = translate_to_pivot(
-                text=history_text,
-                lang=self.language
-            );
-        }
-    }
-
-    # 2. Fake WeatherSummary / MarketSummary for now
-    weather_summary = WeatherSummary(
-        summary_text="(Debug) No real weather data. Assume typical conditions for the season."
-    );
-    if not self.include_weather {
-        weather_summary.summary_text = "(Debug) Weather ignored for this run.";
-    }
-
-    market_summary = MarketSummary(
-        summary_text="(Debug) No real market data. Assume normal local price range."
-    );
-    if not self.include_market {
-        market_summary.summary_text = "(Debug) Market conditions ignored for this run.";
-    }
-
-    # 3. FarmerContext using provided location/lang
-    farmer_ctx = FarmerContext(
-        region=self.location,
-        lang=self.language
-    );
-
-    # 4. Run the full LLM reasoning chain
-
-    # 4.1 Analyze issue
-    issue = analyze_issue(
-        crop=self.crop,
-        problem_text=problem_for_llm,
-        location=self.location,
-        history=history_for_llm
-    );
-
-    # 4.2 Generate advice
-    raw_advice = generate_advice(
-        analysis=issue,
-        weather=weather_summary,
-        market=market_summary,
-        context=farmer_ctx
-    );
-
-    # 4.3 Safety review
-    safe_advice = safety_review(advice=raw_advice);
-
-    # 4.4 Translate back to target language if needed
-    final_advice = translate_advice_if_needed(
-        advice=safe_advice,
-        target_lang=self.language
-    );
-
-    # 5. Report everything useful for debugging
-    report {
-        "issue_analysis": issue,
-        "weather_summary": weather_summary,
-        "market_summary": market_summary,
-        "advice_plan": final_advice
-    };
-}
 impl LLMAdviceDebug.run {
     # 1. Prepare text for LLM (same pivot-language logic as AgroAdvisor)
     history_text = "";  # no history in this debug walker

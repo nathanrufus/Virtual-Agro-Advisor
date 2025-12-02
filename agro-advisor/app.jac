@@ -5,10 +5,13 @@ include utils;
 
 # Global LLM model using Groq (change model_name if you want another Groq model)
 glob llm = Model(
-    model_name="groq/llama-3.1-70b-versatile",
+    model_name="groq/llama-3.3-70b-versatile",
     verbose=False
 );
-
+# glob llm = Model(
+#     model_name="gemini/gemini-2.0-flash",
+#     verbose=False
+# );
 # Core graph schema: nodes
 
 node Memory {
@@ -19,7 +22,7 @@ node Memory {
 node Session {
     has session_id: str;
     has lang: str = "en";
-    has history: list = [];          # list of short text history entries
+    has history: list[str,...] = [];          # list of short text history entries
     has created_at: str = get_current_datetime();
     has last_active_at: str = get_current_datetime();
 
@@ -38,7 +41,7 @@ node FarmerProfile {
     has farmer_id: str;
     has name: str = "";
     has region: str = "";        # e.g. "Kiambu, Kenya"
-    has primary_crops: list = [];# e.g. ["maize", "beans"]
+    has primary_crops: list [str, ...]= [];# e.g. ["maize", "beans"]
     has preferred_lang: str = "en";
 }
 
@@ -72,8 +75,8 @@ node MarketSnapshot {
 
 node ImageAnalysisResult {
     has image_id: str;          # reference to stored image
-    has labels: list = [];      # e.g. ["leaf blight", "yellowing"]
-    has confidences: list = []; # parallel list of confidence scores
+    has labels: list [str, ...]= [];      # e.g. ["leaf blight", "yellowing"]
+    has confidences: list[float, ...]  = []; # parallel list of confidence scores
     has notes: str = "";
     has created_at: str = get_current_datetime();
 }
@@ -109,7 +112,7 @@ edge HAS_AUDIT {}
 obj IssueAnalysis {
     has problem_type: str;      # e.g. "pest", "disease", "nutrient", "weather", "management"
     has severity: str;          # e.g. "low", "medium", "high"
-    has key_symptoms: list = [];# list of important symptom strings
+    has key_symptoms: list [str, ...]= [];# list of important symptom strings
 }
 
 obj FarmerContext {
@@ -127,8 +130,8 @@ obj MarketSummary {
 
 obj AdvicePlan {
     has overview: str;          # 3–5 sentence summary of the situation
-    has steps: list = [];       # ordered list of recommended actions
-    has cautions: list = [];    # safety notes / warnings
+    has steps: list [str, ...]= [];       # ordered list of recommended actions
+    has cautions: list[str, ...] = [];    # safety notes / warnings
 }
 
 
@@ -241,6 +244,31 @@ Preserve agricultural terminology and safety notes accurately.
 Return only the translated text as a plain string.
 """;
 
+"""Estimate a reference market price in Kenyan shillings per kilogram for a given crop and region."""
+def estimate_market_price(
+    crop: str,
+    region: str
+) -> float by llm();
+sem estimate_market_price = """
+You are an agricultural market analyst.
+
+Task:
+- Estimate the current typical market price in KENYA for the given crop.
+- The unit MUST be Kenyan shillings per kilogram (KES/kg).
+
+Rules:
+- Use recent, realistic values based on your knowledge.
+- If a specific region is given (e.g. 'Kiambu, Kenya'), prefer that region.
+- If you are unsure, give a reasonable nationwide average.
+
+CRITICAL OUTPUT FORMAT:
+- Respond with ONLY a single positive number.
+- No words, no units, no commas, no explanations.
+- Example of valid output: 45.5
+- Examples of INVALID output: '45 KES/kg', 'about 45', 'Price is 45.5'
+
+Return a float representing KES per kg.
+""";
 
 
 #  Walker interfaces 
@@ -316,7 +344,7 @@ walker LLMAdviceDebug {
     can run with `root entry;
 }
 
-# Startup hook: load environment variables (for Groq, APIs, etc.)
+# Startup hook: load environment variables (for Groq, APIs)
 
 with entry {
     load_dotenv();
