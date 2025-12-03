@@ -14,11 +14,12 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
-    "vite": "^6.4.1",
     "@babel/cli": "^7.28.3",
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
-    "@babel/preset-react": "^7.28.5"
+    "@babel/preset-react": "^7.28.5",
+    "@tailwindcss/vite": "^4.1.17",
+    "vite": "^6.4.1"
   },
   "dependencies": {
     "react": "^19.2.0",

@@ -2,10 +2,12 @@
 import { defineConfig } from "vite";
 import path from "path";
 import { fileURLToPath } from "url";
+import tailwindcss from '@tailwindcss/vite';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+    plugins: [tailwindcss()],
   root: ".", // base folder
   build: {
     rollupOptions: {
