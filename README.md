@@ -462,13 +462,8 @@ Some ideas for evolving the project:
 
 ---
 
-## 10. License
 
-Add your preferred license here (e.g., MIT, Apache‑2.0) or keep the project private if it is coursework or internal work.
-
----
-
-## 11. Acknowledgements
+## 10. Acknowledgements
 
 - Jac language and ecosystem for providing the graph‑native, LLM‑integrated runtime.
 - Groq (or your chosen LLM provider) for the underlying model powering the agronomy reasoning.
