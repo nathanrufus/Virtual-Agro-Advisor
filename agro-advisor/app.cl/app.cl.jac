@@ -5,10 +5,6 @@ cl import from "@jac-client/utils" {
     Route
 }
 
-# cl import from .TopNav { TopNav }
-# cl import from .PageShell { PageShell }
-
-# cl import from .AdvisorPage { AdvisorPage }
 cl {
     # Simple placeholders for now – you can replace with real pages later
     def AdminPage() -> any {
