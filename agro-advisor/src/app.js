@@ -25,21 +25,32 @@ function AdvisorPage() {
     setLoading(true);
     setError("");
     try {
+      console.log("[AdvisorPage] Sending request with:", {"crop": crop, "location": location, "problemText": problemText, "language": language, "includeWeather": includeWeather, "includeMarket": includeMarket, "sessionId": sessionId});
       let result = await __jacSpawn("AgroAdvisor", "", {"crop": crop, "problem_text": problemText, "location": location, "session_id": sessionId, "language": language, "include_weather": includeWeather, "include_market": includeMarket});
-      console.log("AgroAdvisor result object:", result);
-      let payload = result;
-      if (result && result.report) {
-        payload = result.report;
+      console.log("[AdvisorPage] Raw AgroAdvisor result:", result);
+      console.log("[AdvisorPage] result.reports:", result && result.reports);
+      let payload = null;
+      if (result && result.reports && result.reports.length > 0) {
+        payload = result.reports[result.reports.length - 1];
+      } else {
+        console.warn("[AdvisorPage] No reports returned from AgroAdvisor");
+        setError("No advice returned from AgroAdvisor.");
+        return;
       }
+      console.log("[AdvisorPage] Selected payload:", payload);
+      console.log("[AdvisorPage] payload.advice_plan:", payload.advice_plan);
       if (payload.session_id) {
         setSessionId(payload.session_id);
+      } else {
+        console.warn("[AdvisorPage] payload.session_id missing");
       }
       setAdvicePlan(payload.advice_plan);
       setWeatherSummary(payload.weather_summary);
       setMarketSummary(payload.market_summary);
       setMeta(payload.meta);
+      console.log("[AdvisorPage] advicePlan state after set:", payload.advice_plan);
     } catch {
-      console.error("AgroAdvisor error:", err);
+      console.error("[AdvisorPage] AgroAdvisor error:", err);
       setError("Something went wrong while fetching advice. Please try again.");
     } finally {
       setLoading(false);

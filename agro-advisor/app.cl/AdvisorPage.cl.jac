@@ -1,10 +1,5 @@
 cl import from react { useState }
 
-# cl import from .AdvisorForm { AdvisorForm }
-# cl import from .AdvicePlanPanel { AdvicePlanPanel }
-# cl import from .WeatherSummaryPanel { WeatherSummaryPanel }
-# cl import from .MarketSummaryPanel { MarketSummaryPanel }
-   
 cl {
     def AdvisorPage() -> any {
         let [crop, setCrop] = useState("maize");
@@ -23,16 +18,25 @@ cl {
 
         async def handleGetAdvice() -> None {
             if not problemText or not problemText.trim() {
-                    setError("Please describe the problem you are facing.");
-                    return;
-                }
-
+                setError("Please describe the problem you are facing.");
+                return;
+            }
 
             setLoading(True);
             setError("");
 
             try {
-                let result = await root spawn AgroAdvisor(
+                console.log("[AdvisorPage] Sending request with:", {
+                    "crop": crop,
+                    "location": location,
+                    "problemText": problemText,
+                    "language": language,
+                    "includeWeather": includeWeather,
+                    "includeMarket": includeMarket,
+                    "sessionId": sessionId
+                });
+
+                result = root spawn AgroAdvisor(
                     crop=crop,
                     problem_text=problemText,
                     location=location,
@@ -42,23 +46,37 @@ cl {
                     include_market=includeMarket
                 );
 
-                console.log("AgroAdvisor result object:", result);
+                console.log("[AdvisorPage] Raw AgroAdvisor result:", result);
+                console.log("[AdvisorPage] result.reports:", result && result.reports);
 
-                let payload = result;
-                if (result && result.report) {
-                    payload = result.report;
+                let payload = None;
+
+                # IMPORTANT: AgroAdvisor's own report is the LAST item
+                if result and result.reports and result.reports.length > 0 {
+                    payload = result.reports[result.reports.length - 1];
+                } else {
+                    console.warn("[AdvisorPage] No reports returned from AgroAdvisor");
+                    setError("No advice returned from AgroAdvisor.");
+                    return;
                 }
 
-                if (payload.session_id) {
+                console.log("[AdvisorPage] Selected payload:", payload);
+                console.log("[AdvisorPage] payload.advice_plan:", payload.advice_plan);
+
+                if payload.session_id {
                     setSessionId(payload.session_id);
+                } else {
+                    console.warn("[AdvisorPage] payload.session_id missing");
                 }
 
                 setAdvicePlan(payload.advice_plan);
                 setWeatherSummary(payload.weather_summary);
                 setMarketSummary(payload.market_summary);
                 setMeta(payload.meta);
+
+                console.log("[AdvisorPage] advicePlan state after set:", payload.advice_plan);
             } except (err) {
-                console.error("AgroAdvisor error:", err);
+                console.error("[AdvisorPage] AgroAdvisor error:", err);
                 setError("Something went wrong while fetching advice. Please try again.");
             } finally {
                 setLoading(False);
