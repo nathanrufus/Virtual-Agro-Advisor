@@ -7,8 +7,9 @@ cl {
 
         return <form
             onSubmit={handleSubmit}
-            className="space-y-5 rounded-2xl border border-lime-100 bg-white p-5 shadow-sm"
+            className="flex h-full min-h-[520px] flex-col rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"
         >
+            # {/* Header */}
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold text-slate-900">
                     Get Personalized Agricultural Advice
@@ -18,10 +19,11 @@ cl {
                 </p>
             </div>
 
-            <div className="space-y-4">
+            # {/* Main fields */}
+            <div className="mt-4 flex-1 space-y-4 overflow-y-auto pr-1">
                 <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-700">
-                        Select Crop
+                    <label className="text-sm font-medium text-slate-800">
+                        Give Crop
                     </label>
                     <input
                         type="text"
@@ -30,12 +32,12 @@ cl {
                         onChange={lambda e: any -> None {
                             props.onCropChange(e.target.value);
                         }}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-lime-500 focus:bg-white focus:ring-1 focus:ring-lime-500"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"
                     />
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-700">
+                    <label className="text-sm font-medium text-slate-800">
                         Enter Location
                     </label>
                     <input
@@ -45,12 +47,12 @@ cl {
                         onChange={lambda e: any -> None {
                             props.onLocationChange(e.target.value);
                         }}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-lime-500 focus:bg-white focus:ring-1 focus:ring-lime-500"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"
                     />
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-700">
+                    <label className="text-sm font-medium text-slate-800">
                         Describe Your Problem
                     </label>
                     <textarea
@@ -60,86 +62,109 @@ cl {
                         onChange={lambda e: any -> None {
                             props.onProblemTextChange(e.target.value);
                         }}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-lime-500 focus:bg-white focus:ring-1 focus:ring-lime-500"
+                        className="w-full min-h-[120px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600 resize-y"
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-xs font-medium text-slate-700">
+             # {/* LANGUAGE SEGMENTED CONTROL */}
+                <div className="space-y-2 pt-1">
+                    <label className="text-sm font-medium text-slate-800">
                         Select Language
                     </label>
-                    <div className="inline-flex gap-1 rounded-full bg-slate-100 p-1">
-                        <button
-                            type="button"
-                            className={
-                                "rounded-full px-4 py-1 text-xs font-medium " +
-                                (
-                                    "bg-lime-500 text-white shadow-sm"
-                                    if props.language == "en"
-                                    else "text-slate-600")
-                            }
-                            onClick={lambda e: any -> None {
-                                props.onLanguageChange("en");
-                            }}
-                        >
-                            English
-                        </button>
-                        <button
-                            type="button"
-                            className={
-                                "rounded-full px-4 py-1 text-xs font-medium " +
-                                (
-                                    "bg-lime-500 text-white shadow-sm"
-                                    if props.language == "sw"
-                                    else "text-slate-600")
-                            }
-                            onClick={lambda e: any -> None {
-                                props.onLanguageChange("sw");
-                            }}
-                        >
-                            Swahili
-                        </button>
+
+                    <div className="flex gap-2">
+                        # {/* EN - English */}
+                        <label className="flex-1">
+                            <input
+                                type="radio"
+                                name="advisor-language"
+                                value="en"
+                                checked={props.language == "en"}
+                                onChange={lambda e: any -> None {
+                                    props.onLanguageChange("en");
+                                }}
+                                className="peer sr-only"
+                            />
+                            <div
+                                className="w-full rounded-md border border-green-600 bg-white px-4 py-2 text-sm font-semibold text-green-700 transition peer-checked:bg-green-600 peer-checked:text-white">
+                                EN - English
+                            </div>
+                        </label>
+
+                        # {/* SW - Swahili */}
+                        <label className="flex-1">
+                            <input
+                                type="radio"
+                                name="advisor-language"
+                                value="sw"
+                                checked={props.language == "sw"}
+                                onChange={lambda e: any -> None {
+                                    props.onLanguageChange("sw");
+                                }}
+                                className="peer sr-only"
+                            />
+                            <div
+                                className=" w-full rounded-md border border-green-600 bg-white px-4 py-2 text-sm font-semibold text-green-700 transition peer-checked:bg-green-600 peer-checked:text-white">
+                                SW - Swahili
+                            </div>
+                        </label>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4">
-                    <label className="flex items-center gap-2 text-xs text-slate-700">
-                        <input
-                            type="checkbox"
-                            checked={props.includeWeather}
-                            onChange={lambda e: any -> None {
-                                props.onIncludeWeatherChange(e.target.checked);
-                            }}
-                            className="h-4 w-4 rounded border-slate-300 text-lime-500 focus:ring-lime-500"
-                        />
-                        Include Weather Forecast
+                # {/* DIVIDER LIKE IN THE DESIGN */}
+                <div className="border-t border-slate-200 pt-3" />
+
+                # {/* TOGGLE SWITCHES */}
+                <div className="space-y-3 text-sm text-slate-800">
+                    # {/* Include Weather */}
+                    <label className="flex items-center gap-3">
+                        <span className="relative inline-flex h-6 w-11 items-center">
+                            <input
+                                type="checkbox"
+                                checked={props.includeWeather}
+                                onChange={lambda e: any -> None {
+                                    props.onIncludeWeatherChange(e.target.checked);
+                                }}
+                                className="peer sr-only"
+                            />
+                            <span
+                                className="absolute inset-0 rounded-full bg-slate-300 transition peer-checked:bg-green-600"/>
+                            <span
+                                className="absolute h-5 w-5 rounded-full bg-white shadow translate-x-1 transition peer-checked:translate-x-5"/>
+                        </span>
+                        <span>Include Weather</span>
                     </label>
 
-                    <label className="flex items-center gap-2 text-xs text-slate-700">
-                        <input
-                            type="checkbox"
-                            checked={props.includeMarket}
-                            onChange={lambda e: any -> None {
-                                props.onIncludeMarketChange(e.target.checked);
-                            }}
-                            className="h-4 w-4 rounded border-slate-300 text-lime-500 focus:ring-lime-500"
-                        />
-                        Include Market Prices
+                    # {/* Include Market */}
+                    <label className="flex items-center gap-3">
+                        <span className="relative inline-flex h-6 w-11 items-center">
+                            <input
+                                type="checkbox"
+                                checked={props.includeMarket}
+                                onChange={lambda e: any -> None {
+                                    props.onIncludeMarketChange(e.target.checked);
+                                }}
+                                className="peer sr-only"
+                            />
+                            <span
+                                className=" absolute inset-0 rounded-full bg-slate-300 transition peer-checked:bg-green-600"/>
+                            <span
+                                className=" absolute h-5 w-5 rounded-full bg-white shadow translate-x-1 transition peer-checked:translate-x-5"/>
+                        </span>
+                        <span>Include Market</span>
                     </label>
                 </div>
 
-                <div>
-                    <button
-                        type="submit"
-                        disabled={props.loading}
-                        className={
-                            "mt-1 inline-flex w-full items-center justify-center rounded-xl bg-lime-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition " +
-                            ( "opacity-80" if props.loading   else  "hover:bg-lime-600")
-                        }
-                    >
-                        {"Getting advice..." if props.loading   else "Get Advice"}
-                    </button>
-                </div>
+            </div>
+
+            # {/* CTA BUTTON */}
+            <div className="mt-4">
+                <button
+                    type="submit"
+                    className="inline-flex w-full items-center justify-center rounded-full bg-green-500 px-4 py-3 text-base font-semibold text-white shadow-md hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+                >
+                    Get Advice
+                </button>
             </div>
         </form>;
     }

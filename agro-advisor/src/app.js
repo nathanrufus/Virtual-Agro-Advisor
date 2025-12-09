@@ -2,6 +2,8 @@ import {__jacJsx, __jacSpawn} from "@jac-client/utils";
 import { useState } from "react";
 import "..//global.css";
 import { Router, Routes, Route } from "@jac-client/utils";
+import { useEffect } from "react";
+import { subDays, format } from "date-fns";
 import { Link } from "@jac-client/utils";
 function AdvisorPage() {
   let [crop, setCrop] = useState("maize");
@@ -63,36 +65,328 @@ function AdvisorForm(props) {
     e.preventDefault();
     props.onSubmit();
   }
-  return __jacJsx("form", {"onSubmit": handleSubmit, "className": "space-y-5 rounded-2xl border border-lime-100 bg-white p-5 shadow-sm"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("h1", {"className": "text-2xl font-semibold text-slate-900"}, ["Get Personalized Agricultural Advice"]), __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Fill in the details below to receive a tailored plan for your crops."])]), __jacJsx("div", {"className": "space-y-4"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-xs font-medium text-slate-700"}, ["Select Crop"]), __jacJsx("input", {"type": "text", "placeholder": "e.g., Maize, Wheat, Soybeans", "value": props.crop, "onChange": e => {
+  return __jacJsx("form", {"onSubmit": handleSubmit, "className": "flex h-full min-h-[520px] flex-col rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("h1", {"className": "text-2xl font-semibold text-slate-900"}, ["Get Personalized Agricultural Advice"]), __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Fill in the details below to receive a tailored plan for your crops."])]), __jacJsx("div", {"className": "mt-4 flex-1 space-y-4 overflow-y-auto pr-1"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Give Crop"]), __jacJsx("input", {"type": "text", "placeholder": "e.g., Maize, Wheat, Soybeans", "value": props.crop, "onChange": e => {
     props.onCropChange(e.target.value);
-  }, "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-lime-500 focus:bg-white focus:ring-1 focus:ring-lime-500"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-xs font-medium text-slate-700"}, ["Enter Location"]), __jacJsx("input", {"type": "text", "placeholder": "e.g., Kisumu, Kenya", "value": props.location, "onChange": e => {
+  }, "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Enter Location"]), __jacJsx("input", {"type": "text", "placeholder": "e.g., Kisumu, Kenya", "value": props.location, "onChange": e => {
     props.onLocationChange(e.target.value);
-  }, "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-lime-500 focus:bg-white focus:ring-1 focus:ring-lime-500"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-xs font-medium text-slate-700"}, ["Describe Your Problem"]), __jacJsx("textarea", {"rows": 4, "placeholder": "Describe the issue you are facing in detail...", "value": props.problemText, "onChange": e => {
+  }, "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Describe Your Problem"]), __jacJsx("textarea", {"rows": 4, "placeholder": "Describe the issue you are facing in detail...", "value": props.problemText, "onChange": e => {
     props.onProblemTextChange(e.target.value);
-  }, "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-lime-500 focus:bg-white focus:ring-1 focus:ring-lime-500"}, [])]), __jacJsx("div", {"className": "space-y-2"}, [__jacJsx("label", {"className": "text-xs font-medium text-slate-700"}, ["Select Language"]), __jacJsx("div", {"className": "inline-flex gap-1 rounded-full bg-slate-100 p-1"}, [__jacJsx("button", {"type": "button", "className": "rounded-full px-4 py-1 text-xs font-medium " + props.language === "en" ? "bg-lime-500 text-white shadow-sm" : "text-slate-600", "onClick": e => {
+  }, "className": "w-full min-h-[120px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600 resize-y"}, [])]), __jacJsx("div", {"className": "space-y-2 pt-1"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Select Language"]), __jacJsx("div", {"className": "flex gap-2"}, [__jacJsx("label", {"className": "flex-1"}, [__jacJsx("input", {"type": "radio", "name": "advisor-language", "value": "en", "checked": props.language === "en", "onChange": e => {
     props.onLanguageChange("en");
-  }}, ["English"]), __jacJsx("button", {"type": "button", "className": "rounded-full px-4 py-1 text-xs font-medium " + props.language === "sw" ? "bg-lime-500 text-white shadow-sm" : "text-slate-600", "onClick": e => {
+  }, "className": "peer sr-only"}, []), __jacJsx("div", {"className": "w-full rounded-md border border-green-600 bg-white px-4 py-2 text-sm font-semibold text-green-700 transition peer-checked:bg-green-600 peer-checked:text-white"}, ["EN - English"])]), __jacJsx("label", {"className": "flex-1"}, [__jacJsx("input", {"type": "radio", "name": "advisor-language", "value": "sw", "checked": props.language === "sw", "onChange": e => {
     props.onLanguageChange("sw");
-  }}, ["Swahili"])])]), __jacJsx("div", {"className": "flex flex-wrap gap-4"}, [__jacJsx("label", {"className": "flex items-center gap-2 text-xs text-slate-700"}, [__jacJsx("input", {"type": "checkbox", "checked": props.includeWeather, "onChange": e => {
+  }, "className": "peer sr-only"}, []), __jacJsx("div", {"className": " w-full rounded-md border border-green-600 bg-white px-4 py-2 text-sm font-semibold text-green-700 transition peer-checked:bg-green-600 peer-checked:text-white"}, ["SW - Swahili"])])])]), __jacJsx("div", {"className": "border-t border-slate-200 pt-3"}, []), __jacJsx("div", {"className": "space-y-3 text-sm text-slate-800"}, [__jacJsx("label", {"className": "flex items-center gap-3"}, [__jacJsx("span", {"className": "relative inline-flex h-6 w-11 items-center"}, [__jacJsx("input", {"type": "checkbox", "checked": props.includeWeather, "onChange": e => {
     props.onIncludeWeatherChange(e.target.checked);
-  }, "className": "h-4 w-4 rounded border-slate-300 text-lime-500 focus:ring-lime-500"}, []), "Include Weather Forecast"]), __jacJsx("label", {"className": "flex items-center gap-2 text-xs text-slate-700"}, [__jacJsx("input", {"type": "checkbox", "checked": props.includeMarket, "onChange": e => {
+  }, "className": "peer sr-only"}, []), __jacJsx("span", {"className": "absolute inset-0 rounded-full bg-slate-300 transition peer-checked:bg-green-600"}, []), __jacJsx("span", {"className": "absolute h-5 w-5 rounded-full bg-white shadow translate-x-1 transition peer-checked:translate-x-5"}, [])]), __jacJsx("span", {}, ["Include Weather"])]), __jacJsx("label", {"className": "flex items-center gap-3"}, [__jacJsx("span", {"className": "relative inline-flex h-6 w-11 items-center"}, [__jacJsx("input", {"type": "checkbox", "checked": props.includeMarket, "onChange": e => {
     props.onIncludeMarketChange(e.target.checked);
-  }, "className": "h-4 w-4 rounded border-slate-300 text-lime-500 focus:ring-lime-500"}, []), "Include Market Prices"])]), __jacJsx("div", {}, [__jacJsx("button", {"type": "submit", "disabled": props.loading, "className": "mt-1 inline-flex w-full items-center justify-center rounded-xl bg-lime-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition " + props.loading ? "opacity-80" : "hover:bg-lime-600"}, [props.loading ? "Getting advice..." : "Get Advice"])])])]);
-}
-function AdminPage() {
-  return __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500"}, ["Admin screens coming soon…"]);
-}
-function DebugPage() {
-  return __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500"}, ["Debug tools coming soon…"]);
+  }, "className": "peer sr-only"}, []), __jacJsx("span", {"className": " absolute inset-0 rounded-full bg-slate-300 transition peer-checked:bg-green-600"}, []), __jacJsx("span", {"className": " absolute h-5 w-5 rounded-full bg-white shadow translate-x-1 transition peer-checked:translate-x-5"}, [])]), __jacJsx("span", {}, ["Include Market"])])])]), __jacJsx("div", {"className": "mt-4"}, [__jacJsx("button", {"type": "submit", "className": "inline-flex w-full items-center justify-center rounded-full bg-green-500 px-4 py-3 text-base font-semibold text-white shadow-md hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"}, ["Get Advice"])])]);
 }
 function app() {
   return __jacJsx(Router, {}, [__jacJsx("div", {"className": "min-h-screen bg-[#F3F7F2] text-slate-900"}, [__jacJsx(TopNav, {}, []), __jacJsx(PageShell, {}, [__jacJsx(Routes, {}, [__jacJsx(Route, {"path": "/", "element": __jacJsx(AdvisorPage, {}, [])}, []), __jacJsx(Route, {"path": "/admin", "element": __jacJsx(AdminPage, {}, [])}, []), __jacJsx(Route, {"path": "/debug", "element": __jacJsx(DebugPage, {}, [])}, [])])])])]);
 }
 function MarketSummaryPanel(props) {
   if (!props.summary) {
-    return __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-500"}, ["Market summary will appear here when you request it."]);
+    return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4 text-sm text-slate-500"}, ["Market summary will appear here when you request it."]);
   }
-  return __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "text-sm font-semibold text-slate-900"}, ["Market Summary"])]), __jacJsx("p", {"className": "text-sm text-slate-700"}, [props.summary.summary_text])]);
+  return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "text-sm font-semibold text-slate-900"}, ["Market Summary"])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-sm text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
+}
+function extractReports(res) {
+  if (!res) {
+    return [];
+  }
+  if (!"reports" in res || !res["reports"]) {
+    return [];
+  }
+  let reports = res["reports"];
+  if (reports.length === 1 && Array.isArray(reports[0])) {
+    return reports[0];
+  }
+  return reports;
+}
+function computeStats(sessionsList, adviceList) {
+  let stats = {"totalSessions": sessionsList.length, "adviceEntries": adviceList.length, "latestSessionTime": ""};
+  return stats;
+}
+function formatShortDatetime(dt) {
+  if (!dt) {
+    return "";
+  }
+  if (dt.length >= 16) {
+    return dt.slice(0, 16);
+  }
+  return dt;
+}
+function parseCacheKey(cache_key) {
+  if (!cache_key) {
+    return {"crop": "", "region": "", "lang": "", "problem": ""};
+  }
+  let parts = cache_key.split("|");
+  let crop = parts.length > 0 ? parts[0] : "";
+  let region = parts.length > 1 ? parts[1] : "";
+  let lang = parts.length > 2 ? parts[2] : "";
+  let problem = parts.length > 0 ? parts[parts.length - 1] : "";
+  return {"crop": crop, "region": region, "lang": lang, "problem": problem};
+}
+function makeCutoffString(days) {
+  let nowMs = Date.now();
+  let cutoffDate = subDays(nowMs, days);
+  let cutoffStr = format(cutoffDate, "yyyy-MM-dd HH:mm:ss");
+  return cutoffStr;
+}
+function AdminPage() {
+  let [loading, setLoading] = useState(false);
+  let [error, setError] = useState("");
+  let [flash, setFlash] = useState("");
+  let [sessionRows, setSessionRows] = useState([]);
+  let [adviceRows, setAdviceRows] = useState([]);
+  let [stats, setStats] = useState({"totalSessions": 0, "adviceEntries": 0, "latestSessionTime": ""});
+  let [cleaningSessions, setCleaningSessions] = useState(false);
+  let [clearingCache, setClearingCache] = useState(false);
+  async function loadAdminData() {
+    setLoading(true);
+    setError("");
+    setFlash("");
+    try {
+      let sessionsRes = await __jacSpawn("GetAllSessions", "", {});
+      let adviceRes = await __jacSpawn("GetAllAdviceCache", "", {});
+      console.log("GetAllSessions result:", sessionsRes);
+      console.log("GetAllAdviceCache result:", adviceRes);
+      let sessionsList = extractReports(sessionsRes);
+      let adviceList = extractReports(adviceRes);
+      setSessionRows(sessionsList);
+      setAdviceRows(adviceList);
+      setStats(computeStats(sessionsList, adviceList));
+    } catch (err) {
+      console.error("AdminPage loadAdminData exception:", err);
+      setError("Failed to load admin data.");
+    } finally {
+      setLoading(false);
+    }
+  }
+  async function handleCleanupSessions() {
+    let days = 7;
+    if (!window.confirm("Delete sessions  This cannot be undone.")) {
+      return;
+    }
+    setCleaningSessions(true);
+    setError("");
+    setFlash("");
+    try {
+      let cutoff = makeCutoffString(days);
+      let res = await __jacSpawn("CleanupOldSessions", "", {"cutoff": "ALL"});
+      console.log("CleanupOldSessions result:", res);
+      let deleted = 0;
+      if (res && "reports" in res && res.reports.length > 0) {
+        let r0 = res.reports[0];
+        if ("deleted_count" in r0) {
+          deleted = r0.deleted_count;
+        }
+      }
+      let suffix = deleted === 1 ? "" : "s";
+      setFlash("Removed " + deleted + " session" + suffix + " older than " + days + " days.");
+      await loadAdminData();
+    } catch (err) {
+      console.error("handleCleanupSessions exception:", err);
+      setError("Failed to cleanup sessions.");
+    } finally {
+      setCleaningSessions(false);
+    }
+  }
+  async function handleClearCache() {
+    if (!window.confirm("Clear all advice cache entries? This cannot be undone.")) {
+      return;
+    }
+    setClearingCache(true);
+    setError("");
+    setFlash("");
+    try {
+      let res = await __jacSpawn("ClearAdviceCache", "", {});
+      console.log("ClearAdviceCache result:", res);
+      let deleted = 0;
+      if (res && "reports" in res && res.reports.length > 0) {
+        let r0 = res.reports[0];
+        if ("deleted_count" in r0) {
+          deleted = r0.deleted_count;
+        }
+      }
+      let suffix = deleted === 1 ? "y" : "ies";
+      setFlash("Cleared " + deleted + " advice cache entr" + suffix + ".");
+      await loadAdminData();
+    } catch (err) {
+      console.error("handleClearCache exception:", err);
+      setError("Failed to clear advice cache.");
+    } finally {
+      setClearingCache(false);
+    }
+  }
+  useEffect(() => {
+    loadAdminData();
+  }, []);
+  return __jacJsx("div", {"className": "space-y-6"}, [__jacJsx("div", {"className": "flex flex-wrap items-center justify-between gap-3"}, [__jacJsx("div", {}, [__jacJsx("h1", {"className": "text-xl font-semibold text-slate-900"}, ["Admin dashboard"]), __jacJsx("p", {"className": "mt-1 text-xs text-slate-500"}, ["Inspect sessions and advice cache, and run maintenance tasks."])]), __jacJsx("div", {"className": "flex flex-wrap gap-2"}, [__jacJsx("button", {"className": "rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50 disabled:opacity-60", "disabled": loading, "onClick": e => {
+    loadAdminData();
+  }}, [loading ? "Refreshing\u2026" : "Refresh"]), __jacJsx("button", {"className": "rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60", "disabled": cleaningSessions, "onClick": e => {
+    handleCleanupSessions();
+  }}, [cleaningSessions ? "Cleaning sessions\u2026" : "Cleanup old sessions"]), __jacJsx("button", {"className": "rounded-lg border border-rose-300 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-900 hover:bg-rose-100 disabled:opacity-60", "disabled": clearingCache, "onClick": e => {
+    handleClearCache();
+  }}, [clearingCache ? "clear advice cache" : "clear advice cache"])])]), flash && __jacJsx("div", {"className": "rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-800"}, [flash]), error && __jacJsx("div", {"className": "rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700"}, [error]), __jacJsx("div", {"className": "grid gap-4 md:grid-cols-3"}, [__jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4"}, [__jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["Total sessions"]), __jacJsx("p", {"className": "mt-1 text-xl font-semibold text-slate-900"}, [stats["totalSessions"]])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4"}, [__jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["Advice cache entries"]), __jacJsx("p", {"className": "mt-1 text-xl font-semibold text-slate-900"}, [stats["adviceEntries"]])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4"}, [__jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["Latest session activity"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [stats["latestSessionTime"] ? formatShortDatetime(stats["latestSessionTime"]) : "_"])])]), __jacJsx("div", {"className": "grid gap-4 lg:grid-cols-2"}, [__jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700"}, [__jacJsx("div", {"className": "mb-3 flex items-center justify-between"}, [__jacJsx("h2", {"className": "text-sm font-semibold text-slate-800"}, ["Sessions"]), __jacJsx("span", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["GetAllSessions"])]), sessionRows && sessionRows.length > 0 ? __jacJsx("div", {"className": "overflow-x-auto"}, [__jacJsx("table", {"className": "min-w-full text-left text-[11px]"}, [__jacJsx("thead", {"className": "border-b border-slate-100 text-[10px] uppercase tracking-wide text-slate-400"}, [__jacJsx("tr", {}, [__jacJsx("th", {"className": "py-1 pr-3"}, ["Session ID"]), __jacJsx("th", {"className": "py-1 pr-3"}, ["Lang"]), __jacJsx("th", {"className": "py-1 pr-3"}, ["Created"]), __jacJsx("th", {"className": "py-1"}, ["Last active"])])]), __jacJsx("tbody", {"className": "text-xs"}, [sessionRows.map((sess, idx) => {
+    return __jacJsx("tr", {"key": idx, "className": "border-b border-slate-50 last:border-0"}, [__jacJsx("td", {"className": "py-1 pr-3 font-mono"}, [sess["session_id"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [sess["lang"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [formatShortDatetime(sess["created_at"] || "")]), __jacJsx("td", {"className": "py-1"}, [formatShortDatetime(sess["last_active_at"] || "")])]);
+  })])]), sessionRows.length > 10 && __jacJsx("p", {"className": "mt-2 text-[10px] text-slate-400"}, ["Showing first 10 sessions."])]) : __jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["No sessions yet."])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700"}, [__jacJsx("div", {"className": "mb-3 flex items-center justify-between"}, [__jacJsx("h2", {"className": "text-sm font-semibold text-slate-800"}, ["Advice cache"]), __jacJsx("span", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["GetAllAdviceCache"])]), adviceRows && adviceRows.length > 0 ? __jacJsx("div", {"className": "overflow-x-auto"}, [__jacJsx("table", {"className": "min-w-full text-left text-[11px]"}, [__jacJsx("thead", {"className": "border-b border-slate-100 text-[10px] uppercase tracking-wide text-slate-400"}, [__jacJsx("tr", {}, [__jacJsx("th", {"className": "py-1 pr-3"}, ["Crop"]), __jacJsx("th", {"className": "py-1 pr-3"}, ["Region"]), __jacJsx("th", {"className": "py-1 pr-3"}, ["Problem"]), __jacJsx("th", {"className": "py-1 pr-3"}, ["Usage"]), __jacJsx("th", {"className": "py-1"}, ["Last used"])])]), __jacJsx("tbody", {"className": "text-xs"}, [adviceRows.map((entry, idx) => {
+    let meta = parseCacheKey(entry["cache_key"] || "");
+    return __jacJsx("tr", {"key": idx, "className": "border-b border-slate-50 last:border-0"}, [__jacJsx("td", {"className": "py-1 pr-3"}, [meta["crop"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [meta["region"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [meta["problem"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [entry["usage_count"] || 0]), __jacJsx("td", {"className": "py-1"}, [formatShortDatetime(entry["last_used_at"] || "")])]);
+  })])]), adviceRows.length > 10 && __jacJsx("p", {"className": "mt-2 text-[10px] text-slate-400"}, ["Showing first 10 advice cache entries."])]) : __jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["No advice cache entries yet."])])])]);
+}
+function extractAnalysis(res) {
+  if (!res) {
+    return null;
+  }
+  if ("problem_type" in res || "severity" in res) {
+    return res;
+  }
+  if ("reports" in res && res["reports"]) {
+    let first = res["reports"][0];
+    if ("analysis" in first) {
+      return first["analysis"];
+    }
+    if ("problem_type" in first || "severity" in first) {
+      return first;
+    }
+  }
+  if ("result" in res) {
+    let r = res["result"];
+    if ("analysis" in r) {
+      return r["analysis"];
+    }
+    if ("problem_type" in r || "severity" in r) {
+      return r;
+    }
+  }
+  return null;
+}
+function extractAdvice(res) {
+  if (!res) {
+    return null;
+  }
+  if ("overview" in res || "steps" in res || "cautions" in res) {
+    return res;
+  }
+  if ("reports" in res && res["reports"] && res["reports"].length > 0) {
+    let first = res["reports"][0];
+    if ("advice_plan" in first) {
+      return first["advice_plan"];
+    }
+    if ("advice" in first) {
+      return first["advice"];
+    }
+    if ("overview" in first || "steps" in first || "cautions" in first) {
+      return first;
+    }
+  }
+  if ("result" in res) {
+    let r = res["result"];
+    if ("advice_plan" in r) {
+      return r["advice_plan"];
+    }
+    if ("advice" in r) {
+      return r["advice"];
+    }
+    if ("overview" in r || "steps" in r || "cautions" in r) {
+      return r;
+    }
+  }
+  return null;
+}
+function DebugPage() {
+  let [crop, setCrop] = useState("maize");
+  let [location, setLocation] = useState("Kiambu, Kenya");
+  let [problemText, setProblemText] = useState("");
+  let [analysisResult, setAnalysisResult] = useState(null);
+  let [adviceResult, setAdviceResult] = useState(null);
+  let [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  let [loadingAdvice, setLoadingAdvice] = useState(false);
+  let [error, setError] = useState("");
+  async function runAnalyzeDebug() {
+    if (!problemText || problemText.trim() === "") {
+      window.alert("Please enter a problem description before running LLMAnalyzeDebug.");
+      return;
+    }
+    setLoadingAnalysis(true);
+    setError("");
+    setAnalysisResult(null);
+    try {
+      let res = await __jacSpawn("LLMAnalyzeDebug", "", {"crop": crop, "problem_text": problemText, "location": location, "language": "en"});
+      console.log("LLMAnalyzeDebug result:", res);
+      if ("error" in res) {
+        console.error("LLMAnalyzeDebug error:", res.error);
+        setError("LLMAnalyzeDebug failed: " + res.error);
+      } else {
+        setAnalysisResult(res);
+      }
+    } catch (err) {
+      console.error("LLMAnalyzeDebug exception:", err);
+      setError("Unexpected error in LLMAnalyzeDebug.");
+    } finally {
+      setLoadingAnalysis(false);
+    }
+  }
+  async function runAdviceDebug() {
+    if (!problemText || problemText.trim() === "") {
+      window.alert("Please enter a problem description before running LLMAdviceDebug.");
+      return;
+    }
+    setLoadingAdvice(true);
+    setError("");
+    setAdviceResult(null);
+    try {
+      let res = await __jacSpawn("LLMAdviceDebug", "", {"crop": crop, "problem_text": problemText, "location": location, "language": "en", "include_weather": true, "include_market": true});
+      console.log("LLMAdviceDebug result:", res);
+      if ("error" in res) {
+        console.error("LLMAdviceDebug error:", res.error);
+        setError("LLMAdviceDebug failed: " + res.error);
+      } else {
+        setAdviceResult(res);
+      }
+    } catch (err) {
+      console.error("LLMAdviceDebug exception:", err);
+      setError("Unexpected error in LLMAdviceDebug.");
+    } finally {
+      setLoadingAdvice(false);
+    }
+  }
+  let analysis = extractAnalysis(analysisResult);
+  let advice = extractAdvice(adviceResult);
+  let severity = "";
+  let problemType = "";
+  if (analysis) {
+    if ("severity" in analysis && analysis["severity"]) {
+      severity = analysis["severity"];
+    }
+    if ("problem_type" in analysis && analysis["problem_type"]) {
+      problemType = analysis["problem_type"];
+    }
+  }
+  let severityClass = "inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-700";
+  if (severity === "low") {
+    severityClass = "inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-800";
+  } else if (severity === "high") {
+    severityClass = "inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-medium text-rose-800";
+  }
+  return __jacJsx("div", {"className": "space-y-6"}, [__jacJsx("div", {}, [__jacJsx("h1", {"className": "text-xl font-semibold text-slate-900"}, ["Debug tools"]), __jacJsx("p", {"className": "mt-1 text-xs text-slate-500"}, ["Run the LLM analysis and advice walkers directly with test inputs."])]), error && __jacJsx("div", {"className": "rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"}, [error]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 space-y-4"}, [__jacJsx("div", {"className": "grid gap-3 sm:grid-cols-2"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-[11px] font-medium text-slate-700"}, ["Crop"]), __jacJsx("input", {"className": "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500", "value": crop, "onChange": e => {
+    setCrop(e.target.value);
+  }, "placeholder": "maize"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-[11px] font-medium text-slate-700"}, ["Location"]), __jacJsx("input", {"className": "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500", "value": location, "onChange": e => {
+    setLocation(e.target.value);
+  }, "placeholder": "Kiambu, Kenya"}, [])])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-[11px] font-medium text-slate-700"}, ["Problem description"]), __jacJsx("textarea", {"className": "h-28 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500", "value": problemText, "onChange": e => {
+    setProblemText(e.target.value);
+  }, "placeholder": "Describe the farmer&#39;s issue here (e.g. leaves are curling and turning yellow)…", "required": true}, [])]), __jacJsx("div", {"className": "flex flex-wrap gap-2"}, [__jacJsx("button", {"className": "rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 disabled:opacity-60", "disabled": loadingAnalysis, "onClick": e => {
+    runAnalyzeDebug();
+  }}, [loadingAnalysis ? "Running LLMAnalyzeDebug\u2026" : "Run LLMAnalyzeDebug"]), __jacJsx("button", {"className": "rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60", "disabled": loadingAdvice, "onClick": e => {
+    runAdviceDebug();
+  }}, [loadingAdvice ? "Running LLMAdviceDebug\u2026" : "Run LLMAdviceDebug"])])]), __jacJsx("div", {"className": "grid gap-4 lg:grid-cols-2"}, [__jacJsx("div", {"className": "flex h-[320px] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h2", {"className": "text-sm font-semibold text-slate-800"}, ["IssueAnalysis"]), __jacJsx("span", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["LLMAnalyzeDebug"])]), __jacJsx("div", {"className": "mt-1 flex-1 overflow-y-auto"}, [analysis ? __jacJsx("div", {"className": "space-y-3"}, [__jacJsx("div", {"className": "flex flex-wrap items-center gap-2"}, [__jacJsx("span", {"className": "text-[11px] uppercase tracking-wide text-slate-400"}, ["Problem type"]), __jacJsx("span", {"className": "inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-800"}, [problemType || "\u2014"]), __jacJsx("span", {"className": "ml-3 text-[11px] uppercase tracking-wide text-slate-400"}, ["Severity"]), __jacJsx("span", {"className": severityClass}, [severity || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-[11px] font-medium text-slate-500"}, ["Key symptoms"]), "key_symptoms" in analysis && analysis["key_symptoms"] && analysis["key_symptoms"].length > 0 ? __jacJsx("ul", {"className": "list-disc space-y-1 pl-5 text-[11px]"}, [analysis["key_symptoms"].map((s, idx) => {
+    return __jacJsx("li", {"key": idx}, [s]);
+  })]) : __jacJsx("p", {"className": "text-[11px] text-slate-400"}, ["No key symptoms returned."])])]) : __jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["Run LLMAnalyzeDebug to see structured IssueAnalysis here."])])]), __jacJsx("div", {"className": "flex h-[320px] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h2", {"className": "text-sm font-semibold text-slate-800"}, ["AdvicePlan"]), __jacJsx("span", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["LLMAdviceDebug"])]), __jacJsx("div", {"className": "mt-1 flex-1 overflow-y-auto"}, [advice ? __jacJsx("div", {"className": "space-y-4"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-[11px] font-medium text-slate-500"}, ["Overview"]), __jacJsx("p", {"className": "text-[11px] leading-relaxed text-slate-700"}, [advice["overview"] || "No overview returned."])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-[11px] font-medium text-slate-500"}, ["Recommended steps"]), "steps" in advice && advice["steps"] && advice["steps"].length > 0 ? __jacJsx("ol", {"className": "space-y-2 text-[11px]"}, [advice["steps"].map((step, idx) => {
+    return __jacJsx("li", {"key": idx, "className": "flex gap-2"}, [__jacJsx("span", {"className": "mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-semibold text-emerald-800"}, [idx + 1]), __jacJsx("span", {"className": "text-slate-700"}, [step])]);
+  })]) : __jacJsx("p", {"className": "text-[11px] text-slate-400"}, ["No steps returned."])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-[11px] font-medium text-slate-500"}, ["Cautions"]), "cautions" in advice && advice["cautions"] && advice["cautions"].length > 0 ? __jacJsx("ul", {"className": "list-disc space-y-1 pl-5 text-[11px] text-slate-700"}, [advice["cautions"].map((c, idx) => {
+    return __jacJsx("li", {"key": idx}, [c]);
+  })]) : __jacJsx("p", {"className": "text-[11px] text-slate-400"}, ["No cautions returned."])])]) : __jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["Run LLMAdviceDebug to see the generated AdvicePlan here."])])])])]);
 }
 function AdvicePlanPanel(props) {
   let sourceLabel = "";
@@ -106,11 +400,11 @@ function AdvicePlanPanel(props) {
       sourceColor = "bg-slate-100 text-slate-700";
     }
   }
-  return __jacJsx("div", {"className": "rounded-2xl border border-lime-100 bg-white p-5 shadow-sm"}, [__jacJsx("div", {"className": "mb-3 flex items-center justify-between gap-2"}, [__jacJsx("h2", {"className": "text-base font-semibold text-slate-900"}, ["Advice Plan"]), sourceLabel && __jacJsx("span", {"className": "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium " + sourceColor}, [__jacJsx("span", {"className": "h-1.5 w-1.5 rounded-full bg-current"}, []), sourceLabel])]), props.error && __jacJsx("p", {"className": "text-sm text-red-600"}, [props.error]), !props.error && props.loading && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Generating advice…"]), !props.error && !props.loading && !props.advicePlan && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Fill in the form on the left and click", " ", __jacJsx("span", {"className": "font-semibold"}, ["Get Advice"]), " to see your plan here."]), !props.error && !props.loading && props.advicePlan && __jacJsx("div", {"className": "space-y-3 text-sm text-slate-800"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Overview"]), __jacJsx("p", {"className": "leading-relaxed"}, [props.advicePlan.overview])]), props.advicePlan.steps && props.advicePlan.steps.length > 0 && __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Step-by-Step Guide"]), __jacJsx("ol", {"className": "list-decimal space-y-1 pl-5"}, [props.advicePlan.steps.map(step => {
+  return __jacJsx("div", {"className": "flex h-[520px] flex-col rounded-2xl border border-lime-100 bg-white p-5 md:p-6 shadow-sm"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between gap-2"}, [__jacJsx("h2", {"className": "text-base font-semibold text-slate-900"}, ["Advice Plan"]), sourceLabel && __jacJsx("span", {"className": "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium " + sourceColor}, [__jacJsx("span", {"className": "h-1.5 w-1.5 rounded-full bg-current"}, []), sourceLabel])]), __jacJsx("div", {"className": "mt-1 flex-1 overflow-y-auto rounded-xl bg-slate-50/70 px-3 py-2"}, [props.error && __jacJsx("p", {"className": "text-sm text-red-600"}, [props.error]), !props.error && props.loading && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Generating advice…"]), !props.error && !props.loading && !props.advicePlan && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Fill in the form on the left and click", " ", __jacJsx("span", {"className": "font-semibold"}, ["Get Advice"]), " to see your plan here."]), !props.error && !props.loading && props.advicePlan && __jacJsx("div", {"className": "space-y-3 text-sm text-slate-800"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Overview"]), __jacJsx("p", {"className": "leading-relaxed"}, [props.advicePlan.overview])]), props.advicePlan.steps && props.advicePlan.steps.length > 0 && __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Step-by-Step Guide"]), __jacJsx("ol", {"className": "list-decimal space-y-1 pl-5"}, [props.advicePlan.steps.map(step => {
     return __jacJsx("li", {}, [step]);
-  })])]), props.advicePlan.cautions && props.advicePlan.cautions.length > 0 && __jacJsx("div", {"className": "rounded-xl bg-amber-50 p-3"}, [__jacJsx("p", {"className": "mb-1 text-sm font-semibold text-amber-800"}, ["Cautions"]), __jacJsx("ul", {"className": "list-disc space-y-1 pl-5 text-xs text-amber-900"}, [props.advicePlan.cautions.map(c => {
+  })])]), props.advicePlan.cautions && props.advicePlan.cautions.length > 0 && __jacJsx("div", {"className": "rounded-xl border border-amber-100 bg-amber-50 p-3"}, [__jacJsx("p", {"className": "mb-1 text-sm font-semibold text-amber-800"}, ["Cautions"]), __jacJsx("ul", {"className": "list-disc space-y-1 pl-5 text-xs text-amber-900"}, [props.advicePlan.cautions.map(c => {
     return __jacJsx("li", {}, [c]);
-  })])])])]);
+  })])])])])]);
 }
 function TopNav() {
   let tabs = [{"id": "advisor", "label": "Advisor", "path": "/"}, {"id": "admin", "label": "Admin", "path": "/admin"}, {"id": "debug", "label": "Debug", "path": "/debug"}];
@@ -120,11 +414,11 @@ function TopNav() {
 }
 function WeatherSummaryPanel(props) {
   if (!props.summary) {
-    return __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-500"}, ["Weather summary will appear here when you request it."]);
+    return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4 text-sm text-slate-500"}, ["Weather summary will appear here when you request it."]);
   }
-  return __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "text-sm font-semibold text-slate-900"}, ["Weather Summary"])]), __jacJsx("p", {"className": "text-sm text-slate-700"}, [props.summary.summary_text])]);
+  return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "text-sm font-semibold text-slate-900"}, ["Weather Summary"])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-sm text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
 }
 function PageShell(props) {
   return __jacJsx("main", {"className": "mx-auto max-w-6xl px-4 py-6"}, [props.children]);
 }
-export { AdminPage, AdvicePlanPanel, AdvisorForm, AdvisorPage, DebugPage, MarketSummaryPanel, PageShell, TopNav, WeatherSummaryPanel, app };
+export { AdminPage, AdvicePlanPanel, AdvisorForm, AdvisorPage, DebugPage, MarketSummaryPanel, PageShell, TopNav, WeatherSummaryPanel, app, computeStats, extractAdvice, extractAnalysis, extractReports, formatShortDatetime, makeCutoffString, parseCacheKey };
