@@ -343,6 +343,17 @@ walker LLMAdviceDebug {
 
     can run with `root entry;
 }
+walker CleanupOldSessions {
+    # Delete Session nodes whose created_at is older than a given cutoff
+    has cutoff: str;
+
+    can run with `root entry;
+}
+
+walker ClearAdviceCache {
+    # Remove all AdviceCache nodes under Memory.
+    can run with `root entry;
+}
 
 # Startup hook: load environment variables (for Groq, APIs)
 

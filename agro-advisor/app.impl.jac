@@ -723,3 +723,90 @@ impl LLMAdviceDebug.run {
         "advice_plan": final_advice
     };
 }
+# CleanupOldSessions implementation
+impl CleanupOldSessions.run {
+    # Special mode: if cutoff is "ALL" (case-insensitive), delete ALL sessions
+    let delete_all = False;
+    if self.cutoff and self.cutoff.lower() == "all" {
+        delete_all = True;
+    }
+
+    # For normal mode we still expect a real cutoff string
+    if not self.cutoff {
+        report {
+            "deleted_count": 0,
+            "message": "No cutoff provided; nothing deleted."
+        };
+        return;
+    }
+
+    let mem_list = [root --> (`?Memory)];
+    if not mem_list {
+        report {
+            "deleted_count": 0,
+            "message": "No Memory node found."
+        };
+        return;
+    }
+    let memory = mem_list[0];
+
+    let deleted = 0;
+
+    # Same traversal as GetAllSessions: Memory -> HAS_SESSION -> Session
+    let sessions = [memory ->:HAS_SESSION:->];
+
+    for sess in sessions {
+        if not delete_all {
+            # Normal mode: only delete if older than cutoff
+            let ts = sess.last_active_at or sess.created_at or "";
+            if not ts {
+                continue;
+            }
+            # Compare lexicographically; both are "YYYY-MM-DD HH:MM:SS"
+            if ts >= self.cutoff {
+                continue;
+            }
+        }
+
+        # Either delete_all == True OR ts < cutoff
+        destroy([sess]);
+        deleted = deleted + 1;
+    }
+
+    report {
+        "deleted_count": deleted,
+        "cutoff": self.cutoff,
+        "mode": ( "all" if delete_all else "cutoff" )
+    };
+}
+
+
+# ClearAdviceCache implementation
+
+impl ClearAdviceCache.run {
+    let mem_list = [root --> (`?Memory)];
+    if not mem_list {
+        report {
+            "deleted_count": 0,
+            "message": "No Memory node found."
+        };
+        return;
+    }
+    let memory = mem_list[0];
+
+    let deleted = 0;
+
+    # Use the SAME traversal as GetAllAdviceCache
+    let sessions = [memory ->:HAS_SESSION:->];
+
+    for sess in sessions {
+        for ac in [sess ->:HAS_ADVICE:->] {
+            del ac;
+            deleted = deleted + 1;
+        }
+    }
+
+    report {
+        "deleted_count": deleted
+    };
+}

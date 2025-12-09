@@ -6,18 +6,6 @@ cl import from "@jac-client/utils" {
 }
 
 cl {
-    # Simple placeholders for now – you can replace with real pages later
-    def AdminPage() -> any {
-        return <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
-            Admin screens coming soon…
-        </div>;
-    }
-
-    def DebugPage() -> any {
-        return <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
-            Debug tools coming soon…
-        </div>;
-    }
 
     def app() -> any {
         return <Router>
