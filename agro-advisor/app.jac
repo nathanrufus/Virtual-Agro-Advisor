@@ -1,5 +1,5 @@
 
-import from byllm.llm { Model }
+import from byllm.lib { Model, Image }
 import from dotenv { load_dotenv }
 include utils; 
 
@@ -8,10 +8,10 @@ glob llm = Model(
     model_name="groq/llama-3.3-70b-versatile",
     verbose=False
 );
-# glob llm = Model(
-#     model_name="gemini/gemini-2.0-flash",
-#     verbose=False
-# );
+glob llm_vision = Model(
+    model_name="gemini/gemini-2.0-flash",
+    verbose=False
+);
 # Core graph schema: nodes
 
 node Memory {
@@ -134,6 +134,11 @@ obj AdvicePlan {
     has cautions: list[str, ...] = [];    # safety notes / warnings
 }
 
+obj ImageSymptomSummary {
+    has labels: list [str, ...] = [];       # e.g. ["yellowing leaves", "leaf spots"]
+    has confidences: list[float, ...] = []; 
+    has notes: str = "";                    # 2–4 sentences about what the model sees
+}
 
 
 # LLM-powered helper functions (byLLM) - declarations only
@@ -171,9 +176,34 @@ def translate_from_pivot(
     lang: str
 ) -> str by llm();
 
+"""Analyze a crop image to extract visible symptoms.
+
+
+"""
+def analyze_crop_image(
+    img: Image,
+    crop: str,
+    location: str
+) -> ImageSymptomSummary by llm_vision();
 
 # sem stubs: behavior constraints for the LLM helpers
+sem analyze_crop_image = """
+You are an agronomy vision assistant.
 
+Given:
+- img: an image of a crop or leaves
+- crop: crop type
+- location: region name
+
+Tasks:
+1. Fill labels with 3–7 short phrases describing visible symptoms
+   (e.g. "yellowing leaf margins", "brown necrotic spots").
+2. Fill confidences with numbers between 0 and 1, same length as labels.
+3. Fill notes with 2–4 sentences summarizing what is visible and
+   the most likely types of problems (pest, disease, nutrient, other).
+
+Return ONLY a valid ImageSymptomSummary object.
+""";
 
 sem analyze_issue = """
 You are an agronomy intake assistant.
@@ -319,6 +349,8 @@ walker AgroAdvisor {
     has language: str = "en";
     has include_weather: bool = True;
     has include_market: bool = True;
+    has include_image: bool = False;  
+    has image_data: str = "";   
 
     can run with `root entry;
 }
@@ -353,6 +385,14 @@ walker CleanupOldSessions {
 walker ClearAdviceCache {
     # Remove all AdviceCache nodes under Memory.
     can run with `root entry;
+}
+
+walker ImageAnalysisAgent {
+    has image_data: str;  # URL or data:image/...;base64,...
+    has crop: str;
+    has location: str;
+
+    can run with Session entry;
 }
 
 # Startup hook: load environment variables (for Groq, APIs)

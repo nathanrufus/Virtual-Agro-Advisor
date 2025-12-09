@@ -64,7 +64,7 @@ cl {
                         {props.advicePlan.steps && props.advicePlan.steps.length > 0 && (
                             <div>
                                 <p className="mb-1 font-semibold">Step-by-Step Guide</p>
-                                <ol className="list-decimal space-y-1 pl-5">
+                                <ol className="space-y-1 pl-5">
                                     {props.advicePlan.steps.map(lambda step: any -> any {
                                         return <li>{step}</li>;
                                     })}
