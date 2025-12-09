@@ -19,6 +19,7 @@ function AdvisorPage() {
   let [weatherSummary, setWeatherSummary] = useState(null);
   let [marketSummary, setMarketSummary] = useState(null);
   let [meta, setMeta] = useState(null);
+  let [imagePreviewUrl, setImagePreviewUrl] = useState("");
   async function handleGetAdvice() {
     if (!problemText || !problemText.trim()) {
       setError("Please describe the problem you are facing.");
@@ -27,7 +28,7 @@ function AdvisorPage() {
     setLoading(true);
     setError("");
     try {
-      console.log("[AdvisorPage] Sending request with:", {"crop": crop, "location": location, "problemText": problemText, "language": language, "includeWeather": includeWeather, "includeMarket": includeMarket, "sessionId": sessionId});
+      console.log("[AdvisorPage] Sending request with:", {"crop": crop, "location": location, "problemText": problemText, "language": language, "includeWeather": includeWeather, "includeMarket": includeMarket, "sessionId": sessionId, "imagePreviewUrl": imagePreviewUrl});
       let result = await __jacSpawn("AgroAdvisor", "", {"crop": crop, "problem_text": problemText, "location": location, "session_id": sessionId, "language": language, "include_weather": includeWeather, "include_market": includeMarket});
       console.log("[AdvisorPage] Raw AgroAdvisor result:", result);
       console.log("[AdvisorPage] result.reports:", result && result.reports);
@@ -58,18 +59,32 @@ function AdvisorPage() {
       setLoading(false);
     }
   }
-  return __jacJsx("div", {"className": "grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]"}, [__jacJsx(AdvisorForm, {"crop": crop, "onCropChange": setCrop, "location": location, "onLocationChange": setLocation, "problemText": problemText, "onProblemTextChange": setProblemText, "language": language, "onLanguageChange": setLanguage, "includeWeather": includeWeather, "onIncludeWeatherChange": setIncludeWeather, "includeMarket": includeMarket, "onIncludeMarketChange": setIncludeMarket, "loading": loading, "onSubmit": handleGetAdvice}, []), __jacJsx("div", {"className": "space-y-4"}, [__jacJsx(AdvicePlanPanel, {"advicePlan": advicePlan, "meta": meta, "loading": loading, "error": error}, []), __jacJsx(WeatherSummaryPanel, {"summary": weatherSummary}, []), __jacJsx(MarketSummaryPanel, {"summary": marketSummary}, [])])]);
+  return __jacJsx("div", {"className": "grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]"}, [__jacJsx(AdvisorForm, {"crop": crop, "onCropChange": setCrop, "location": location, "onLocationChange": setLocation, "problemText": problemText, "onProblemTextChange": setProblemText, "language": language, "onLanguageChange": setLanguage, "includeWeather": includeWeather, "onIncludeWeatherChange": setIncludeWeather, "includeMarket": includeMarket, "onIncludeMarketChange": setIncludeMarket, "loading": loading, "onSubmit": handleGetAdvice, "imagePreviewUrl": imagePreviewUrl, "onImageChange": setImagePreviewUrl}, []), __jacJsx("div", {"className": "space-y-4"}, [__jacJsx(AdvicePlanPanel, {"advicePlan": advicePlan, "meta": meta, "loading": loading, "error": error}, []), __jacJsx(WeatherSummaryPanel, {"summary": weatherSummary}, []), __jacJsx(MarketSummaryPanel, {"summary": marketSummary}, [])])]);
 }
 function AdvisorForm(props) {
   function handleSubmit(e) {
     e.preventDefault();
     props.onSubmit();
   }
+  let handleImageChange = e => {
+    let files = e.target.files;
+    if (!files || files.length === 0) {
+      if (props.onImageChange) {
+        props.onImageChange("");
+      }
+      return;
+    }
+    let file = files[0];
+    let previewUrl = URL.createObjectURL(file);
+    if (props.onImageChange) {
+      props.onImageChange(previewUrl);
+    }
+  };
   return __jacJsx("form", {"onSubmit": handleSubmit, "className": "flex h-full min-h-[520px] flex-col rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("h1", {"className": "text-2xl font-semibold text-slate-900"}, ["Get Personalized Agricultural Advice"]), __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Fill in the details below to receive a tailored plan for your crops."])]), __jacJsx("div", {"className": "mt-4 flex-1 space-y-4 overflow-y-auto pr-1"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Give Crop"]), __jacJsx("input", {"type": "text", "placeholder": "e.g., Maize, Wheat, Soybeans", "value": props.crop, "onChange": e => {
     props.onCropChange(e.target.value);
   }, "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Enter Location"]), __jacJsx("input", {"type": "text", "placeholder": "e.g., Kisumu, Kenya", "value": props.location, "onChange": e => {
     props.onLocationChange(e.target.value);
-  }, "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Describe Your Problem"]), __jacJsx("textarea", {"rows": 4, "placeholder": "Describe the issue you are facing in detail...", "value": props.problemText, "onChange": e => {
+  }, "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-2"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Upload Image (optional)"]), __jacJsx("input", {"type": "file", "accept": "image/*", "onChange": handleImageChange, "className": "block w-full text-sm text-slate-700 file:mr-4 file:rounded-full file:border-0 file:bg-green-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-green-700 hover:file:bg-green-100"}, []), props.imagePreviewUrl && props.imagePreviewUrl !== "" ? __jacJsx("div", {"className": "mt-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50"}, [__jacJsx("img", {"src": props.imagePreviewUrl, "alt": "Problem preview", "className": "h-40 w-full object-cover"}, [])]) : __jacJsx("div", {"className": "mt-2 flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400"}, ["No image selected – you can upload a clear photo of the affected plant."])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Describe Your Problem"]), __jacJsx("textarea", {"rows": 4, "placeholder": "Describe the issue you are facing in detail...", "value": props.problemText, "onChange": e => {
     props.onProblemTextChange(e.target.value);
   }, "className": "w-full min-h-[120px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600 resize-y"}, [])]), __jacJsx("div", {"className": "space-y-2 pt-1"}, [__jacJsx("label", {"className": "text-sm font-medium text-slate-800"}, ["Select Language"]), __jacJsx("div", {"className": "flex gap-2"}, [__jacJsx("label", {"className": "flex-1"}, [__jacJsx("input", {"type": "radio", "name": "advisor-language", "value": "en", "checked": props.language === "en", "onChange": e => {
     props.onLanguageChange("en");
@@ -400,7 +415,7 @@ function AdvicePlanPanel(props) {
       sourceColor = "bg-slate-100 text-slate-700";
     }
   }
-  return __jacJsx("div", {"className": "flex h-[520px] flex-col rounded-2xl border border-lime-100 bg-white p-5 md:p-6 shadow-sm"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between gap-2"}, [__jacJsx("h2", {"className": "text-base font-semibold text-slate-900"}, ["Advice Plan"]), sourceLabel && __jacJsx("span", {"className": "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium " + sourceColor}, [__jacJsx("span", {"className": "h-1.5 w-1.5 rounded-full bg-current"}, []), sourceLabel])]), __jacJsx("div", {"className": "mt-1 flex-1 overflow-y-auto rounded-xl bg-slate-50/70 px-3 py-2"}, [props.error && __jacJsx("p", {"className": "text-sm text-red-600"}, [props.error]), !props.error && props.loading && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Generating advice…"]), !props.error && !props.loading && !props.advicePlan && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Fill in the form on the left and click", " ", __jacJsx("span", {"className": "font-semibold"}, ["Get Advice"]), " to see your plan here."]), !props.error && !props.loading && props.advicePlan && __jacJsx("div", {"className": "space-y-3 text-sm text-slate-800"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Overview"]), __jacJsx("p", {"className": "leading-relaxed"}, [props.advicePlan.overview])]), props.advicePlan.steps && props.advicePlan.steps.length > 0 && __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Step-by-Step Guide"]), __jacJsx("ol", {"className": "list-decimal space-y-1 pl-5"}, [props.advicePlan.steps.map(step => {
+  return __jacJsx("div", {"className": "flex h-[520px] flex-col rounded-2xl border border-lime-100 bg-white p-5 md:p-6 shadow-sm"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between gap-2"}, [__jacJsx("h2", {"className": "text-base font-semibold text-slate-900"}, ["Advice Plan"]), sourceLabel && __jacJsx("span", {"className": "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium " + sourceColor}, [__jacJsx("span", {"className": "h-1.5 w-1.5 rounded-full bg-current"}, []), sourceLabel])]), __jacJsx("div", {"className": "mt-1 flex-1 overflow-y-auto rounded-xl bg-slate-50/70 px-3 py-2"}, [props.error && __jacJsx("p", {"className": "text-sm text-red-600"}, [props.error]), !props.error && props.loading && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Generating advice…"]), !props.error && !props.loading && !props.advicePlan && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Fill in the form on the left and click", " ", __jacJsx("span", {"className": "font-semibold"}, ["Get Advice"]), " to see your plan here."]), !props.error && !props.loading && props.advicePlan && __jacJsx("div", {"className": "space-y-3 text-sm text-slate-800"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Overview"]), __jacJsx("p", {"className": "leading-relaxed"}, [props.advicePlan.overview])]), props.advicePlan.steps && props.advicePlan.steps.length > 0 && __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Step-by-Step Guide"]), __jacJsx("ol", {"className": "space-y-1 pl-5"}, [props.advicePlan.steps.map(step => {
     return __jacJsx("li", {}, [step]);
   })])]), props.advicePlan.cautions && props.advicePlan.cautions.length > 0 && __jacJsx("div", {"className": "rounded-xl border border-amber-100 bg-amber-50 p-3"}, [__jacJsx("p", {"className": "mb-1 text-sm font-semibold text-amber-800"}, ["Cautions"]), __jacJsx("ul", {"className": "list-disc space-y-1 pl-5 text-xs text-amber-900"}, [props.advicePlan.cautions.map(c => {
     return __jacJsx("li", {}, [c]);

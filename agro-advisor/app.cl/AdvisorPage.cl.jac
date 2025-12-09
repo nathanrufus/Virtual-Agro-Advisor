@@ -16,6 +16,9 @@ cl {
         let [marketSummary, setMarketSummary] = useState(None);
         let [meta, setMeta] = useState(None);
 
+        # NEW: image preview state (frontend only for now)
+        let [imagePreviewUrl, setImagePreviewUrl] = useState("");
+
         async def handleGetAdvice() -> None {
             if not problemText or not problemText.trim() {
                 setError("Please describe the problem you are facing.");
@@ -33,7 +36,8 @@ cl {
                     "language": language,
                     "includeWeather": includeWeather,
                     "includeMarket": includeMarket,
-                    "sessionId": sessionId
+                    "sessionId": sessionId,
+                    "imagePreviewUrl": imagePreviewUrl
                 });
 
                 result = root spawn AgroAdvisor(
@@ -44,6 +48,9 @@ cl {
                     language=language,
                     include_weather=includeWeather,
                     include_market=includeMarket
+                    # NOTE: when your backend is ready, you can add:
+                    # , image_data=imagePreviewUrl
+                    # , include_image=True
                 );
 
                 console.log("[AdvisorPage] Raw AgroAdvisor result:", result);
@@ -99,6 +106,8 @@ cl {
                 onIncludeMarketChange={setIncludeMarket}
                 loading={loading}
                 onSubmit={handleGetAdvice}
+                imagePreviewUrl={imagePreviewUrl}
+                onImageChange={setImagePreviewUrl}
             />
             <div className="space-y-4">
                 <AdvicePlanPanel

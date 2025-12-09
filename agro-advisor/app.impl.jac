@@ -313,18 +313,21 @@ def make_cache_key(
     location: str,
     lang: str,
     include_weather: bool,
-    include_market: bool
+    include_market: bool,
+    include_image: bool    # NEW
 ) -> str {
-    # Very simple deterministic cache key; you can improve later if needed.
-    norm_crop = normalize_crop(crop);
-    norm_loc = normalize_location(location);
-    trimmed_problem = problem_text.strip();
-    # Avoid super-long keys by truncating the problem text
+    let norm_crop = normalize_crop(crop);
+    let norm_loc = normalize_location(location);
+    let trimmed_problem = problem_text.strip();
     if len(trimmed_problem) > 120 {
         trimmed_problem = trimmed_problem[:120];
     }
-    return f"{norm_crop}|{norm_loc}|{lang}|w={include_weather}|m={include_market}|{trimmed_problem}";
+    return (
+        f"{norm_crop}|{norm_loc}|{lang}"
+        f"|w={include_weather}|m={include_market}|img={include_image}|{trimmed_problem}"
+    );
 }
+
 
 def translate_advice_if_needed(
     advice: AdvicePlan,
@@ -361,6 +364,54 @@ def translate_advice_if_needed(
         cautions=new_cautions
     );
 }
+def translate_summary_text_if_needed(
+    text: str,
+    target_lang: str
+) -> str {
+    if not target_lang or target_lang == "en" {
+        return text;
+    }
+    if not text {
+        return text;
+    }
+
+    return translate_from_pivot(
+        text=text,
+        lang=target_lang
+    );
+}
+def get_ui_titles(lang: str) -> dict {
+    # Default: English
+    if not lang or lang == "en" {
+        return {
+            "advice_overview": "Overview",
+            "advice_steps": "Recommended steps",
+            "advice_cautions": "Cautions & safety notes",
+            "weather_summary": "Weather summary",
+            "market_summary": "Market summary"
+        };
+    }
+
+    # Swahili example – adjust as you like
+    if lang == "sw" {
+        return {
+            "advice_overview": "Muhtasari",
+            "advice_steps": "Hatua zinazopendekezwa",
+            "advice_cautions": "Tahadhari na usalama",
+            "weather_summary": "Muhtasari wa hali ya hewa",
+            "market_summary": "Muhtasari wa soko"
+        };
+    }
+
+    # Fallback for other languages: use English for now
+    return {
+        "advice_overview": "Overview",
+        "advice_steps": "Recommended steps",
+        "advice_cautions": "Cautions & safety notes",
+        "weather_summary": "Weather summary",
+        "market_summary": "Market summary"
+    };
+}
 
 #  AgroAdvisor implementation
 
@@ -382,7 +433,7 @@ impl AgroAdvisor.run {
 
     if not self.session_id {
         # New session
-        new_id = generate_session_id();
+        let new_id = generate_session_id();
         session = Session(
             session_id=new_id,
             lang=self.language
@@ -414,16 +465,17 @@ impl AgroAdvisor.run {
     session.last_active_at = get_current_datetime();
 
     # 3. Cache lookup
-    cache_key = make_cache_key(
+    let cache_key = make_cache_key(
         crop=self.crop,
         problem_text=self.problem_text,
         location=self.location,
         lang=self.language,
         include_weather=self.include_weather,
-        include_market=self.include_market
+        include_market=self.include_market,
+        include_image=self.include_image
     );
 
-    existing_cache = None;
+    let existing_cache = None;
     for ac in [session ->:HAS_ADVICE:->] {
         if ac.cache_key == cache_key {
             existing_cache = ac;
@@ -432,32 +484,32 @@ impl AgroAdvisor.run {
     }
 
     # We'll fill these regardless of cache hit/miss
-    weather_summary = WeatherSummary(
+    let weather_summary = WeatherSummary(
         summary_text="Weather data not requested."
     );
-    market_summary = MarketSummary(
+    let market_summary = MarketSummary(
         summary_text="Market data not requested."
     );
 
     # 3b. Always ensure weather/market snapshots exist, even on cache hit
     if self.include_weather {
-        loc_key = normalize_location(self.location);
+        let loc_key = normalize_location(self.location);
 
-        existing_snapshots = [];
+        let existing_snapshots = [];
         for snap in [session ->:HAS_WEATHER:->] {
             if snap.location_key == loc_key {
                 existing_snapshots = existing_snapshots + [snap];
             }
         }
 
-        snapshot_w = None;
+        let snapshot_w = None;
 
         if existing_snapshots {
             snapshot_w = existing_snapshots[0];
         } else {
             # Call real API helpers from integrations/weather.jac
-            raw_weather = fetch_weather_raw(loc_key);
-            summary_text = summarize_weather(raw_weather, self.location);
+            let raw_weather = fetch_weather_raw(loc_key);
+            let summary_text = summarize_weather(raw_weather, self.location);
 
             snapshot_w = WeatherSnapshot(
                 location_key=loc_key,
@@ -473,11 +525,11 @@ impl AgroAdvisor.run {
     }
 
     if self.include_market {
-        crop_key = normalize_crop(self.crop);
-        region_key = normalize_region(self.location);  # reuse location as region key
+        let crop_key = normalize_crop(self.crop);
+        let region_key = normalize_region(self.location);  # reuse location as region key
 
         # 1. Check if we already have a MarketSnapshot for this crop/region
-        existing_ms = [];
+        let existing_ms = [];
         for snap in [session ->:HAS_MARKET:->] {
             if snap.crop_key == crop_key and snap.region_key == region_key {
                 existing_ms = existing_ms + [snap];
@@ -502,66 +554,134 @@ impl AgroAdvisor.run {
 
         # 3. If we now have at least one snapshot, build MarketSummary from it
         if existing_ms {
-            snapshot_m = existing_ms[0];
+            let snapshot_m = existing_ms[0];
 
             market_summary = MarketSummary(
                 summary_text=snapshot_m.summary
             );
         }
     }
+        # 4. If cache hit: reuse advice, log, and return
+        if existing_cache {
+            existing_cache.touch();
 
-    # 4. If cache hit: reuse advice, log, and return
-    if existing_cache {
-        existing_cache.touch();
+            let log_hit = AuditLog(
+                event="agro_advisor_cache_hit",
+                cache_hit=True,
+                latency_ms=0,
+                session_id=session.session_id
+            );
+            memory +>: HAS_AUDIT() :+> log_hit;
 
-        log_hit = AuditLog(
-            event="agro_advisor_cache_hit",
-            cache_hit=True,
-            latency_ms=0,  # TODO: compute if you add real timing
-            session_id=session.session_id
-        );
-        memory +>: HAS_AUDIT() :+> log_hit;
+            let advice_cached = existing_cache.advice;
 
-        advice_cached = existing_cache.advice;
+            # Optionally re-translate advice if language changed
+            let final_advice_cached = translate_advice_if_needed(
+                advice=advice_cached,
+                target_lang=self.language
+            );
 
-        # Optionally re-translate if language changed
-        final_advice_cached = translate_advice_if_needed(
-            advice=advice_cached,
-            target_lang=self.language
-        );
+            # NEW: translate weather & market summary text if needed
+            weather_summary.summary_text = translate_summary_text_if_needed(
+                text=weather_summary.summary_text,
+                target_lang=self.language
+            );
+            market_summary.summary_text = translate_summary_text_if_needed(
+                text=market_summary.summary_text,
+                target_lang=self.language
+            );
 
-        report {
-            "session_id": session.session_id,
-            "advice_plan": final_advice_cached,
-            "weather_summary": weather_summary,
-            "market_summary": market_summary,
-            "meta": {
-                "source": "cache",
-                "lang": self.language
-            }
-        };
-        disengage;
-    }
+            # NEW: localized UI titles for the frontend
+            let ui_titles = get_ui_titles(self.language);
+
+            report {
+                "session_id": session.session_id,
+                "advice_plan": final_advice_cached,
+                "weather_summary": weather_summary,
+                "market_summary": market_summary,
+                "meta": {
+                    "source": "cache",
+                    "lang": self.language,
+                    "titles": ui_titles
+                }
+            };
+            disengage;
+        }
+
 
     # 5. Cache miss: run full LLM pipeline
 
+    # 5a. Optional: image-based symptom enrichment (like weather/market, but for images)
+    let image_notes = "";
+    if self.include_image and self.image_data {
+
+        # Try to find existing image analysis for this image_data key
+        let img_result = None;
+        for img in [session ->:HAS_IMAGE_ANALYSIS:->] {
+            if img.image_id == self.image_data {
+                img_result = img;
+                break;
+            }
+        }
+
+        # If none, spawn ImageAnalysisAgent on this Session
+        if not img_result {
+            session spawn ImageAnalysisAgent(
+                image_data=self.image_data,
+                crop=self.crop,
+                location=self.location
+            );
+
+            # Re-scan for the newly created node
+            for img in [session ->:HAS_IMAGE_ANALYSIS:->] {
+                if img.image_id == self.image_data {
+                    img_result = img;
+                    break;
+                }
+            }
+        }
+
+        if img_result {
+            image_notes = (
+                "Image analysis suggests these symptoms: "
+                + ", ".join(img_result.labels)
+                + ". "
+                + img_result.notes
+            );
+        }
+    }
+
     # Build context
-    history_text = session.get_history();
-    farmer_ctx = FarmerContext(
+    let history_text = session.get_history();
+    let farmer_ctx = FarmerContext(
         region=self.location,
         lang=self.language
     );
 
-    # 5.1 Analyze issue (LLM)
-    issue = analyze_issue(
+    # Combine typed problem with image-derived notes
+    let combined_problem = self.problem_text;
+    if image_notes {
+        if combined_problem {
+            combined_problem = (
+                combined_problem
+                + "\n\nAdditional symptoms from image:\n"
+                + image_notes
+            );
+        } else {
+            combined_problem = image_notes;
+        }
+    }
+
+    # 5.1 Analyze issue (LLM) – now using combined_problem
+    let issue = analyze_issue(
         crop=self.crop,
-        problem_text=self.problem_text,
+        problem_text=combined_problem,
         location=self.location,
         history=history_text
     );
 
     # 5.2 Generate advice (LLM)
-    raw_advice = generate_advice(
+    let raw_advice = generate_advice(
         analysis=issue,
         weather=weather_summary,
         market=market_summary,
@@ -569,30 +689,30 @@ impl AgroAdvisor.run {
     );
 
     # 5.3 Safety review (LLM)
-    safe_advice = safety_review(advice=raw_advice);
+    let safe_advice = safety_review(advice=raw_advice);
 
     # 5.4 Translation (if needed)
-    final_advice = translate_advice_if_needed(
+    let final_advice = translate_advice_if_needed(
         advice=safe_advice,
         target_lang=self.language
     );
 
     # 6. Persistence: cache + history + audit
-    new_cache = AdviceCache(
+    let new_cache = AdviceCache(
         cache_key=cache_key,
         advice=safe_advice  # store the pivot-language or base advice
     );
     session +>: HAS_ADVICE() :+> new_cache;
 
     # Append brief interaction to session history
-    hist_entry = (
-        "user: " + self.problem_text + "\n" +
+    let hist_entry = (
+        "user: " + combined_problem + "\n" +
         "ai: " + final_advice.overview
     );
     session.add_history(hist_entry);
 
     # Audit log
-    log_fresh = AuditLog(
+    let log_fresh = AuditLog(
         event="agro_advisor_fresh",
         cache_hit=False,
         latency_ms=0,
@@ -612,6 +732,7 @@ impl AgroAdvisor.run {
         }
     };
 }
+
 
 
 impl LLMAnalyzeDebug.run {
@@ -809,4 +930,42 @@ impl ClearAdviceCache.run {
     report {
         "deleted_count": deleted
     };
+}
+impl ImageAnalysisAgent.run {
+    # Use the raw image_data as a simple key for now
+    let img_key = self.image_data;
+
+    # 1. Check cache: do we already have analysis for this image?
+    let existing = None;
+    for ia in [here ->:HAS_IMAGE_ANALYSIS:->] {
+        if ia.image_id == img_key {
+            existing = ia;
+            break;
+        }
+    }
+
+    if existing {
+        report existing;
+        disengage;
+    }
+
+    # 2. No cache → call the vision LLM
+    let img = Image(self.image_data);  # byLLM Image wrapper :contentReference[oaicite:1]{index=1}
+
+    let summary = analyze_crop_image(
+        img=img,
+        crop=self.crop,
+        location=self.location
+    );
+
+    # 3. Create node in graph
+    let node = ImageAnalysisResult(
+        image_id=img_key,
+        labels=summary.labels,
+        confidences=summary.confidences,
+        notes=summary.notes
+    );
+    here +>: HAS_IMAGE_ANALYSIS() :+> node;
+
+    report node;
 }

@@ -5,6 +5,29 @@ cl {
             props.onSubmit();
         }
 
+        # Simple handler: create a local preview URL and send it up.
+        let handleImageChange = lambda e: any -> None {
+            let files = e.target.files;
+
+            if not files or files.length == 0 {
+                # Clear image
+                if props.onImageChange {
+                    props.onImageChange("");
+                }
+                return;
+            }
+
+            let file = files[0];
+
+            # Use browser URL API – no `new` keyword.
+            # This is only for FRONTEND preview; backend can ignore for now.
+            let previewUrl = URL.createObjectURL(file);
+
+            if props.onImageChange {
+                props.onImageChange(previewUrl);
+            }
+        };
+
         return <form
             onSubmit={handleSubmit}
             className="flex h-full min-h-[520px] flex-col rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"
@@ -51,6 +74,35 @@ cl {
                     />
                 </div>
 
+                # ===== IMAGE UPLOAD (RIGHT AFTER LOCATION) =====
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-800">
+                        Upload Image (optional)
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="block w-full text-sm text-slate-700 file:mr-4 file:rounded-full file:border-0 file:bg-green-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-green-700 hover:file:bg-green-100"
+                    />
+
+                    # Preview / placeholder
+                    { (
+                        <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                            <img
+                                src={props.imagePreviewUrl}
+                                alt="Problem preview"
+                                className="h-40 w-full object-cover"
+                            />
+                        </div>
+                    ) if props.imagePreviewUrl && props.imagePreviewUrl != "" else  (
+                        <div className="mt-2 flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400">
+                            No image selected – you can upload a clear photo of the affected plant.
+                        </div>
+                    )}
+                </div>
+                # ===== END IMAGE UPLOAD =====
+
                 <div className="space-y-1">
                     <label className="text-sm font-medium text-slate-800">
                         Describe Your Problem
@@ -66,7 +118,7 @@ cl {
                     />
                 </div>
 
-             # {/* LANGUAGE SEGMENTED CONTROL */}
+                # {/* LANGUAGE SEGMENTED CONTROL */}
                 <div className="space-y-2 pt-1">
                     <label className="text-sm font-medium text-slate-800">
                         Select Language
