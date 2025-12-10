@@ -7,37 +7,46 @@ The project is split into:
 
 - **Backend graph & walkers** in `app.jac` and `app.impl.jac`
 - **Frontend UI** in `app.cl/` using Jac’s React client and Tailwind CSS
-- **LLM + integrations** wired through `byllm.llm` and helper modules in `utils.jac` and `integrations.jac`
+- **LLM + integrations** wired through `byllm.llm` and helper modules in `utils.jac` and `intergrations.jac`
 
 ---
 
 ## 1. High‑level features
 
 - 🌱 **Personalized agronomy advice**
-  - Farmers describe issues in free text (e.g., *“maize leaves turning yellow with brown spots”*).
+  - Farmers describe issues in free text (e.g., _“maize leaves turning yellow with brown spots”_).
   - Backend classifies the problem (pest, disease, nutrient, weather, management, other) and severity.
   - Returns a structured **Advice Plan** with overview, step‑by‑step actions, and safety cautions.
 
+- 👤 **Per‑user login with private sessions**
+  - Built‑in Jac auth (`/user/create`, `/user/login`) is used to create and log in users.
+  - Each authenticated user gets their **own graph** on the backend, so sessions, advice cache, and audit logs are isolated per user.
+  - The UI shows **Login / Sign up / Logout** controls in the top navigation.
+
 - ☁️ **Weather‑aware recommendations**
-  - Optionally fetches and summarizes live‑like weather data for the farmer’s location.
+  - Optionally fetches and summarizes live‑like weather data for the farmer’s location via `fetch_weather_raw` + `summarize_weather`.
   - Weather context is fed into the LLM so advice can consider rainfall, temperature, wind, etc.
 
-- 💹 **Market context (LLM price estimate)**
+- 💹 **Market context (LLM price estimate, pluggable)**
   - Optionally adds a **non‑authoritative** KES/kg price estimate for the selected crop and region.
-  - Clear disclaimer: this is *not* live market data; farmers must still confirm with local buyers.
+  - Clear disclaimer: this is _not_ live market data; farmers must still confirm with local buyers.
+  - The design allows plugging in a real market price API in place of the LLM helper later.
 
 - 🧠 **Per‑session memory & history**
-  - Each browser session is mapped to a `Session` node in the graph.
-  - Short history of user–AI turns is stored per session and used to provide continuity between queries.
+  - Within each user graph, every browser session is mapped to a `Session` node.
+  - A short history of user–AI turns is stored per session and used to provide continuity between queries.
 
 - ⚡ **Caching & reuse**
-  - Advice is cached in `AdviceCache` nodes by a deterministic key based on crop, problem, location, language, and flags (weather/market).
+  - Advice is cached in `AdviceCache` nodes by a deterministic key based on crop, problem, location, language, and flags (weather/market/image).
   - Weather and market results are cached per session to avoid repeated API/LLM calls.
 
-- 🛠️ **Admin & debug tooling (UI + walkers)**
-  - `GetAllSessions` walker lists all sessions and their metadata.
-  - `GetAllAdviceCache` walker lists all cached advice entries.
-  - `LLMAnalyzeDebug` and `LLMAdviceDebug` walkers let you inspect the raw LLM reasoning chain.
+- 🧭 **Manage (admin) & debug tooling**
+  - **Manage** tab (previously “Admin”) shows an overview of sessions and advice cache entries using:
+    - `GetAllSessions` walker — lists all sessions and their metadata for the logged‑in user.
+    - `GetAllAdviceCache` walker — lists all cached advice entries with usage stats.
+  - **Debug** tab is reserved for LLM tooling:
+    - `LLMAnalyzeDebug` — inspect the raw `IssueAnalysis`.
+    - `LLMAdviceDebug` — inspect the full chain `{ issue_analysis, weather_summary, market_summary, advice_plan }`.
 
 ---
 
@@ -45,23 +54,32 @@ The project is split into:
 
 **Core language & runtime**
 
-- [Jac](https://jaseci.org/) for graph modeling, walkers, and the integrated client/server model.
+- Jac for graph modeling, walkers, and the integrated client/server model.
 - Jac API server (`jac serve app.jac`) for both backend APIs and the compiled frontend.
 
 **Backend logic**
 
 - `app.jac` – public graph schema and walker interfaces.
 - `app.impl.jac` – implementation of nodes, edges, walkers, and LLM helpers.
-- `byllm.llm` – LLM integration, configured with Groq’s `llama-3.3-70b-versatile` model (configurable).
+- `byllm.llm` – LLM integration, configured with Groq’s `groq/llama-3.3-70b-versatile` model (configurable).
 - Custom helpers in:
-  - `utils.jac` – e.g., `get_current_datetime()`
-  - `integrations.jac` – weather integration (`fetch_weather_raw`, `summarize_weather`) and other external calls.
+  - `utils.jac` – e.g., `get_current_datetime()`, HTTP helpers.
+  - `intergrations.jac` – weather integration (`fetch_weather_raw`, `summarize_weather`) and other external calls.
 
 **Frontend**
 
 - Jac client React bindings from `@jac-client/utils`.
 - Tailwind CSS for styling (configured in `global.css` and the JS toolchain).
 - Single‑page app, entry: `app.cl/app.cl.jac`.
+
+**Auth**
+
+- Uses Jac’s built‑in user system:
+  - `/user/create` — sign up.
+  - `/user/login` — log in and get an auth token.
+- Frontend helpers from `@jac-client/utils`:
+  - `jacIsLoggedIn`, `jacLogout`, plus `jacLogin`/`jacSignup` inside the auth pages.
+- Per‑user graph isolation is handled by Jac, so data is scoped to the logged‑in user automatically.
 
 Other tools:
 
@@ -78,18 +96,21 @@ The important bits of this repo look like:
 agro-advisor/
 ├── app.jac              # Graph schema + walker declarations + cl entry
 ├── app.impl.jac         # Walker implementations + nodes/edges/LLM helpers
-├── utils.jac            # Utilities (time, logging helpers, etc.)
+├── utils.jac            # Utilities (time, HTTP, logging helpers, etc.)
 ├── intergrations.jac    # Weather + other integration helpers
 ├── app.cl/
-│   ├── app.cl.jac       # Frontend entry: router + layout + pages
-│   ├── TopNav.cl.jac    # Top navigation bar with router links
-│   ├── PageShell.cl.jac # Shared layout wrapper
-│   ├── AdvisorPage.cl.jac
-│   ├── AdvisorForm.cl.jac
+│   ├── app.cl.jac           # Frontend entry: router + protected routes
+│   ├── TopNav.cl.jac        # Top navigation bar (Advisor / Manage / Debug + auth)
+│   ├── PageShell.cl.jac     # Shared layout wrapper
+│   ├── AdvisorPage.cl.jac   # Main advisor screen
+│   ├── AdvisorForm.cl.jac   # Left‑hand input form
 │   ├── AdvicePlanPanel.cl.jac
 │   ├── WeatherSummaryPanel.cl.jac
 │   ├── MarketSummaryPanel.cl.jac
-│   └── (future) Admin + Debug pages
+│   ├── AdminPage.cl.jac     # “Manage” dashboard (sessions + advice cache)
+│   ├── CacheDetail.cl.jac   # Detail page for a single cache entry
+│   ├── DebugPage.cl.jac     # Debug tools shell
+│   └── AuthPages.cl.jac     # LoginPage + SignupPage
 ├── global.css           # Tailwind + global styles
 ├── package.json         # Frontend dependencies
 ├── vite.config.js       # Vite config used by jac-client
@@ -97,13 +118,23 @@ agro-advisor/
 └── README.md            # This file
 ```
 
-> Note: Jac currently does not support importing `.cl.jac` files from nested subdirectories, so most frontend components live directly inside `app.cl/` and are imported with `cl import from .ComponentName { ComponentName }`.
+> Jac currently does not support importing `.cl.jac` files from nested subdirectories, so most frontend components live directly inside `app.cl/` and are imported with `cl import from "./Component.cl.jac" { Component }`.
 
 ---
 
 ## 4. Backend architecture
 
-### 4.1 Graph schema
+### 4.1 Per‑user graphs
+
+Jac’s auth model gives each authenticated user their own “root” object and underlying graph. That means:
+
+- `Memory`, `Session`, `AdviceCache`, `WeatherSnapshot`, `MarketSnapshot`, and `AuditLog` nodes are **per user**.
+- When user A logs in, their advisor history and cache are completely separate from user B’s.
+- Logging out and logging in as a different user effectively switches to a different graph.
+
+The walkers described below all run **within the logged‑in user’s graph**.
+
+### 4.2 Graph schema
 
 **Nodes**
 
@@ -136,19 +167,19 @@ agro-advisor/
   - `raw_source: str` (LLM or future API payload)
   - `created_at`
 - `ImageAnalysisResult`
-  - Placeholder for future computer‐vision integrations.
+  - Placeholder for future computer‑vision integrations.
 - `AuditLog`
   - `event: str`, `cache_hit: bool`, `latency_ms: int`, `session_id: str`, `created_at`
 
 **Edges**
 
-- `HAS_SESSION`  (Memory → Session)
-- `HAS_PROFILE`  (Memory → FarmerProfile or Session → FarmerProfile)
-- `HAS_WEATHER`  (Session → WeatherSnapshot)
-- `HAS_MARKET`   (Session → MarketSnapshot)
-- `HAS_ADVICE`   (Session → AdviceCache)
+- `HAS_SESSION`        (Memory → Session)
+- `HAS_PROFILE`        (Memory → FarmerProfile or Session → FarmerProfile)
+- `HAS_WEATHER`        (Session → WeatherSnapshot)
+- `HAS_MARKET`         (Session → MarketSnapshot)
+- `HAS_ADVICE`         (Session → AdviceCache)
 - `HAS_IMAGE_ANALYSIS` (Session → ImageAnalysisResult)
-- `HAS_AUDIT`    (Memory → AuditLog)
+- `HAS_AUDIT`          (Memory → AuditLog)
 
 **Structured objects (Jac `obj`)**
 
@@ -168,9 +199,9 @@ agro-advisor/
   - `steps: list[str]`
   - `cautions: list[str]`
 
-### 4.2 LLM helpers
+### 4.3 LLM helpers
 
-LLM helpers are declared in Jac and backed by a global `llm` (from `byllm.llm`), with detailed semantic constraints (`sem` blocks) that define how the model should behave.
+LLM helpers are declared in Jac and backed by a global `llm` (from `byllm.llm`), with semantic constraints (`sem` blocks) that define how the model should behave.
 
 Core helpers:
 
@@ -183,7 +214,7 @@ Core helpers:
 
 Each helper is constrained to return **only structured data**, no extra commentary, which keeps the pipeline predictable and safe.
 
-### 4.3 Walkers (backend APIs)
+### 4.4 Walkers (backend APIs)
 
 #### `SessionManager`
 
@@ -216,6 +247,7 @@ Each helper is constrained to return **only structured data**, no extra commenta
   language: str = "en"
   include_weather: bool = True
   include_market: bool = True
+  include_image: bool = False  # reserved for future image analysis
   ```
 
 - **Pipeline (cache‑miss):**
@@ -241,16 +273,18 @@ Each helper is constrained to return **only structured data**, no extra commenta
   1. Retrieve cached `AdviceCache` by cache key.
   2. Update usage stats via `touch()`.
   3. Ensure weather/market snapshots are still present as above.
-  4. Optionally re‑translate advice if language changed.
+  4. Re‑translate advice, weather, and market summaries if language changed.
   5. Write an `AuditLog` indicating a **cache hit**.
   6. `report { session_id, advice_plan, weather_summary, market_summary, meta }`
 
-#### Debug walkers
+#### Debug & management walkers
 
-- `GetAllSessions` – returns an array of all sessions (IDs, language, timestamps).
-- `GetAllAdviceCache` – returns all advice cache entries across sessions.
+- `GetAllSessions` – returns an array of all sessions (IDs, language, timestamps) for the current user.
+- `GetAllAdviceCache` – returns all advice cache entries across this user’s sessions.
 - `LLMAnalyzeDebug` – returns raw `IssueAnalysis` for a given prompt.
-- `LLMAdviceDebug` – returns `IssueAnalysis`, `WeatherSummary`, `MarketSummary`, and `AdvicePlan` without touching cache or history.
+- `LLMAdviceDebug` – returns the full chain without impacting user history/cache.
+- `CleanupOldSessions` – delete sessions older than a cutoff (or all).
+- `ClearAdviceCache` – delete all `AdviceCache` nodes under the user’s `Memory`.
 
 ---
 
@@ -260,16 +294,48 @@ The frontend is written in Jac’s client‑side React flavor.
 
 ### 5.1 Entry & routing
 
-- **Entry file**: `app.cl/app.cl.jac`
-- Uses `Router`, `Routes`, and `Route` from `@jac-client/utils`:
+**Entry file**: `app.cl/app.cl.jac`
 
-  - `/` → `AdvisorPage` (default view)
-  - `/admin` → `AdminPage` (placeholder for now)
-  - `/debug` → `DebugPage` (placeholder for LLM debug tools)
+- Uses `Router`, `Routes`, and `Route` from `@jac-client/utils`.
+- Routes:
 
-- `TopNav.cl.jac` uses `Link` from `@jac-client/utils` to render the **Advisor / Admin / Debug** navigation tabs.
+  - `/login` → `LoginPage` (public)
+  - `/signup` → `SignupPage` (public)
+  - `/` → `AdvisorPage` (protected)
+  - `/admin` → `AdminPage` (protected, shown as **Manage** in the nav)
+  - `/debug` → `DebugPage` (protected)
+  - `/admin/cache/:encodedKey` → `CacheDetailPage` (protected detail view for a single cache entry)
 
-### 5.2 Advisor page and components
+- A small `ProtectedRoute` component wraps protected routes, using `jacIsLoggedIn()` to decide whether to render the element or redirect to `/login`.
+
+### 5.2 Top navigation
+
+**`TopNav.cl.jac`**
+
+- Shows:
+
+  - Logo + title (“Virtual Agro‑Advisor”).
+  - Tabs: **Advisor**, **Manage**, **Debug** (using `Link` from `@jac-client/utils`).
+  - On the right:
+    - If logged **out** (`!jacIsLoggedIn()`): `Login` and `Sign up` links.
+    - If logged **in**: a green‑outlined **Logout** button, wired to `jacLogout()` and `useNavigate()` to send the user back to `/login`.
+
+This keeps all navigation (tabs and auth controls) in a single header row.
+
+### 5.3 Auth pages
+
+**`AuthPages.cl.jac`** defines:
+
+- `LoginPage`
+  - Centered card with email/password inputs.
+  - Calls `jacLogin(email, password)` under the hood (via `@jac-client/utils` helper or a small wrapper) and redirects to `/` on success.
+- `SignupPage`
+  - Similar card with email/password confirmation.
+  - Calls `jacSignup` (or `/user/create`) and then logs the user in or redirects to login.
+
+Both pages use the same green/neutral color palette as the rest of the app.
+
+### 5.4 Advisor page and components
 
 **`AdvisorPage.cl.jac`**
 
@@ -283,11 +349,20 @@ The frontend is written in Jac’s client‑side React flavor.
   - Calls the backend via:
 
     ```jac
-    result = root spawn AgroAdvisor(...);
+    result = root spawn AgroAdvisor(
+        crop=crop,
+        problem_text=problemText,
+        location=location,
+        session_id=sessionId,
+        language=language,
+        include_weather=includeWeather,
+        include_market=includeMarket
+    );
     ```
 
   - Examines `result.reports` and selects the **last** report as the main payload.
   - Updates session ID and output states.
+
 - Layout:
   - Left: `AdvisorForm` (input form).
   - Right: `AdvicePlanPanel`, `WeatherSummaryPanel`, `MarketSummaryPanel`.
@@ -297,30 +372,47 @@ The frontend is written in Jac’s client‑side React flavor.
 - Controlled inputs for crop, location, and problem description.
 - Language toggle (English / Swahili) implemented as pill buttons.
 - Checkboxes for including weather forecast and market prices.
+- Optional image upload placeholder (front‑end only for now).
 - “Get Advice” button that triggers `onSubmit()`.
 
 **`AdvicePlanPanel.cl.jac`**
 
 - Shows a placeholder message until `advicePlan` is populated.
 - Once advice is available:
-  - Renders `overview` text.
-  - Renders numbered steps as a list.
-  - Renders cautions in a highlighted warning box.
+  - Renders `overview` text with a localized title (e.g., “Overview” / “Muhtasari”).
+  - Renders **numbered** steps as an ordered list.
+  - Renders cautions in a highlighted warning box with a localized title.
 - Shows a small badge (`Source: fresh` or `Source: cache`) based on `meta.source`.
 
 **`WeatherSummaryPanel.cl.jac` and `MarketSummaryPanel.cl.jac`**
 
 - Show placeholder text when no data is available.
-- Once data is present, display `summary.summary_text` in a styled card.
+- Once data is present, display `summary.summary_text` in a styled card with localized section titles (“Weather Summary”, “Market Summary”, or their Swahili equivalents).
 
-### 5.3 Styling
+### 5.5 Manage (admin) dashboard
 
-- Tailwind CSS utilities are used throughout (`global.css` is imported at the top of `app.cl.jac`).
-- General design language:
-  - Light green/neutral background.
-  - White cards with rounded corners and soft borders.
-  - Primary actions in bright green.
-  - Responsive grid layout for main advisor view.
+**`AdminPage.cl.jac`** (labelled **Manage** in the nav):
+
+- Fetches data using:
+
+  - `root spawn GetAllSessions()`
+  - `root spawn GetAllAdviceCache()`
+
+- Shows:
+
+  - Summary cards (total sessions, advice cache entries, latest activity).
+  - Sessions table (session id, language, created, last active).
+  - Advice cache table (parsed from `cache_key`: crop, region, problem, plus usage count and last used).
+
+- Clicking an advice cache row navigates to:
+
+  - `/admin/cache/:encodedKey` → `CacheDetailPage`
+
+**`CacheDetail.cl.jac`**
+
+- Decodes the `encodedKey` from the URL.
+- Shows a detailed view of the parsed cache key plus any available metadata (usage count, timestamps, etc.).
+- Designed as a debugging/inspection tool to see what was cached for a given crop/problem/location/lang combination.
 
 ---
 
@@ -329,11 +421,11 @@ The frontend is written in Jac’s client‑side React flavor.
 ### 6.1 Prerequisites
 
 - Python 3.10+
-- Node.js + npm (for the JS toolchain)
-- Jac CLI (`pip install jaseci` or your chosen installation method)
-- Access tokens / API keys for:
-  - Groq (or other LLM provider) – used via `byllm.llm`
-  - Weather API (if `fetch_weather_raw` depends on one)
+- Node.js + npm
+- Jac CLI
+- API keys as needed:
+  - Groq (or other LLM provider) for `byllm.llm`.
+  - Weather API key used by `fetch_weather_raw`.
 
 ### 6.2 Setup
 
@@ -344,12 +436,12 @@ The frontend is written in Jac’s client‑side React flavor.
    cd virtual-agro-advisor/agro-advisor
    ```
 
-2. **Python environment** (optional but recommended)
+2. **Python environment**
 
    ```bash
    python -m venv venv
    source venv/bin/activate  # Linux/macOS
-   # .env\Scriptsctivate  # Windows PowerShell
+   # .\venv\Scripts\activate  # Windows
 
    pip install -r requirements.txt
    ```
@@ -362,14 +454,14 @@ The frontend is written in Jac’s client‑side React flavor.
 
 4. **Environment variables**
 
-   Copy `.env.example` to `.env` (if present) or create `.env` and add at minimum:
+   Create `.env` and add at minimum:
 
    ```bash
    GROQ_API_KEY=your_groq_api_key_here
    WEATHER_API_KEY=your_weather_api_key_here  # if needed by integrations
    ```
 
-   The Jac entry file includes a startup hook:
+   These are loaded at startup via:
 
    ```jac
    with entry {
@@ -377,94 +469,146 @@ The frontend is written in Jac’s client‑side React flavor.
    }
    ```
 
-   so these values are loaded automatically.
-
 ### 6.3 Running the app
 
-From the project root (where `app.jac` lives):
+From the directory where `app.jac` lives:
 
 ```bash
 jac serve app.jac
 ```
 
-This will:
+The server will:
 
-- Start the Jac API server (default at `http://0.0.0.0:8000`).
-- Build the frontend using Vite.
-- Serve the SPA and backend walkers on a single port.
+- Start the Jac API + auth endpoints.
+- Build and serve the frontend SPA.
 
-Visit:
+Open:
 
-- **Advisor UI** – `http://localhost:8000/page/app`
-- Admin / Debug tabs are accessible from the top navigation once the app loads.
+- `http://localhost:8000/page/app#/login` — login screen (or signup).
+- After logging in, you’ll be redirected to the main **Advisor** view.
 
 ---
 
-## 7. Using the advisor
+## 7. Using the app
 
-1. Open the **Advisor** tab (default).
-2. Fill the form:
-   - Crop (e.g., `maize`)
-   - Location (e.g., `Kiambu, Kenya`)
-   - Describe problem (e.g., `yellow leaves with brown edges`)
-   - Choose language (English or Swahili)
-   - Enable/disable weather and market checkboxes.
-3. Click **Get Advice**.
-4. The right‑hand side will populate with:
-   - **Advice Plan** – overview, enumerated steps, and cautions.
-   - **Weather Summary** – short text describing current conditions.
-   - **Market Summary** – short text with a price estimate and warning.
+1. **Sign up**
 
-If you submit the *same* crop/problem/location/language with the same flags, the response should be served from the **cache** (meta.source = `cache`) and will be much faster.
+   - Click **Sign up** in the top‑right.
+   - Create a new account (email/password).
+   - Either get auto‑logged in or go back to **Login**.
+
+2. **Log in**
+
+   - Enter your credentials on the **Login** page.
+   - On success, you’ll be redirected to the **Advisor** tab.
+
+3. **Get advice**
+
+   - Fill the form with crop, location, and problem description.
+   - Choose language (EN / SW).
+   - Toggle weather and market context on/off as needed.
+   - Click **Get Advice**.
+
+   The right‑hand side shows:
+
+   - **Advice Plan** – overview, numbered steps, and cautions.
+   - **Weather Summary** – plain English/Swahili description of current conditions.
+   - **Market Summary** – short description and LLM‑estimated price with a disclaimer.
+
+4. **Inspect sessions & cache (Manage tab)**
+
+   - Click **Manage** in the top nav.
+   - View:
+     - Summary cards (total sessions, total advice cache entries, latest activity).
+     - Sessions table.
+     - Advice cache table.
+   - Click a cache entry (depending on your implementation) to see more details on the `CacheDetail` page.
+
+5. **Debug (Debug tab)**
+
+   - Reserved for running debug walkers and showing raw LLM chains.
+   - Helpful during development when tuning prompts or diagnosing issues.
+
+6. **Logout**
+
+   - Click **Logout** in the top nav to clear your auth token and return to the login view.
 
 ---
 
 ## 8. Development & debugging tips
 
-- **Console logs (frontend)**  
-  `AdvisorPage` logs outgoing payloads and the raw Walker responses to help you inspect `result.reports` and `payload`.
+- **Frontend console**
 
-- **Jac server logs (backend)**  
-  Print statements in `AgroAdvisor`, `WeatherAgent`, and `MarketAgent` (e.g. `[Weather] Raw length = ...`, `[MarketLLM] Using pure LLM estimate for ...`) show which branches are being executed and when cache is hit.
+  - `AdvisorPage` logs outgoing parameters and the raw Walker responses (`result`, `result.reports`, and the selected `payload`) to the browser console.
 
-- **Debug walkers**  
-  You can call the following from the Jac shell or future Debug UI:
-  - `root spawn GetAllSessions()` – inspect all sessions.
-  - `root spawn GetAllAdviceCache()` – inspect cache keys and usage.
-  - `root spawn LLMAnalyzeDebug(...)` – see only the `IssueAnalysis`.
-  - `root spawn LLMAdviceDebug(...)` – see the full chain without impacting user history/cache.
+- **Backend logs**
 
-- **Common gotchas**  
-  - Jac client currently does **not** support nested imports for `.cl.jac` files; keep components inside `app.cl/` and import via `cl import from .Component { Component }`.
-  - `root spawn` results need to be read from `result.reports`. In this project, `AgroAdvisor`’s own `report { ... }` is the **last** element of that array.
-  - Use strict equality/inequality (`==`, `!=`) and Jac’s Python‑like truthiness rules in conditions, not JavaScript’s `===` inside Jac code.
+  - Print statements in `AgroAdvisor`, `WeatherAgent`, and `MarketAgent` include tags like `[Weather]` and `[MarketLLM]` so you can see what’s happening server‑side.
+
+- **Direct walker calls**
+
+  - You can call walkers with `curl` while the server is running, for example:
+
+    ```bash
+    curl -X POST "http://localhost:8000/walker/AgroAdvisor" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "ctx": "root",
+        "crop": "maize",
+        "problem_text": "yellowing leaves with brown tips",
+        "location": "Kiambu, Kenya",
+        "language": "en",
+        "include_weather": true,
+        "include_market": true
+      }'
+    ```
+
+  - For debug walkers:
+
+    ```bash
+    curl -X POST "http://localhost:8000/walker/GetAllSessions" \
+      -H "Content-Type: application/json" \
+      -d '{"ctx": "root"}'
+    ```
+
+    (Make sure you include valid auth headers or run from an authenticated Jac shell if required.)
+
+- **Common pitfalls**
+
+  - Forgetting to pass `ctx: "root"` when calling walkers over HTTP.
+  - Not reading from `result.reports` on the frontend; `AgroAdvisor`’s report is the last item.
+  - Using ternary operators in Jac where a simple `if`/`else` is safer and clearer.
 
 ---
 
 ## 9. Roadmap / future improvements
 
-Some ideas for evolving the project:
-
 - **Real market data integration**
-  - Replace or complement the LLM‑based `estimate_market_price` with live APIs (e.g., FEWS NET, national market boards).
+
+  - Replace the LLM‑based `estimate_market_price` with live APIs (e.g., FEWS NET or national market boards).
+  - Store API payloads in `MarketSnapshot.raw_source` and reflect them more explicitly in `MarketSummary`.
 
 - **Offline / low‑connectivity mode**
+
   - Pre‑load generic best‑practice advice for common crops and problems when the LLM or weather APIs are not reachable.
 
-- **Farmer profiles & multi‑device sessions**
-  - Persist `FarmerProfile` nodes more fully, with secure authentication linking multiple sessions to the same farmer.
+- **Richer farmer profiles**
 
-- **Richer admin dashboards**
-  - Flesh out the Admin UI to fully consume `GetAllSessions` and `GetAllAdviceCache`, including filters and inspection views as per the design mocks.
+  - Expand `FarmerProfile` with more structured info (farm size, soil type, typical pests/diseases) and surface it in the advisor prompts.
 
-- **Image analysis**
-  - Implement `ImageAnalysisResult` with a CV model to classify leaf diseases/pests from photos and feed that into the `IssueAnalysis` stage.
+- **Full image analysis pipeline**
+
+  - Implement `ImageAnalysisAgent` wired to a multimodal model (e.g., Gemini Vision).
+  - Let farmers upload leaf photos and blend image‑derived symptoms into `IssueAnalysis`.
+
+- **Per‑user analytics**
+
+  - Add more management views (within the **Manage** tab) to show how often a user asks about each crop/problem type, without ever exposing another user’s data.
 
 ---
-
 
 ## 10. Acknowledgements
 
 - Jac language and ecosystem for providing the graph‑native, LLM‑integrated runtime.
 - Groq (or your chosen LLM provider) for the underlying model powering the agronomy reasoning.
-- Any agronomy references or local extension services you consulted while shaping the prompt semantics.
+- Any agronomy references or local extension services consulted while shaping the prompt semantics and safety checks.
