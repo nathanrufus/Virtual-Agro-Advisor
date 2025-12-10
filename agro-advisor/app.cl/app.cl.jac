@@ -1,38 +1,66 @@
 cl import "../global.css";
+
 cl import from "@jac-client/utils" {
     Router,
     Routes,
-    Route
+    Link,
+    Route,
+    Navigate,
+    jacIsLoggedIn,
+    jacLogout,
+    jacSignup
 }
 
 cl {
+
+    # Wrapper to guard routes that require login
+    def ProtectedRoute(props: any) -> any {
+        let isLoggedIn = jacIsLoggedIn();
+        if isLoggedIn {
+            return props.element;
+        }
+        return <Navigate to="/login" replace={True} />;
+    }
 
     def app() -> any {
         return <Router>
             <div className="min-h-screen bg-[#F3F7F2] text-slate-900">
                 <TopNav />
+
                 <PageShell>
                     <Routes>
-                        #  DEFAULT HOME → AdvisorPage 
+                        # Public auth routes
+                        <Route
+                            path="/login"
+                            element={<LoginPage />}
+                        />
+                        <Route
+                            path="/signup"
+                            element={<SignupPage />}
+                        />
+
+                        # DEFAULT HOME → AdvisorPage (protected)
                         <Route
                             path="/"
-                            element={<AdvisorPage />}
+                            element={<ProtectedRoute element={<AdvisorPage />} />}
                         />
 
-                        #  Admin route 
+                        # Admin route (protected)
                         <Route
-                            path="/manage"
-                            element={<AdminPage />}
+                            path="/admin"
+                            element={<ProtectedRoute element={<AdminPage />} />}
                         />
 
-                        #  Debug route 
+                        # Debug route (protected)
                         <Route
                             path="/debug"
-                            element={<DebugPage />}
+                            element={<ProtectedRoute element={<DebugPage />} />}
                         />
+
+                        # Cache detail route (protected)
                         <Route
                             path="/admin/cache/:encodedKey"
-                            element={<CacheDetailPage />}
+                            element={<ProtectedRoute element={<CacheDetailPage />} />}
                         />
                     </Routes>
                 </PageShell>

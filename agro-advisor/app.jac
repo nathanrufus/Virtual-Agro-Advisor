@@ -26,6 +26,7 @@ node Session {
     has created_at: str = get_current_datetime();
     has last_active_at: str = get_current_datetime();
 
+
     def add_history(entry: str) {
         self.history = self.history + [entry];
         self.last_active_at = get_current_datetime();
@@ -51,6 +52,7 @@ node AdviceCache {
     has created_at: str = get_current_datetime();
     has last_used_at: str = get_current_datetime();
     has usage_count: int = 0;
+
 
     def touch() {
         self.usage_count = self.usage_count + 1;
@@ -401,6 +403,40 @@ walker GetAdviceCacheDetail {
 
     can run with `root entry;
 }
+
+walker MarketDebug {
+    has crop: str;
+    has region: str;
+
+    obj __specs__ {
+        static has methods: list = ["get", "post"];  # allow GET + POST
+        static has auth: bool = False;               # no auth for local testing
+        static has as_query: list = ["crop", "region"];  # for GET with query params
+    }
+
+    can run with `root entry {
+        let raw = fetch_market_price_raw(
+            crop=self.crop,
+            region=self.region
+        );
+
+        let summary = summarize_market_from_raw(
+            raw=raw,
+            crop=self.crop,
+            region=self.region
+        );
+
+        report {
+            "crop": self.crop,
+            "region": self.region,
+            "raw": raw,
+            "summary": summary
+        };
+    }
+}
+
+
+
 
 # Startup hook: load environment variables (for Groq, APIs)
 

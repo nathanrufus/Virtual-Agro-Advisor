@@ -132,90 +132,68 @@ impl WeatherAgent.run {
     report weather_summary;
 }
 
-
-
-
 #  MarketAgent implementation (non-LLM, mock dataset + caching)
 
-
-
 impl MarketAgent.run {
-    session = here;
+    let session = here;
 
-    crop_key = normalize_crop(self.crop);
-    region_key = normalize_region(self.region);
+    let crop_key = normalize_crop(self.crop);
+    let region_key = normalize_region(self.region);
 
     # 1. Check cache first
-    existing_snapshots = [];
+    let existing_snapshots = [];
     for snap in [session ->:HAS_MARKET:->] {
         if snap.crop_key == crop_key and snap.region_key == region_key {
             existing_snapshots = existing_snapshots + [snap];
         }
     }
 
-    snapshot = None;
+    let snapshot = None;
 
     if existing_snapshots {
-        # Reuse cached LLM-based snapshot
+        # Reuse cached FEWS NET snapshot
         snapshot = existing_snapshots[0];
     } else {
-        # 2. No cache -> use byLLM to estimate price
-
-        let region_for_llm = self.region if self.region else "Kenya";
+        # 2. No cache -> call FEWS NET API directly (no LLM)
+        let region_for_api = self.region;
+        if not region_for_api {
+            region_for_api = "Kenya";
+        }
 
         print(
-            f"[MarketLLM] Using pure LLM estimate for {self.crop} "
-            f"in {region_for_llm}."
+            f"[MarketAgent] Fetching FEWS NET prices for crop='{self.crop}' in '{region_for_api}'."
         );
 
-        let est_price = 0.0;
-        try {
-            est_price = estimate_market_price(
-                crop=self.crop,
-                region=region_for_llm
-            );
-        } except Exception {
-            print("[MarketLLM] estimate_market_price LLM call failed.");
-            est_price = 0.0;
-        }
+        let raw = fetch_market_price_raw(
+            crop=self.crop,
+            region=region_for_api
+        );
 
-        let summary_text = "";
-        if est_price > 0.0 {
-            summary_text = (
-                f"An AI-based estimate suggests the current price for {self.crop} "
-                f"in {region_for_llm} is around {est_price} KES/kg. "
-                f"This is NOT live market data; always confirm with local buyers, "
-                f"cooperatives, or nearby markets before making financial decisions."
-            );
-        } else {
-            summary_text = (
-                f"Market price estimates for {self.crop} in {region_for_llm} "
-                f"are currently unavailable. Please check with local buyers, "
-                f"cooperatives, or nearby markets for current prices."
-            );
-        }
+        let summary_text = summarize_market(
+            raw=raw,
+            crop=self.crop,
+            region=region_for_api
+        );
 
-        # 3. Store LLM-only snapshot (no external raw_source)
+        # 3. Store API-based snapshot with raw payload
         snapshot = MarketSnapshot(
             crop_key=crop_key,
             region_key=region_key,
             summary=summary_text,
-            raw_source=""  # no API payload
+            raw_source=raw
         );
         session +>: HAS_MARKET() :+> snapshot;
     }
 
     # 4. Return MarketSummary for the advisor / frontend
-    market_summary = MarketSummary(
+    let market_summary = MarketSummary(
         summary_text=snapshot.summary
     );
 
     report market_summary;
 }
 
-
 #  AuditAgent implementation
-
 
 impl AuditAgent.run {
     # Entry node is a Memory
@@ -1108,5 +1086,28 @@ impl GetAdviceCacheDetail.run {
             "last_used_at": found_cache.last_used_at,
             "usage_count": found_cache.usage_count
         }
+    };
+}
+impl MarketDebug.run {
+    print(
+        f"[MarketDebug] Calling FEWS NET for crop='{self.crop}', region='{self.region}'."
+    );
+
+    let raw = fetch_market_price_raw(
+        crop=self.crop,
+        region=self.region
+    );
+
+    let summary = summarize_market(
+        raw=raw,
+        crop=self.crop,
+        region=self.region
+    );
+
+    report {
+        "crop": self.crop,
+        "region": self.region,
+        "raw_sample": raw[:500],   # first 500 chars just to inspect
+        "summary": summary
     };
 }

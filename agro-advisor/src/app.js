@@ -1,11 +1,10 @@
 import {__jacJsx, __jacSpawn} from "@jac-client/utils";
 import { useState } from "react";
 import "..//global.css";
-import { Router, Routes, Route } from "@jac-client/utils";
+import { Router, Routes, Link, Route, Navigate, jacIsLoggedIn, jacSignup } from "@jac-client/utils";
 import { useEffect } from "react";
 import { subDays, format } from "date-fns";
 import { useParams, useNavigate } from "react-router-dom";
-import { Link } from "@jac-client/utils";
 function AdvisorPage() {
   let [crop, setCrop] = useState("maize");
   let [location, setLocation] = useState("Kiambu, Kenya");
@@ -97,8 +96,15 @@ function AdvisorForm(props) {
     props.onIncludeMarketChange(e.target.checked);
   }, "className": "peer sr-only"}, []), __jacJsx("span", {"className": " absolute inset-0 rounded-full bg-slate-300 transition peer-checked:bg-green-600"}, []), __jacJsx("span", {"className": " absolute h-5 w-5 rounded-full bg-white shadow translate-x-1 transition peer-checked:translate-x-5"}, [])]), __jacJsx("span", {}, ["Include Market"])])])]), __jacJsx("div", {"className": "mt-4"}, [__jacJsx("button", {"type": "submit", "className": "inline-flex w-full items-center justify-center rounded-full bg-green-500 px-4 py-3 text-base font-semibold text-white shadow-md hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"}, ["Get Advice"])])]);
 }
+function ProtectedRoute(props) {
+  let isLoggedIn = jacIsLoggedIn();
+  if (isLoggedIn) {
+    return props.element;
+  }
+  return __jacJsx(Navigate, {"to": "/login", "replace": true}, []);
+}
 function app() {
-  return __jacJsx(Router, {}, [__jacJsx("div", {"className": "min-h-screen bg-[#F3F7F2] text-slate-900"}, [__jacJsx(TopNav, {}, []), __jacJsx(PageShell, {}, [__jacJsx(Routes, {}, [__jacJsx(Route, {"path": "/", "element": __jacJsx(AdvisorPage, {}, [])}, []), __jacJsx(Route, {"path": "/admin", "element": __jacJsx(AdminPage, {}, [])}, []), __jacJsx(Route, {"path": "/debug", "element": __jacJsx(DebugPage, {}, [])}, []), __jacJsx(Route, {"path": "/admin/cache/:encodedKey", "element": __jacJsx(CacheDetailPage, {}, [])}, [])])])])]);
+  return __jacJsx(Router, {}, [__jacJsx("div", {"className": "min-h-screen bg-[#F3F7F2] text-slate-900"}, [__jacJsx(TopNav, {}, []), __jacJsx(PageShell, {}, [__jacJsx(Routes, {}, [__jacJsx(Route, {"path": "/login", "element": __jacJsx(LoginPage, {}, [])}, []), __jacJsx(Route, {"path": "/signup", "element": __jacJsx(SignupPage, {}, [])}, []), __jacJsx(Route, {"path": "/", "element": __jacJsx(ProtectedRoute, {"element": __jacJsx(AdvisorPage, {}, [])}, [])}, []), __jacJsx(Route, {"path": "/admin", "element": __jacJsx(ProtectedRoute, {"element": __jacJsx(AdminPage, {}, [])}, [])}, []), __jacJsx(Route, {"path": "/debug", "element": __jacJsx(ProtectedRoute, {"element": __jacJsx(DebugPage, {}, [])}, [])}, []), __jacJsx(Route, {"path": "/admin/cache/:encodedKey", "element": __jacJsx(ProtectedRoute, {"element": __jacJsx(CacheDetailPage, {}, [])}, [])}, [])])])])]);
 }
 function MarketSummaryPanel(props) {
   if (!props.summary) {
@@ -271,6 +277,99 @@ function AdminPage() {
       handleAdviceRowClick(entry);
     }}, [__jacJsx("td", {"className": "py-1 pr-3"}, [meta["crop"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [meta["region"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [meta["problem"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [entry["usage_count"] || 0]), __jacJsx("td", {"className": "py-1"}, [formatShortDatetime(entry["last_used_at"] || "")])]);
   })])]), adviceRows.length > 10 && __jacJsx("p", {"className": "mt-2 text-[10px] text-slate-400"}, ["Showing first 10 advice cache entries."])]) : __jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["No advice cache entries yet."])])])]);
+}
+function LoginPage() {
+  let [email, setEmail] = useState("");
+  let [password, setPassword] = useState("");
+  let [error, setError] = useState("");
+  let [loading, setLoading] = useState(false);
+  let navigate = useNavigate();
+  if (jacIsLoggedIn()) {
+    return __jacJsx(Navigate, {"to": "/", "replace": true}, []);
+  }
+  async function handleLogin(e) {
+    e.preventDefault();
+    setError("");
+    if (!email || !password) {
+      setError("Please fill in all fields.");
+      return;
+    }
+    setLoading(true);
+    try {
+      let ok = await jacLogin(email, password);
+      if (ok) {
+        navigate("/");
+      } else {
+        setError("Invalid email or password.");
+      }
+    } catch (err) {
+      console.error("[LoginPage] Login error:", err);
+      setError("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+  let buttonLabel = "Login";
+  if (loading) {
+    buttonLabel = "Logging in\u2026";
+  }
+  return __jacJsx("div", {"className": "min-h-screen bg-[#F3F7F2] flex items-center justify-center px-4"}, [__jacJsx("div", {"className": "w-full max-w-md rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"}, [__jacJsx("h1", {"className": "text-2xl font-semibold text-slate-900"}, ["Welcome back"]), __jacJsx("p", {"className": "mt-1 text-sm text-slate-500"}, ["Log in to use the Virtual Agro-Advisor and see your past advice sessions."]), error && __jacJsx("div", {"className": "mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"}, [error]), __jacJsx("form", {"onSubmit": handleLogin, "className": "mt-4 space-y-4"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-xs font-medium text-slate-700"}, ["Email"]), __jacJsx("input", {"type": "email", "value": email, "onChange": e => {
+    setEmail(e.target.value);
+  }, "placeholder": "you@example.com", "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-xs font-medium text-slate-700"}, ["Password"]), __jacJsx("input", {"type": "password", "value": password, "onChange": e => {
+    setPassword(e.target.value);
+  }, "placeholder": "••••••••", "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("button", {"type": "submit", "disabled": loading, "className": "mt-2 inline-flex w-full items-center justify-center rounded-full bg-green-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-emerald-800 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"}, [buttonLabel])]), __jacJsx("p", {"className": "mt-4 text-xs text-center text-slate-500"}, ["Need an account?", " ", __jacJsx(Link, {"to": "/signup", "className": "font-semibold text-emerald-700 hover:text-emerald-900"}, ["Sign up"])])])]);
+}
+function SignupPage() {
+  let [email, setEmail] = useState("");
+  let [password, setPassword] = useState("");
+  let [confirmPassword, setConfirmPassword] = useState("");
+  let [error, setError] = useState("");
+  let [loading, setLoading] = useState(false);
+  let navigate = useNavigate();
+  if (jacIsLoggedIn()) {
+    return __jacJsx(Navigate, {"to": "/", "replace": true}, []);
+  }
+  async function handleSignup(e) {
+    e.preventDefault();
+    setError("");
+    if (!email || !password || !confirmPassword) {
+      setError("Please fill in all fields.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    setLoading(true);
+    try {
+      let result = await jacSignup(email, password);
+      if (result && result["success"]) {
+        navigate("/login");
+      } else {
+        let errMsg = "Signup failed. Please try again.";
+        if (result && "error" in result && result["error"]) {
+          errMsg = result["error"];
+        }
+        setError(errMsg);
+      }
+    } catch (err) {
+      console.error("[SignupPage] Signup error:", err);
+      setError("Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+  let buttonLabel = "Create account";
+  if (loading) {
+    buttonLabel = "Creating account\u2026";
+  }
+  return __jacJsx("div", {"className": "min-h-screen bg-[#F3F7F2] flex items-center justify-center px-4"}, [__jacJsx("div", {"className": "w-full max-w-md rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"}, [__jacJsx("h1", {"className": "text-2xl font-semibold text-slate-900"}, ["Create your account"]), __jacJsx("p", {"className": "mt-1 text-sm text-slate-500"}, ["Sign up once, and your sessions and advice history will be saved under your login."]), error && __jacJsx("div", {"className": "mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"}, [error]), __jacJsx("form", {"onSubmit": handleSignup, "className": "mt-4 space-y-4"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-xs font-medium text-slate-700"}, ["Email"]), __jacJsx("input", {"type": "email", "value": email, "onChange": e => {
+    setEmail(e.target.value);
+  }, "placeholder": "you@example.com", "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-xs font-medium text-slate-700"}, ["Password"]), __jacJsx("input", {"type": "password", "value": password, "onChange": e => {
+    setPassword(e.target.value);
+  }, "placeholder": "Choose a strong password", "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "text-xs font-medium text-slate-700"}, ["Confirm password"]), __jacJsx("input", {"type": "password", "value": confirmPassword, "onChange": e => {
+    setConfirmPassword(e.target.value);
+  }, "placeholder": "Repeat your password", "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("button", {"type": "submit", "disabled": loading, "className": "mt-2 inline-flex w-full items-center justify-center rounded-full bg-green-500 px-4 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-emerald-800 disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"}, [buttonLabel])]), __jacJsx("p", {"className": "mt-4 text-xs text-center text-slate-500"}, ["Already have an account?", " ", __jacJsx(Link, {"to": "/login", "className": "font-semibold text-emerald-700 hover:text-emerald-900"}, ["Log in"])])])]);
 }
 function extractAnalysis(res) {
   if (!res) {
@@ -546,17 +645,24 @@ function CacheDetailPage() {
     session_last_active = session["last_active_at"] || "";
     session_history = session["history"] || "";
   }
-  return __jacJsx("div", {"className": "space-y-4"}, [__jacJsx("div", {"className": "flex items-center justify-between gap-3"}, [__jacJsx("div", {}, [__jacJsx("h1", {"className": "text-xl font-semibold text-slate-900"}, ["Advice cache detail"]), __jacJsx("p", {"className": "mt-1 text-xs text-slate-500"}, ["Inspect a single advice cache entry, its session, and full plan."])]), __jacJsx("button", {"className": "rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50", "onClick": handleBackClick}, ["← Back to admin"])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-[11px] text-slate-600"}, [__jacJsx("p", {"className": "mb-1 font-semibold text-slate-800"}, ["Cache key"]), __jacJsx("p", {"className": "font-mono break-all"}, [titleKey])]), loading && __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-500"}, ["Loading cache details…"]), !loading && error && __jacJsx("div", {"className": "rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-700"}, [error]), !loading && !error && cache && __jacJsx("div", {"className": "space-y-4"}, [__jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-700"}, [__jacJsx("div", {"className": "grid gap-3 md:grid-cols-2"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Crop"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [crop || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Region"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [region || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Language"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [lang || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Problem (preview)"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900 line-clamp-3"}, [problem || "\u2014"])])]), __jacJsx("div", {"className": "mt-3 flex flex-wrap gap-4 text-[11px] text-slate-600"}, [__jacJsx("span", {}, [__jacJsx("span", {"className": "font-semibold"}, ["Created:"]), " ", created_at || "\u2014"]), __jacJsx("span", {}, [__jacJsx("span", {"className": "font-semibold"}, ["Last used:"]), " ", last_used_at || "\u2014"]), __jacJsx("span", {}, [__jacJsx("span", {"className": "font-semibold"}, ["Usage count:"]), " ", usage_count])])]), session && __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700"}, [__jacJsx("p", {"className": "mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-600"}, ["Owning session"]), __jacJsx("div", {"className": "grid gap-2 md:grid-cols-2"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Session ID"]), __jacJsx("p", {"className": "mt-1 font-mono text-[11px]"}, [session_id || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Lang"]), __jacJsx("p", {"className": "mt-1"}, [session_lang || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Created"]), __jacJsx("p", {"className": "mt-1"}, [session_created || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Last active"]), __jacJsx("p", {"className": "mt-1"}, [session_last_active || "\u2014"])])]), session_history && __jacJsx("div", {"className": "mt-3"}, [__jacJsx("p", {"className": "mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500"}, ["Recent history"]), __jacJsx("pre", {"className": "max-h-40 overflow-y-auto whitespace-pre-wrap rounded-lg bg-white px-2 py-1 text-[10px] text-slate-700"}, [session_history])])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-800"}, [__jacJsx("div", {"className": "space-y-3"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500"}, ["Overview"]), __jacJsx("p", {"className": "leading-relaxed"}, [advice.overview || "\u2014"])]), advice.steps && advice.steps.length > 0 && __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500"}, ["Steps"]), __jacJsx("ol", {"className": "list-decimal space-y-1 pl-5"}, [advice.steps.map((step, idx) => {
+  return __jacJsx("div", {"className": "space-y-4"}, [__jacJsx("div", {"className": "flex items-center justify-between gap-3"}, [__jacJsx("div", {}, [__jacJsx("h1", {"className": "text-xl font-semibold text-slate-900"}, ["Advice cache detail"]), __jacJsx("p", {"className": "mt-1 text-xs text-slate-500"}, ["Inspect a single advice cache entry, its session, and full plan."])]), __jacJsx("button", {"className": "rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50", "onClick": handleBackClick}, ["← Back to manage"])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-[11px] text-slate-600"}, [__jacJsx("p", {"className": "mb-1 font-semibold text-slate-800"}, ["Cache key"]), __jacJsx("p", {"className": "font-mono break-all"}, [titleKey])]), loading && __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-500"}, ["Loading cache details…"]), !loading && error && __jacJsx("div", {"className": "rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-700"}, [error]), !loading && !error && cache && __jacJsx("div", {"className": "space-y-4"}, [__jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-700"}, [__jacJsx("div", {"className": "grid gap-3 md:grid-cols-2"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Crop"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [crop || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Region"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [region || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Language"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [lang || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Problem (preview)"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900 line-clamp-3"}, [problem || "\u2014"])])]), __jacJsx("div", {"className": "mt-3 flex flex-wrap gap-4 text-[11px] text-slate-600"}, [__jacJsx("span", {}, [__jacJsx("span", {"className": "font-semibold"}, ["Created:"]), " ", created_at || "\u2014"]), __jacJsx("span", {}, [__jacJsx("span", {"className": "font-semibold"}, ["Last used:"]), " ", last_used_at || "\u2014"]), __jacJsx("span", {}, [__jacJsx("span", {"className": "font-semibold"}, ["Usage count:"]), " ", usage_count])])]), session && __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700"}, [__jacJsx("p", {"className": "mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-600"}, ["Owning session"]), __jacJsx("div", {"className": "grid gap-2 md:grid-cols-2"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Session ID"]), __jacJsx("p", {"className": "mt-1 font-mono text-[11px]"}, [session_id || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Lang"]), __jacJsx("p", {"className": "mt-1"}, [session_lang || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Created"]), __jacJsx("p", {"className": "mt-1"}, [session_created || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Last active"]), __jacJsx("p", {"className": "mt-1"}, [session_last_active || "\u2014"])])]), session_history && __jacJsx("div", {"className": "mt-3"}, [__jacJsx("p", {"className": "mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500"}, ["Recent history"]), __jacJsx("pre", {"className": "max-h-40 overflow-y-auto whitespace-pre-wrap rounded-lg bg-white px-2 py-1 text-[10px] text-slate-700"}, [session_history])])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-800"}, [__jacJsx("div", {"className": "space-y-3"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500"}, ["Overview"]), __jacJsx("p", {"className": "leading-relaxed"}, [advice.overview || "\u2014"])]), advice.steps && advice.steps.length > 0 && __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500"}, ["Steps"]), __jacJsx("ol", {"className": "list-decimal space-y-1 pl-5"}, [advice.steps.map((step, idx) => {
     return __jacJsx("li", {"key": idx}, [step]);
   })])]), advice.cautions && advice.cautions.length > 0 && __jacJsx("div", {"className": "rounded-xl border border-amber-100 bg-amber-50 p-3"}, [__jacJsx("p", {"className": "mb-1 text-xs font-semibold uppercase tracking-wide text-amber-800"}, ["Cautions"]), __jacJsx("ul", {"className": "list-disc space-y-1 pl-5 text-[11px] text-amber-900"}, [advice.cautions.map((c, idx) => {
     return __jacJsx("li", {"key": idx}, [c]);
   })])])])])])]);
 }
 function TopNav() {
-  let tabs = [{"id": "advisor", "label": "Advisor", "path": "/"}, {"id": "admin", "label": "Admin", "path": "/admin"}, {"id": "debug", "label": "Debug", "path": "/debug"}];
-  return __jacJsx("header", {"className": "border-b border-slate-200 bg-white/80 backdrop-blur"}, [__jacJsx("div", {"className": "mx-auto flex max-w-6xl items-center justify-between px-4 py-3"}, [__jacJsx("div", {"className": "flex items-center gap-2"}, [__jacJsx("div", {"className": "flex h-8 w-8 items-center justify-center rounded-xl bg-lime-500"}, [__jacJsx("span", {"className": "h-4 w-4 rounded-md bg-white/80"}, [])]), __jacJsx("span", {"className": "text-sm font-semibold text-slate-900"}, ["Virtual Agro-Advisor"])]), __jacJsx("nav", {"className": "flex items-center gap-2 text-sm"}, [tabs.map(tab => {
+  let tabs = [{"id": "advisor", "label": "Advisor", "path": "/"}, {"id": "admin", "label": "Manage", "path": "/admin"}, {"id": "debug", "label": "Debug", "path": "/debug"}];
+  let isLoggedIn = jacIsLoggedIn();
+  let navigate = useNavigate();
+  function handleLogout(e) {
+    e.preventDefault();
+    jacLogout();
+    navigate("/login");
+  }
+  return __jacJsx("header", {"className": "border-b border-slate-200 bg-white/80 backdrop-blur"}, [__jacJsx("div", {"className": "mx-auto flex max-w-6xl items-center justify-between px-4 py-3"}, [__jacJsx("div", {"className": "flex items-center gap-2"}, [__jacJsx("div", {"className": "flex h-8 w-8 items-center justify-center rounded-xl bg-lime-500"}, [__jacJsx("span", {"className": "h-4 w-4 rounded-md bg-white/80"}, [])]), __jacJsx("span", {"className": "text-sm font-semibold text-slate-900"}, ["Virtual Agro-Advisor"])]), __jacJsx("nav", {"className": "flex items-center gap-3 text-sm"}, [isLoggedIn && tabs.map(tab => {
     return __jacJsx(Link, {"key": tab.id, "to": tab.path, "className": "rounded-full px-4 py-1.5 text-xs font-medium text-slate-600 hover:bg-lime-50 transition"}, [tab.label]);
-  })])])]);
+  }), __jacJsx("span", {"className": "h-5 w-px bg-slate-200"}, []), isLoggedIn && __jacJsx("button", {"onClick": handleLogout, "className": "rounded-full border border-emerald-600 bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm hover:bg-emerald-600 hover:text-white transition"}, ["Logout"]), !isLoggedIn && __jacJsx("div", {"className": "flex items-center gap-2 text-xs"}, [__jacJsx(Link, {"to": "/login", "className": "font-medium text-emerald-700 hover:text-emerald-900"}, ["Login"]), __jacJsx("span", {"className": "h-4 w-px bg-slate-300"}, []), __jacJsx(Link, {"to": "/signup", "className": "font-medium text-emerald-700 hover:text-emerald-900"}, ["Sign up"])])])])]);
 }
 function WeatherSummaryPanel(props) {
   if (!props.summary) {
@@ -571,4 +677,4 @@ function WeatherSummaryPanel(props) {
 function PageShell(props) {
   return __jacJsx("main", {"className": "mx-auto max-w-6xl px-4 py-6"}, [props.children]);
 }
-export { AdminPage, AdvicePlanPanel, AdvisorForm, AdvisorPage, CacheDetailPage, DebugPage, MarketSummaryPanel, PageShell, TopNav, WeatherSummaryPanel, app, computeStats, extractAdvice, extractAnalysis, extractReports, formatShortDatetime, makeCutoffString, parseCacheKey };
+export { AdminPage, AdvicePlanPanel, AdvisorForm, AdvisorPage, CacheDetailPage, DebugPage, LoginPage, MarketSummaryPanel, PageShell, ProtectedRoute, SignupPage, TopNav, WeatherSummaryPanel, app, computeStats, extractAdvice, extractAnalysis, extractReports, formatShortDatetime, makeCutoffString, parseCacheKey };
