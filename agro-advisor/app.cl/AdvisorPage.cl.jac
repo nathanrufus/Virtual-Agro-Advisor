@@ -116,9 +116,10 @@ cl {
                     loading={loading}
                     error={error}
                 />
-                <WeatherSummaryPanel summary={weatherSummary} />
-                <MarketSummaryPanel summary={marketSummary} />
+                <WeatherSummaryPanel summary={weatherSummary} meta={meta} />
+                <MarketSummaryPanel summary={marketSummary} meta={meta} />
             </div>
+
         </div>;
     }
 }

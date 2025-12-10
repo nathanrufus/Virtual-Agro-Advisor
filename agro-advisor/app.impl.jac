@@ -214,8 +214,6 @@ impl MarketAgent.run {
 }
 
 
-
-
 #  AuditAgent implementation
 
 
@@ -326,6 +324,54 @@ def make_cache_key(
         f"{norm_crop}|{norm_loc}|{lang}"
         f"|w={include_weather}|m={include_market}|img={include_image}|{trimmed_problem}"
     );
+}
+def parse_cache_key(key: str) -> dict {
+    # Defaults
+    let crop = "";
+    let location = "";
+    let lang = "";
+    let include_weather = False;
+    let include_market = False;
+    let include_image = False;
+    let problem_preview = "";
+
+    if key {
+        let parts = key.split("|");
+
+        if len(parts) >= 7 {
+            crop = parts[0];
+            location = parts[1];
+            lang = parts[2];
+
+            # include_weather
+            if "w=True" in parts[3] or "w=true" in parts[3] {
+                include_weather = True;
+            }
+
+            # include_market
+            if "m=True" in parts[4] or "m=true" in parts[4] {
+                include_market = True;
+            }
+
+            # include_image
+            if "img=True" in parts[5] or "img=true" in parts[5] {
+                include_image = True;
+            }
+
+            problem_preview = parts[6];
+        }
+    }
+
+    return {
+        "raw": key,
+        "crop": crop,
+        "location": location,
+        "lang": lang,
+        "include_weather": include_weather,
+        "include_market": include_market,
+        "include_image": include_image,
+        "problem_preview": problem_preview
+    };
 }
 
 
@@ -688,10 +734,10 @@ impl AgroAdvisor.run {
         context=farmer_ctx
     );
 
-    # 5.3 Safety review (LLM)
+       # 5.3 Safety review (LLM)
     let safe_advice = safety_review(advice=raw_advice);
 
-    # 5.4 Translation (if needed)
+    # 5.4 Translation (if needed) – advice plan
     let final_advice = translate_advice_if_needed(
         advice=safe_advice,
         target_lang=self.language
@@ -700,18 +746,16 @@ impl AgroAdvisor.run {
     # 6. Persistence: cache + history + audit
     let new_cache = AdviceCache(
         cache_key=cache_key,
-        advice=safe_advice  # store the pivot-language or base advice
+        advice=safe_advice  # store base-language advice
     );
     session +>: HAS_ADVICE() :+> new_cache;
 
-    # Append brief interaction to session history
     let hist_entry = (
         "user: " + combined_problem + "\n" +
         "ai: " + final_advice.overview
     );
     session.add_history(hist_entry);
 
-    # Audit log
     let log_fresh = AuditLog(
         event="agro_advisor_fresh",
         cache_hit=False,
@@ -719,6 +763,19 @@ impl AgroAdvisor.run {
         session_id=session.session_id
     );
     memory +>: HAS_AUDIT() :+> log_fresh;
+
+    # 6b. NEW: translate weather & market summaries
+    weather_summary.summary_text = translate_summary_text_if_needed(
+        text=weather_summary.summary_text,
+        target_lang=self.language
+    );
+    market_summary.summary_text = translate_summary_text_if_needed(
+        text=market_summary.summary_text,
+        target_lang=self.language
+    );
+
+    # 6c. NEW: localized UI titles
+    let ui_titles = get_ui_titles(self.language);
 
     # 7. Final response for frontend
     report {
@@ -728,7 +785,8 @@ impl AgroAdvisor.run {
         "market_summary": market_summary,
         "meta": {
             "source": "fresh",
-            "lang": self.language
+            "lang": self.language,
+            "titles": ui_titles
         }
     };
 }
@@ -968,4 +1026,87 @@ impl ImageAnalysisAgent.run {
     here +>: HAS_IMAGE_ANALYSIS() :+> node;
 
     report node;
+}
+#  GetAdviceCacheDetail implementation (admin / debug)
+
+impl GetAdviceCacheDetail.run {
+    # 1. Find Memory root
+    let mem_list = [root --> (`?Memory)];
+    if not mem_list {
+        report {
+            "ok": False,
+            "error": "No Memory node found.",
+            "cache_key": self.cache_key
+        };
+        return;
+    }
+    let memory = mem_list[0];
+
+    # 2. Traverse sessions and their advice cache nodes
+    let sessions = [memory ->:HAS_SESSION:->];
+
+    let found_cache = None;
+    let owner_session = None;
+
+    for sess in sessions {
+        for ac in [sess ->:HAS_ADVICE:->] {
+            if ac.cache_key == self.cache_key {
+                found_cache = ac;
+                owner_session = sess;
+                break;
+            }
+        }
+        if found_cache {
+            break;
+        }
+    }
+
+    # 3. Handle not found
+    if not found_cache {
+        report {
+            "ok": False,
+            "error": "Advice cache not found.",
+            "cache_key": self.cache_key
+        };
+        return;
+    }
+
+    # 4. Parse cache key into human-readable info
+    let parsed = parse_cache_key(found_cache.cache_key);
+
+    # 5. Optional: get session history
+    let history_snippet = "";
+    if owner_session {
+        history_snippet = owner_session.get_history();
+    }
+
+    # 6. Build session info dict (without ternary)
+    let session_info = None;
+    if owner_session {
+        session_info = {
+            "session_id": owner_session.session_id,
+            "lang": owner_session.lang,
+            "created_at": owner_session.created_at,
+            "last_active_at": owner_session.last_active_at,
+            "history": history_snippet
+        };
+    }
+
+    # 7. Final detailed report
+    report {
+        "ok": True,
+        "cache_key": found_cache.cache_key,
+        "parsed": parsed,
+        "session": session_info,
+        "advice": {
+            "overview": found_cache.advice.overview,
+            "steps": found_cache.advice.steps,
+            "cautions": found_cache.advice.cautions
+        },
+        "meta": {
+            "created_at": found_cache.created_at,
+            "last_used_at": found_cache.last_used_at,
+            "usage_count": found_cache.usage_count
+        }
+    };
 }

@@ -4,6 +4,7 @@ import "..//global.css";
 import { Router, Routes, Route } from "@jac-client/utils";
 import { useEffect } from "react";
 import { subDays, format } from "date-fns";
+import { useParams, useNavigate } from "react-router-dom";
 import { Link } from "@jac-client/utils";
 function AdvisorPage() {
   let [crop, setCrop] = useState("maize");
@@ -59,7 +60,7 @@ function AdvisorPage() {
       setLoading(false);
     }
   }
-  return __jacJsx("div", {"className": "grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]"}, [__jacJsx(AdvisorForm, {"crop": crop, "onCropChange": setCrop, "location": location, "onLocationChange": setLocation, "problemText": problemText, "onProblemTextChange": setProblemText, "language": language, "onLanguageChange": setLanguage, "includeWeather": includeWeather, "onIncludeWeatherChange": setIncludeWeather, "includeMarket": includeMarket, "onIncludeMarketChange": setIncludeMarket, "loading": loading, "onSubmit": handleGetAdvice, "imagePreviewUrl": imagePreviewUrl, "onImageChange": setImagePreviewUrl}, []), __jacJsx("div", {"className": "space-y-4"}, [__jacJsx(AdvicePlanPanel, {"advicePlan": advicePlan, "meta": meta, "loading": loading, "error": error}, []), __jacJsx(WeatherSummaryPanel, {"summary": weatherSummary}, []), __jacJsx(MarketSummaryPanel, {"summary": marketSummary}, [])])]);
+  return __jacJsx("div", {"className": "grid gap-6 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]"}, [__jacJsx(AdvisorForm, {"crop": crop, "onCropChange": setCrop, "location": location, "onLocationChange": setLocation, "problemText": problemText, "onProblemTextChange": setProblemText, "language": language, "onLanguageChange": setLanguage, "includeWeather": includeWeather, "onIncludeWeatherChange": setIncludeWeather, "includeMarket": includeMarket, "onIncludeMarketChange": setIncludeMarket, "loading": loading, "onSubmit": handleGetAdvice, "imagePreviewUrl": imagePreviewUrl, "onImageChange": setImagePreviewUrl}, []), __jacJsx("div", {"className": "space-y-4"}, [__jacJsx(AdvicePlanPanel, {"advicePlan": advicePlan, "meta": meta, "loading": loading, "error": error}, []), __jacJsx(WeatherSummaryPanel, {"summary": weatherSummary, "meta": meta}, []), __jacJsx(MarketSummaryPanel, {"summary": marketSummary, "meta": meta}, [])])]);
 }
 function AdvisorForm(props) {
   function handleSubmit(e) {
@@ -97,13 +98,17 @@ function AdvisorForm(props) {
   }, "className": "peer sr-only"}, []), __jacJsx("span", {"className": " absolute inset-0 rounded-full bg-slate-300 transition peer-checked:bg-green-600"}, []), __jacJsx("span", {"className": " absolute h-5 w-5 rounded-full bg-white shadow translate-x-1 transition peer-checked:translate-x-5"}, [])]), __jacJsx("span", {}, ["Include Market"])])])]), __jacJsx("div", {"className": "mt-4"}, [__jacJsx("button", {"type": "submit", "className": "inline-flex w-full items-center justify-center rounded-full bg-green-500 px-4 py-3 text-base font-semibold text-white shadow-md hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"}, ["Get Advice"])])]);
 }
 function app() {
-  return __jacJsx(Router, {}, [__jacJsx("div", {"className": "min-h-screen bg-[#F3F7F2] text-slate-900"}, [__jacJsx(TopNav, {}, []), __jacJsx(PageShell, {}, [__jacJsx(Routes, {}, [__jacJsx(Route, {"path": "/", "element": __jacJsx(AdvisorPage, {}, [])}, []), __jacJsx(Route, {"path": "/admin", "element": __jacJsx(AdminPage, {}, [])}, []), __jacJsx(Route, {"path": "/debug", "element": __jacJsx(DebugPage, {}, [])}, [])])])])]);
+  return __jacJsx(Router, {}, [__jacJsx("div", {"className": "min-h-screen bg-[#F3F7F2] text-slate-900"}, [__jacJsx(TopNav, {}, []), __jacJsx(PageShell, {}, [__jacJsx(Routes, {}, [__jacJsx(Route, {"path": "/", "element": __jacJsx(AdvisorPage, {}, [])}, []), __jacJsx(Route, {"path": "/admin", "element": __jacJsx(AdminPage, {}, [])}, []), __jacJsx(Route, {"path": "/debug", "element": __jacJsx(DebugPage, {}, [])}, []), __jacJsx(Route, {"path": "/admin/cache/:encodedKey", "element": __jacJsx(CacheDetailPage, {}, [])}, [])])])])]);
 }
 function MarketSummaryPanel(props) {
   if (!props.summary) {
     return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4 text-sm text-slate-500"}, ["Market summary will appear here when you request it."]);
   }
-  return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "text-sm font-semibold text-slate-900"}, ["Market Summary"])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-sm text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
+  let heading = "Market Summary";
+  if (props.meta && props.meta.titles && props.meta.titles.market_summary) {
+    heading = props.meta.titles.market_summary;
+  }
+  return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "text-sm font-semibold text-slate-900"}, [heading])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-sm text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
 }
 function extractReports(res) {
   if (!res) {
@@ -157,6 +162,7 @@ function AdminPage() {
   let [stats, setStats] = useState({"totalSessions": 0, "adviceEntries": 0, "latestSessionTime": ""});
   let [cleaningSessions, setCleaningSessions] = useState(false);
   let [clearingCache, setClearingCache] = useState(false);
+  let navigate = useNavigate();
   async function loadAdminData() {
     setLoading(true);
     setError("");
@@ -197,7 +203,10 @@ function AdminPage() {
           deleted = r0.deleted_count;
         }
       }
-      let suffix = deleted === 1 ? "" : "s";
+      let suffix = "";
+      if (deleted !== 1) {
+        suffix = "s";
+      }
       setFlash("Removed " + deleted + " session" + suffix + " older than " + days + " days.");
       await loadAdminData();
     } catch (err) {
@@ -224,7 +233,10 @@ function AdminPage() {
           deleted = r0.deleted_count;
         }
       }
-      let suffix = deleted === 1 ? "y" : "ies";
+      let suffix = "ies";
+      if (deleted === 1) {
+        suffix = "y";
+      }
       setFlash("Cleared " + deleted + " advice cache entr" + suffix + ".");
       await loadAdminData();
     } catch (err) {
@@ -233,6 +245,14 @@ function AdminPage() {
     } finally {
       setClearingCache(false);
     }
+  }
+  function handleAdviceRowClick(entry) {
+    let key = entry["cache_key"] || "";
+    if (!key) {
+      return;
+    }
+    let encoded = encodeURIComponent(key);
+    navigate("/admin/cache/" + encoded);
   }
   useEffect(() => {
     loadAdminData();
@@ -247,7 +267,9 @@ function AdminPage() {
     return __jacJsx("tr", {"key": idx, "className": "border-b border-slate-50 last:border-0"}, [__jacJsx("td", {"className": "py-1 pr-3 font-mono"}, [sess["session_id"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [sess["lang"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [formatShortDatetime(sess["created_at"] || "")]), __jacJsx("td", {"className": "py-1"}, [formatShortDatetime(sess["last_active_at"] || "")])]);
   })])]), sessionRows.length > 10 && __jacJsx("p", {"className": "mt-2 text-[10px] text-slate-400"}, ["Showing first 10 sessions."])]) : __jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["No sessions yet."])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700"}, [__jacJsx("div", {"className": "mb-3 flex items-center justify-between"}, [__jacJsx("h2", {"className": "text-sm font-semibold text-slate-800"}, ["Advice cache"]), __jacJsx("span", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["GetAllAdviceCache"])]), adviceRows && adviceRows.length > 0 ? __jacJsx("div", {"className": "overflow-x-auto"}, [__jacJsx("table", {"className": "min-w-full text-left text-[11px]"}, [__jacJsx("thead", {"className": "border-b border-slate-100 text-[10px] uppercase tracking-wide text-slate-400"}, [__jacJsx("tr", {}, [__jacJsx("th", {"className": "py-1 pr-3"}, ["Crop"]), __jacJsx("th", {"className": "py-1 pr-3"}, ["Region"]), __jacJsx("th", {"className": "py-1 pr-3"}, ["Problem"]), __jacJsx("th", {"className": "py-1 pr-3"}, ["Usage"]), __jacJsx("th", {"className": "py-1"}, ["Last used"])])]), __jacJsx("tbody", {"className": "text-xs"}, [adviceRows.map((entry, idx) => {
     let meta = parseCacheKey(entry["cache_key"] || "");
-    return __jacJsx("tr", {"key": idx, "className": "border-b border-slate-50 last:border-0"}, [__jacJsx("td", {"className": "py-1 pr-3"}, [meta["crop"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [meta["region"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [meta["problem"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [entry["usage_count"] || 0]), __jacJsx("td", {"className": "py-1"}, [formatShortDatetime(entry["last_used_at"] || "")])]);
+    return __jacJsx("tr", {"key": idx, "className": "cursor-pointer border-b border-slate-50 last:border-0 hover:bg-slate-50", "onClick": e => {
+      handleAdviceRowClick(entry);
+    }}, [__jacJsx("td", {"className": "py-1 pr-3"}, [meta["crop"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [meta["region"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [meta["problem"] || "\u2014"]), __jacJsx("td", {"className": "py-1 pr-3"}, [entry["usage_count"] || 0]), __jacJsx("td", {"className": "py-1"}, [formatShortDatetime(entry["last_used_at"] || "")])]);
   })])]), adviceRows.length > 10 && __jacJsx("p", {"className": "mt-2 text-[10px] text-slate-400"}, ["Showing first 10 advice cache entries."])]) : __jacJsx("p", {"className": "text-[11px] text-slate-500"}, ["No advice cache entries yet."])])])]);
 }
 function extractAnalysis(res) {
@@ -415,11 +437,120 @@ function AdvicePlanPanel(props) {
       sourceColor = "bg-slate-100 text-slate-700";
     }
   }
-  return __jacJsx("div", {"className": "flex h-[520px] flex-col rounded-2xl border border-lime-100 bg-white p-5 md:p-6 shadow-sm"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between gap-2"}, [__jacJsx("h2", {"className": "text-base font-semibold text-slate-900"}, ["Advice Plan"]), sourceLabel && __jacJsx("span", {"className": "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium " + sourceColor}, [__jacJsx("span", {"className": "h-1.5 w-1.5 rounded-full bg-current"}, []), sourceLabel])]), __jacJsx("div", {"className": "mt-1 flex-1 overflow-y-auto rounded-xl bg-slate-50/70 px-3 py-2"}, [props.error && __jacJsx("p", {"className": "text-sm text-red-600"}, [props.error]), !props.error && props.loading && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Generating advice…"]), !props.error && !props.loading && !props.advicePlan && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Fill in the form on the left and click", " ", __jacJsx("span", {"className": "font-semibold"}, ["Get Advice"]), " to see your plan here."]), !props.error && !props.loading && props.advicePlan && __jacJsx("div", {"className": "space-y-3 text-sm text-slate-800"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Overview"]), __jacJsx("p", {"className": "leading-relaxed"}, [props.advicePlan.overview])]), props.advicePlan.steps && props.advicePlan.steps.length > 0 && __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, ["Step-by-Step Guide"]), __jacJsx("ol", {"className": "space-y-1 pl-5"}, [props.advicePlan.steps.map(step => {
+  let overviewTitle = "Overview";
+  let stepsTitle = "Step-by-Step Guide";
+  let cautionsTitle = "Cautions";
+  if (props.meta && props.meta.titles) {
+    let titles = props.meta.titles;
+    if (titles.advice_overview) {
+      overviewTitle = titles.advice_overview;
+    }
+    if (titles.advice_steps) {
+      stepsTitle = titles.advice_steps;
+    }
+    if (titles.advice_cautions) {
+      cautionsTitle = titles.advice_cautions;
+    }
+  }
+  return __jacJsx("div", {"className": "flex h-[520px] flex-col rounded-2xl border border-lime-100 bg-white p-5 md:p-6 shadow-sm"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between gap-2"}, [__jacJsx("h2", {"className": "text-base font-semibold text-slate-900"}, ["Advice Plan"]), sourceLabel && __jacJsx("span", {"className": "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium " + sourceColor}, [__jacJsx("span", {"className": "h-1.5 w-1.5 rounded-full bg-current"}, []), sourceLabel])]), __jacJsx("div", {"className": "mt-1 flex-1 overflow-y-auto rounded-xl bg-slate-50/70 px-3 py-2"}, [props.error && __jacJsx("p", {"className": "text-sm text-red-600"}, [props.error]), !props.error && props.loading && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Generating advice…"]), !props.error && !props.loading && !props.advicePlan && __jacJsx("p", {"className": "text-sm text-slate-500"}, ["Fill in the form on the left and click", " ", __jacJsx("span", {"className": "font-semibold"}, ["Get Advice"]), " to see your plan here."]), !props.error && !props.loading && props.advicePlan && __jacJsx("div", {"className": "space-y-3 text-sm text-slate-800"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, [overviewTitle]), __jacJsx("p", {"className": "leading-relaxed"}, [props.advicePlan.overview])]), props.advicePlan.steps && props.advicePlan.steps.length > 0 && __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 font-semibold"}, [stepsTitle]), __jacJsx("ol", {"className": "list-decimal space-y-1 pl-5"}, [props.advicePlan.steps.map(step => {
     return __jacJsx("li", {}, [step]);
-  })])]), props.advicePlan.cautions && props.advicePlan.cautions.length > 0 && __jacJsx("div", {"className": "rounded-xl border border-amber-100 bg-amber-50 p-3"}, [__jacJsx("p", {"className": "mb-1 text-sm font-semibold text-amber-800"}, ["Cautions"]), __jacJsx("ul", {"className": "list-disc space-y-1 pl-5 text-xs text-amber-900"}, [props.advicePlan.cautions.map(c => {
+  })])]), props.advicePlan.cautions && props.advicePlan.cautions.length > 0 && __jacJsx("div", {"className": "rounded-xl border border-amber-100 bg-amber-50 p-3"}, [__jacJsx("p", {"className": "mb-1 text-sm font-semibold text-amber-800"}, [cautionsTitle]), __jacJsx("ul", {"className": "list-disc space-y-1 pl-5 text-xs text-amber-900"}, [props.advicePlan.cautions.map(c => {
     return __jacJsx("li", {}, [c]);
   })])])])])]);
+}
+function CacheDetailPage() {
+  let [loading, setLoading] = useState(true);
+  let [error, setError] = useState("");
+  let [cache, setCache] = useState(null);
+  let navigate = useNavigate();
+  let params = useParams();
+  let encodedKey = params.encodedKey || "";
+  let cacheKey = "";
+  if (encodedKey) {
+    try {
+      cacheKey = decodeURIComponent(encodedKey);
+    } catch (err) {
+      console.error("Failed to decode cache key:", err);
+      cacheKey = encodedKey;
+    }
+  }
+  useEffect(() => {
+    async function fetchDetail() {
+      setLoading(true);
+      setError("");
+      setCache(null);
+      if (!cacheKey) {
+        setError("Missing cache key in URL.");
+        setLoading(false);
+        return;
+      }
+      try {
+        let res = await __jacSpawn("GetAdviceCacheDetail", "", {"cache_key": cacheKey});
+        console.log("GetAdviceCacheDetail result:", res);
+        let detail = null;
+        if (res && "reports" in res && res.reports.length > 0) {
+          detail = res.reports[res.reports.length - 1];
+        }
+        if (detail && detail.ok) {
+          setCache(detail);
+        } else {
+          let msg = "Failed to load cache detail.";
+          if (detail && detail.error) {
+            msg = detail.error;
+          }
+          setError(msg);
+        }
+      } catch (err) {
+        console.error("CacheDetailPage fetchDetail exception:", err);
+        setError("Failed to load cache detail.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchDetail();
+  }, [cacheKey]);
+  function handleBackClick(e) {
+    e.preventDefault();
+    navigate("/admin");
+  }
+  let titleKey = cacheKey;
+  if (!titleKey) {
+    titleKey = "(no key)";
+  }
+  let parsed = {};
+  let advice = {};
+  let meta = {};
+  let session = null;
+  if (cache) {
+    parsed = cache.parsed || {};
+    advice = cache.advice || {};
+    meta = cache.meta || {};
+    session = cache.session || null;
+  }
+  let crop = parsed["crop"] || "";
+  let region = parsed["location"] || parsed["region"] || "";
+  let lang = parsed["lang"] || "";
+  let problem = parsed["problem_preview"] || parsed["problem"] || "";
+  let created_at = meta["created_at"] || "";
+  let last_used_at = meta["last_used_at"] || "";
+  let usage_count = meta["usage_count"] || 0;
+  let session_id = "";
+  let session_lang = "";
+  let session_created = "";
+  let session_last_active = "";
+  let session_history = "";
+  if (session) {
+    session_id = session["session_id"] || "";
+    session_lang = session["lang"] || "";
+    session_created = session["created_at"] || "";
+    session_last_active = session["last_active_at"] || "";
+    session_history = session["history"] || "";
+  }
+  return __jacJsx("div", {"className": "space-y-4"}, [__jacJsx("div", {"className": "flex items-center justify-between gap-3"}, [__jacJsx("div", {}, [__jacJsx("h1", {"className": "text-xl font-semibold text-slate-900"}, ["Advice cache detail"]), __jacJsx("p", {"className": "mt-1 text-xs text-slate-500"}, ["Inspect a single advice cache entry, its session, and full plan."])]), __jacJsx("button", {"className": "rounded-full border border-slate-300 px-4 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50", "onClick": handleBackClick}, ["← Back to admin"])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-[11px] text-slate-600"}, [__jacJsx("p", {"className": "mb-1 font-semibold text-slate-800"}, ["Cache key"]), __jacJsx("p", {"className": "font-mono break-all"}, [titleKey])]), loading && __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-500"}, ["Loading cache details…"]), !loading && error && __jacJsx("div", {"className": "rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-700"}, [error]), !loading && !error && cache && __jacJsx("div", {"className": "space-y-4"}, [__jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-700"}, [__jacJsx("div", {"className": "grid gap-3 md:grid-cols-2"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Crop"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [crop || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Region"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [region || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Language"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900"}, [lang || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Problem (preview)"]), __jacJsx("p", {"className": "mt-1 text-sm font-medium text-slate-900 line-clamp-3"}, [problem || "\u2014"])])]), __jacJsx("div", {"className": "mt-3 flex flex-wrap gap-4 text-[11px] text-slate-600"}, [__jacJsx("span", {}, [__jacJsx("span", {"className": "font-semibold"}, ["Created:"]), " ", created_at || "\u2014"]), __jacJsx("span", {}, [__jacJsx("span", {"className": "font-semibold"}, ["Last used:"]), " ", last_used_at || "\u2014"]), __jacJsx("span", {}, [__jacJsx("span", {"className": "font-semibold"}, ["Usage count:"]), " ", usage_count])])]), session && __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700"}, [__jacJsx("p", {"className": "mb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-600"}, ["Owning session"]), __jacJsx("div", {"className": "grid gap-2 md:grid-cols-2"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Session ID"]), __jacJsx("p", {"className": "mt-1 font-mono text-[11px]"}, [session_id || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Lang"]), __jacJsx("p", {"className": "mt-1"}, [session_lang || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Created"]), __jacJsx("p", {"className": "mt-1"}, [session_created || "\u2014"])]), __jacJsx("div", {}, [__jacJsx("p", {"className": "text-[10px] uppercase tracking-wide text-slate-400"}, ["Last active"]), __jacJsx("p", {"className": "mt-1"}, [session_last_active || "\u2014"])])]), session_history && __jacJsx("div", {"className": "mt-3"}, [__jacJsx("p", {"className": "mb-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500"}, ["Recent history"]), __jacJsx("pre", {"className": "max-h-40 overflow-y-auto whitespace-pre-wrap rounded-lg bg-white px-2 py-1 text-[10px] text-slate-700"}, [session_history])])]), __jacJsx("div", {"className": "rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-800"}, [__jacJsx("div", {"className": "space-y-3"}, [__jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500"}, ["Overview"]), __jacJsx("p", {"className": "leading-relaxed"}, [advice.overview || "\u2014"])]), advice.steps && advice.steps.length > 0 && __jacJsx("div", {}, [__jacJsx("p", {"className": "mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500"}, ["Steps"]), __jacJsx("ol", {"className": "list-decimal space-y-1 pl-5"}, [advice.steps.map((step, idx) => {
+    return __jacJsx("li", {"key": idx}, [step]);
+  })])]), advice.cautions && advice.cautions.length > 0 && __jacJsx("div", {"className": "rounded-xl border border-amber-100 bg-amber-50 p-3"}, [__jacJsx("p", {"className": "mb-1 text-xs font-semibold uppercase tracking-wide text-amber-800"}, ["Cautions"]), __jacJsx("ul", {"className": "list-disc space-y-1 pl-5 text-[11px] text-amber-900"}, [advice.cautions.map((c, idx) => {
+    return __jacJsx("li", {"key": idx}, [c]);
+  })])])])])])]);
 }
 function TopNav() {
   let tabs = [{"id": "advisor", "label": "Advisor", "path": "/"}, {"id": "admin", "label": "Admin", "path": "/admin"}, {"id": "debug", "label": "Debug", "path": "/debug"}];
@@ -431,9 +562,13 @@ function WeatherSummaryPanel(props) {
   if (!props.summary) {
     return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4 text-sm text-slate-500"}, ["Weather summary will appear here when you request it."]);
   }
-  return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "text-sm font-semibold text-slate-900"}, ["Weather Summary"])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-sm text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
+  let heading = "Weather Summary";
+  if (props.meta && props.meta.titles && props.meta.titles.weather_summary) {
+    heading = props.meta.titles.weather_summary;
+  }
+  return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "text-sm font-semibold text-slate-900"}, [heading])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-sm text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
 }
 function PageShell(props) {
   return __jacJsx("main", {"className": "mx-auto max-w-6xl px-4 py-6"}, [props.children]);
 }
-export { AdminPage, AdvicePlanPanel, AdvisorForm, AdvisorPage, DebugPage, MarketSummaryPanel, PageShell, TopNav, WeatherSummaryPanel, app, computeStats, extractAdvice, extractAnalysis, extractReports, formatShortDatetime, makeCutoffString, parseCacheKey };
+export { AdminPage, AdvicePlanPanel, AdvisorForm, AdvisorPage, CacheDetailPage, DebugPage, MarketSummaryPanel, PageShell, TopNav, WeatherSummaryPanel, app, computeStats, extractAdvice, extractAnalysis, extractReports, formatShortDatetime, makeCutoffString, parseCacheKey };

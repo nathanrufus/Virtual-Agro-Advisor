@@ -3,13 +3,32 @@ cl {
         let sourceLabel = "";
         let sourceColor = "";
 
-        if (props.meta && props.meta.source) {
-            if (props.meta.source == "fresh") {
+        # --- source chip text/color ---
+        if props.meta and props.meta.source {
+            if props.meta.source == "fresh" {
                 sourceLabel = "Source: fresh";
                 sourceColor = "bg-emerald-50 text-emerald-700";
             } else {
                 sourceLabel = "Source: cache";
                 sourceColor = "bg-slate-100 text-slate-700";
+            }
+        }
+
+        let overviewTitle = "Overview";
+        let stepsTitle = "Step-by-Step Guide";
+        let cautionsTitle = "Cautions";
+
+        if props.meta and props.meta.titles {
+            let titles = props.meta.titles;
+
+            if titles.advice_overview {
+                overviewTitle = titles.advice_overview;
+            }
+            if titles.advice_steps {
+                stepsTitle = titles.advice_steps;
+            }
+            if titles.advice_cautions {
+                cautionsTitle = titles.advice_cautions;
             }
         }
 
@@ -55,7 +74,7 @@ cl {
                 {not props.error && not props.loading && props.advicePlan && (
                     <div className="space-y-3 text-sm text-slate-800">
                         <div>
-                            <p className="mb-1 font-semibold">Overview</p>
+                            <p className="mb-1 font-semibold">{overviewTitle}</p>
                             <p className="leading-relaxed">
                                 {props.advicePlan.overview}
                             </p>
@@ -63,8 +82,8 @@ cl {
 
                         {props.advicePlan.steps && props.advicePlan.steps.length > 0 && (
                             <div>
-                                <p className="mb-1 font-semibold">Step-by-Step Guide</p>
-                                <ol className="space-y-1 pl-5">
+                                <p className="mb-1 font-semibold">{stepsTitle}</p>
+                                <ol className="list-decimal space-y-1 pl-5">
                                     {props.advicePlan.steps.map(lambda step: any -> any {
                                         return <li>{step}</li>;
                                     })}
@@ -75,7 +94,7 @@ cl {
                         {props.advicePlan.cautions && props.advicePlan.cautions.length > 0 && (
                             <div className="rounded-xl border border-amber-100 bg-amber-50 p-3">
                                 <p className="mb-1 text-sm font-semibold text-amber-800">
-                                    Cautions
+                                    {cautionsTitle}
                                 </p>
                                 <ul className="list-disc space-y-1 pl-5 text-xs text-amber-900">
                                     {props.advicePlan.cautions.map(lambda c: any -> any {

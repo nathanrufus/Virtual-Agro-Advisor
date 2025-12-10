@@ -341,6 +341,7 @@ walker GetAllAdviceCache {
     can run with `root entry;
 }
 
+
 walker AgroAdvisor {
     has crop: str;
     has problem_text: str;
@@ -393,6 +394,12 @@ walker ImageAnalysisAgent {
     has location: str;
 
     can run with Session entry;
+}
+
+walker GetAdviceCacheDetail {
+    has cache_key: str;
+
+    can run with `root entry;
 }
 
 # Startup hook: load environment variables (for Groq, APIs)

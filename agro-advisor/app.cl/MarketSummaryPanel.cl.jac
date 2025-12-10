@@ -6,10 +6,16 @@ cl {
             </div>;
         }
 
+        # localized title (fallback)
+        let heading = "Market Summary";
+        if props.meta and props.meta.titles and props.meta.titles.market_summary {
+            heading = props.meta.titles.market_summary;
+        }
+
         return <div className="h-[150px] rounded-2xl border border-lime-100 bg-white p-4">
             <div className="mb-2 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">
-                    Market Summary
+                    {heading}
                 </h3>
             </div>
             <div className="h-full overflow-y-auto">

@@ -21,7 +21,7 @@ cl {
 
                         #  Admin route 
                         <Route
-                            path="/admin"
+                            path="/manage"
                             element={<AdminPage />}
                         />
 
@@ -29,6 +29,10 @@ cl {
                         <Route
                             path="/debug"
                             element={<DebugPage />}
+                        />
+                        <Route
+                            path="/admin/cache/:encodedKey"
+                            element={<CacheDetailPage />}
                         />
                     </Routes>
                 </PageShell>

@@ -4,23 +4,23 @@ cl import from "date-fns" { subDays, format }
 cl {
 
     def extractReports(res: any) -> list[any, ...] {
-            if not res {
-                return [];
-            }
-            if not ("reports" in res) or not res["reports"] {
-                return [];
-            }
-
-            let reports = res["reports"];
-
-            # Case 1: walker reported a single list, so reports[0] is the real list
-            if reports.length == 1 and Array.isArray(reports[0]) {
-                return reports[0];
-            }
-
-            # Case 2: reports already contains plain items
-            return reports;
+        if not res {
+            return [];
         }
+        if not ("reports" in res) or not res["reports"] {
+            return [];
+        }
+
+        let reports = res["reports"];
+
+        # Case 1: walker reported a single list, so reports[0] is the real list
+        if reports.length == 1 and Array.isArray(reports[0]) {
+            return reports[0];
+        }
+
+        # Case 2: reports already contains plain items
+        return reports;
+    }
 
 
     def computeStats(
@@ -33,7 +33,7 @@ cl {
             "latestSessionTime": ""
         };
 
-        for i = 0 to  i < sessionsList.length by i = i + 1 {
+        for i = 0 to i < sessionsList.length by i = i + 1 {
             let sess = sessionsList[i];
             let t = sess["last_active_at"] or sess["created_at"] or "";
             if not t {
@@ -52,7 +52,7 @@ cl {
             return "";
         }
         # Show just "YYYY-MM-DD HH:MM"
-        if (dt.length >= 16) {
+        if dt.length >= 16 {
             return dt.slice(0, 16);
         }
         return dt;
@@ -84,16 +84,15 @@ cl {
     }
 
     def makeCutoffString(days: int) -> str {
+        let nowMs = Date.now();                 # current time in ms
+        let cutoffDate = subDays(nowMs, days);  # now - N days
+        let cutoffStr = format(
+            cutoffDate,
+            "yyyy-MM-dd HH:mm:ss"
+        );
 
-            let nowMs = Date.now();                 # current time in ms
-            let cutoffDate = subDays(nowMs, days);  # now - N days
-            let cutoffStr = format(
-                cutoffDate,
-                "yyyy-MM-dd HH:mm:ss"
-            );
-
-            return cutoffStr;
-        }
+        return cutoffStr;
+    }
 
 
 
@@ -113,6 +112,8 @@ cl {
         let [cleaningSessions, setCleaningSessions] = useState(False);
         let [clearingCache, setClearingCache] = useState(False);
 
+        let navigate = useNavigate();
+
         async def loadAdminData() -> None {
             setLoading(True);
             setError("");
@@ -131,7 +132,7 @@ cl {
                 setSessionRows(sessionsList);
                 setAdviceRows(adviceList);
                 setStats(computeStats(sessionsList, adviceList));
-            } except exception as  err {
+            } except exception as err {
                 console.error("AdminPage loadAdminData exception:", err);
                 setError("Failed to load admin data.");
             } finally {
@@ -141,9 +142,9 @@ cl {
 
         async def handleCleanupSessions() -> None {
             let days = 7;
-            if (not window.confirm(
+            if not window.confirm(
                 "Delete sessions  This cannot be undone."
-            )) {
+            ) {
                 return;
             }
 
@@ -159,14 +160,17 @@ cl {
                 console.log("CleanupOldSessions result:", res);
 
                 let deleted = 0;
-                if (res and "reports" in res and res.reports.length > 0) {
+                if res and "reports" in res and res.reports.length > 0 {
                     let r0 = res.reports[0];
-                    if ("deleted_count" in r0) {
+                    if "deleted_count" in r0 {
                         deleted = r0.deleted_count;
                     }
                 }
 
-                let suffix = ("" if deleted == 1 else "s");
+                let suffix = "";
+                if deleted != 1 {
+                    suffix = "s";
+                }
 
                 setFlash(
                     "Removed " + deleted + " session" + suffix +
@@ -174,7 +178,7 @@ cl {
                 );
 
                 await loadAdminData();
-            } except exception as  err {
+            } except exception as err {
                 console.error("handleCleanupSessions exception:", err);
                 setError("Failed to cleanup sessions.");
             } finally {
@@ -183,9 +187,9 @@ cl {
         }
 
         async def handleClearCache() -> None {
-            if (not window.confirm(
+            if not window.confirm(
                 "Clear all advice cache entries? This cannot be undone."
-            )) {
+            ) {
                 return;
             }
 
@@ -198,20 +202,24 @@ cl {
                 console.log("ClearAdviceCache result:", res);
 
                 let deleted = 0;
-                if (res and "reports" in res and res.reports.length > 0) {
+                if res and "reports" in res and res.reports.length > 0 {
                     let r0 = res.reports[0];
-                    if ("deleted_count" in r0) {
+                    if "deleted_count" in r0 {
                         deleted = r0.deleted_count;
                     }
                 }
 
-                let suffix = ("y" if deleted == 1 else "ies");
-                    setFlash(
-                        "Cleared " + deleted + " advice cache entr" + suffix + "."
-                    );
+                let suffix = "ies";
+                if deleted == 1 {
+                    suffix = "y";
+                }
+
+                setFlash(
+                    "Cleared " + deleted + " advice cache entr" + suffix + "."
+                );
 
                 await loadAdminData();
-            } except exception as  err {
+            } except exception as err {
                 console.error("handleClearCache exception:", err);
                 setError("Failed to clear advice cache.");
             } finally {
@@ -219,10 +227,23 @@ cl {
             }
         }
 
+        def handleAdviceRowClick(entry: any) -> None {
+            let key = entry["cache_key"] or "";
+            if not key {
+                return;
+            }
+
+            let encoded = encodeURIComponent(key);
+            navigate("/admin/cache/" + encoded);
+        }
+
         # Load once on mount
-        useEffect(lambda -> None {
-            loadAdminData();
-        }, []);
+        useEffect(
+            lambda -> None {
+                loadAdminData();
+            },
+            []
+        );
 
         return <div className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -241,7 +262,7 @@ cl {
                         disabled={loading}
                         onClick={lambda e: any -> None { loadAdminData(); }}
                     >
-                        { "Refreshing…" if loading  else  "Refresh"}
+                        {"Refreshing…" if loading else "Refresh"}
                     </button>
 
                     <button
@@ -249,9 +270,7 @@ cl {
                         disabled={cleaningSessions}
                         onClick={lambda e: any -> None { handleCleanupSessions(); }}
                     >
-                        {
-                            "Cleaning sessions…" if cleaningSessions else "Cleanup old sessions"
-                            }
+                        {"Cleaning sessions…" if cleaningSessions else "Cleanup old sessions"}
                     </button>
 
                     <button
@@ -259,9 +278,7 @@ cl {
                         disabled={clearingCache}
                         onClick={lambda e: any -> None { handleClearCache(); }}
                     >
-                        {
-                            "clear advice cache" if clearingCache else "clear advice cache"
-                            }
+                        {"clear advice cache" if clearingCache else "clear advice cache"}
                     </button>
                 </div>
             </div>
@@ -302,9 +319,7 @@ cl {
                         Latest session activity
                     </p>
                     <p className="mt-1 text-sm font-medium text-slate-900">
-                        {formatShortDatetime(stats["latestSessionTime"]) if stats["latestSessionTime"]  else "_"
-                            
-                            }
+                        {formatShortDatetime(stats["latestSessionTime"]) if stats["latestSessionTime"] else "_"}
                     </p>
                 </div>
             </div>
@@ -320,7 +335,7 @@ cl {
                             GetAllSessions
                         </span>
                     </div>
-                    {  (
+                    {( 
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-left text-[11px]">
                                 <thead className="border-b border-slate-100 text-[10px] uppercase tracking-wide text-slate-400">
@@ -331,7 +346,7 @@ cl {
                                         <th className="py-1">Last active</th>
                                     </tr>
                                 </thead>
-                               <tbody className="text-xs">
+                                <tbody className="text-xs">
                                     {sessionRows.map(
                                         lambda sess: any, idx: any -> any {
                                             return <tr
@@ -362,7 +377,7 @@ cl {
                                 </p>
                             )}
                         </div>
-                    ) if sessionRows and sessionRows.length > 0 else  (
+                    ) if sessionRows and sessionRows.length > 0 else (
                         <p className="text-[11px] text-slate-500">
                             No sessions yet.
                         </p>
@@ -379,7 +394,7 @@ cl {
                             GetAllAdviceCache
                         </span>
                     </div>
-                    { (
+                    {( 
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-left text-[11px]">
                                 <thead className="border-b border-slate-100 text-[10px] uppercase tracking-wide text-slate-400">
@@ -391,13 +406,14 @@ cl {
                                         <th className="py-1">Last used</th>
                                     </tr>
                                 </thead>
-                               <tbody className="text-xs">
+                                <tbody className="text-xs">
                                     {adviceRows.map(
                                         lambda entry: any, idx: any -> any {
                                             let meta = parseCacheKey(entry["cache_key"] or "");
                                             return <tr
                                                 key={idx}
-                                                className="border-b border-slate-50 last:border-0"
+                                                className="cursor-pointer border-b border-slate-50 last:border-0 hover:bg-slate-50"
+                                                onClick={lambda e: any -> None { handleAdviceRowClick(entry); }}
                                             >
                                                 <td className="py-1 pr-3">
                                                     {meta["crop"] or "—"}
@@ -426,7 +442,7 @@ cl {
                                 </p>
                             )}
                         </div>
-                    ) if adviceRows and adviceRows.length > 0 else  (
+                    ) if adviceRows and adviceRows.length > 0 else (
                         <p className="text-[11px] text-slate-500">
                             No advice cache entries yet.
                         </p>
