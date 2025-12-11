@@ -22,8 +22,21 @@ cl {
         }
         return <Navigate to="/login" replace={True} />;
     }
-
+    
     def app() -> any {
+         useEffect(lambda -> None {
+            document.title = "Virtual Agro-Advisor";
+
+            link = document.querySelector("link[rel='icon']");
+            if not link {
+                link = document.createElement("link");
+                link.rel = "icon";
+                document.head.appendChild(link);
+            }
+
+            # Point this to your logo in /assets
+            link.href = "/static/assets/agro-logo.png";  
+        }, []);
         return <Router>
             <div className="min-h-screen bg-[#F3F7F2] text-slate-900 text-sm sm:text-base md:text-lg">
                 <TopNav />
