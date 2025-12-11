@@ -41,8 +41,4 @@ COPY nginx.conf /etc/nginx/nginx.conf
 EXPOSE 8000
 
 # Run Jac server on 8001, then start nginx on 8000 in the foreground
-CMD sh -c "\
-    jac serve app.jac --port 8001 & \
-    nginx -g 'daemon off;' \
-"
-
+CMD ["sh", "-c", "jac serve app.jac --port 8001 & nginx -g 'daemon off;'"]
