@@ -3,44 +3,61 @@
 Virtual Agro‑Advisor is a graph‑based, LLM‑powered assistant that helps smallholder farmers get tailored crop management advice.  
 It combines agronomy expertise, weather context, basic market signals, and a session‑aware memory into a single web app built on the **Jac** ecosystem.
 
+The Jac app itself lives in the `agro-advisor/` folder of this repository. This README assumes the layout:
+
+```text
+Virtual-Agro-Advisor/
+├── agro-advisor/        # Jac app (backend + frontend + deps)
+│   ├── app.jac
+│   ├── app.impl.jac
+│   ├── app.cl/
+│   ├── utils.jac
+│   ├── intergrations.jac
+│   ├── requirements.txt
+│   ├── package.json
+│   └── ...
+└── (other top-level files, e.g. .git, docs, etc.)
+```
+
 The project is split into:
 
 - **Backend graph & walkers** in `app.jac` and `app.impl.jac`
 - **Frontend UI** in `app.cl/` using Jac’s React client and Tailwind CSS
 - **LLM + integrations** wired through `byllm.llm` and helper modules in `utils.jac` and `intergrations.jac`
+- **Per‑user auth** built on Jac’s built‑in `/user/create` and `/user/login` endpoints
 
 ---
 
 ## 1. High‑level features
 
-- 🌱 **Personalized agronomy advice**
+-  **Personalized agronomy advice**
   - Farmers describe issues in free text (e.g., _“maize leaves turning yellow with brown spots”_).
   - Backend classifies the problem (pest, disease, nutrient, weather, management, other) and severity.
   - Returns a structured **Advice Plan** with overview, step‑by‑step actions, and safety cautions.
 
-- 👤 **Per‑user login with private sessions**
-  - Built‑in Jac auth (`/user/create`, `/user/login`) is used to create and log in users.
+-  **Per‑user login with private sessions**
+  - Uses Jac’s built‑in auth (`/user/create`, `/user/login`) to create and log in users.
   - Each authenticated user gets their **own graph** on the backend, so sessions, advice cache, and audit logs are isolated per user.
-  - The UI shows **Login / Sign up / Logout** controls in the top navigation.
+  - The UI shows **Login / Sign up / Logout** controls in the header, next to the main navigation.
 
-- ☁️ **Weather‑aware recommendations**
+-  **Weather‑aware recommendations**
   - Optionally fetches and summarizes live‑like weather data for the farmer’s location via `fetch_weather_raw` + `summarize_weather`.
   - Weather context is fed into the LLM so advice can consider rainfall, temperature, wind, etc.
 
-- 💹 **Market context (LLM price estimate, pluggable)**
+-  **Market context (LLM price estimate, pluggable)**
   - Optionally adds a **non‑authoritative** KES/kg price estimate for the selected crop and region.
   - Clear disclaimer: this is _not_ live market data; farmers must still confirm with local buyers.
   - The design allows plugging in a real market price API in place of the LLM helper later.
 
-- 🧠 **Per‑session memory & history**
+-  **Per‑session memory & history**
   - Within each user graph, every browser session is mapped to a `Session` node.
   - A short history of user–AI turns is stored per session and used to provide continuity between queries.
 
-- ⚡ **Caching & reuse**
+-  **Caching & reuse**
   - Advice is cached in `AdviceCache` nodes by a deterministic key based on crop, problem, location, language, and flags (weather/market/image).
   - Weather and market results are cached per session to avoid repeated API/LLM calls.
 
-- 🧭 **Manage (admin) & debug tooling**
+-  **Manage (admin) & debug tooling**
   - **Manage** tab (previously “Admin”) shows an overview of sessions and advice cache entries using:
     - `GetAllSessions` walker — lists all sessions and their metadata for the logged‑in user.
     - `GetAllAdviceCache` walker — lists all cached advice entries with usage stats.
@@ -78,47 +95,49 @@ The project is split into:
   - `/user/create` — sign up.
   - `/user/login` — log in and get an auth token.
 - Frontend helpers from `@jac-client/utils`:
-  - `jacIsLoggedIn`, `jacLogout`, plus `jacLogin`/`jacSignup` inside the auth pages.
+  - `jacIsLoggedIn`, `jacLogout`, plus `jacLogin`/`jacSignup` used in the auth pages.
 - Per‑user graph isolation is handled by Jac, so data is scoped to the logged‑in user automatically.
 
 Other tools:
 
 - Vite (under the hood) for bundling the frontend.
-- Python virtual environment + `requirements.txt` for supporting tooling.
+- Python virtual environment + `requirements.txt` (inside `agro-advisor/`) for supporting tooling.
 
 ---
 
 ## 3. Project structure
 
-The important bits of this repo look like:
+Key layout (inside the `Virtual-Agro-Advisor/` repo):
 
 ```text
-agro-advisor/
-├── app.jac              # Graph schema + walker declarations + cl entry
-├── app.impl.jac         # Walker implementations + nodes/edges/LLM helpers
-├── utils.jac            # Utilities (time, HTTP, logging helpers, etc.)
-├── intergrations.jac    # Weather + other integration helpers
-├── app.cl/
-│   ├── app.cl.jac           # Frontend entry: router + protected routes
-│   ├── TopNav.cl.jac        # Top navigation bar (Advisor / Manage / Debug + auth)
-│   ├── PageShell.cl.jac     # Shared layout wrapper
-│   ├── AdvisorPage.cl.jac   # Main advisor screen
-│   ├── AdvisorForm.cl.jac   # Left‑hand input form
-│   ├── AdvicePlanPanel.cl.jac
-│   ├── WeatherSummaryPanel.cl.jac
-│   ├── MarketSummaryPanel.cl.jac
-│   ├── AdminPage.cl.jac     # “Manage” dashboard (sessions + advice cache)
-│   ├── CacheDetail.cl.jac   # Detail page for a single cache entry
-│   ├── DebugPage.cl.jac     # Debug tools shell
-│   └── AuthPages.cl.jac     # LoginPage + SignupPage
-├── global.css           # Tailwind + global styles
-├── package.json         # Frontend dependencies
-├── vite.config.js       # Vite config used by jac-client
-├── requirements.txt     # Python deps (if used)
-└── README.md            # This file
+Virtual-Agro-Advisor/
+├── agro-advisor/
+│   ├── app.jac                  # Graph schema + walker declarations + cl entry
+│   ├── app.impl.jac             # Walker implementations + nodes/edges/LLM helpers
+│   ├── utils.jac                # Utilities (time, HTTP, logging helpers, etc.)
+│   ├── intergrations.jac        # Weather + other integration helpers
+│   ├── app.cl/
+│   │   ├── app.cl.jac           # Frontend entry: router + protected routes
+│   │   ├── TopNav.cl.jac        # Top navigation bar (Advisor / Manage / Debug + auth)
+│   │   ├── PageShell.cl.jac     # Shared layout wrapper (full-width on large screens)
+│   │   ├── AdvisorPage.cl.jac   # Main advisor screen
+│   │   ├── AdvisorForm.cl.jac   # Left‑hand input form
+│   │   ├── AdvicePlanPanel.cl.jac
+│   │   ├── WeatherSummaryPanel.cl.jac
+│   │   ├── MarketSummaryPanel.cl.jac
+│   │   ├── AdminPage.cl.jac     # “Manage” dashboard (sessions + advice cache)
+│   │   ├── CacheDetail.cl.jac   # Detail page for a single cache entry
+│   │   ├── DebugPage.cl.jac     # Debug tools shell
+│   │   └── AuthPages.cl.jac     # LoginPage + SignupPage
+│   ├── global.css               # Tailwind + global styles
+│   ├── package.json             # Frontend dependencies
+│   ├── vite.config.js           # Vite config used by jac-client
+│   ├── requirements.txt         # Python deps (lives here, NOT in repo root)
+│   └── README.md                # (optional per-folder readme)
+└── README.md                    # Main project README (this file)
 ```
 
-> Jac currently does not support importing `.cl.jac` files from nested subdirectories, so most frontend components live directly inside `app.cl/` and are imported with `cl import from "./Component.cl.jac" { Component }`.
+> Jac currently does not support importing `.cl.jac` files from nested subdirectories, so most frontend components live directly inside `app.cl/` and are imported with e.g. `cl import from .TopNav { TopNav }`.
 
 ---
 
@@ -132,7 +151,7 @@ Jac’s auth model gives each authenticated user their own “root” object and
 - When user A logs in, their advisor history and cache are completely separate from user B’s.
 - Logging out and logging in as a different user effectively switches to a different graph.
 
-The walkers described below all run **within the logged‑in user’s graph**.
+All walkers described below run **within the logged‑in user’s graph**.
 
 ### 4.2 Graph schema
 
@@ -316,24 +335,27 @@ The frontend is written in Jac’s client‑side React flavor.
 
   - Logo + title (“Virtual Agro‑Advisor”).
   - Tabs: **Advisor**, **Manage**, **Debug** (using `Link` from `@jac-client/utils`).
-  - On the right:
+  - Auth controls on the right:
     - If logged **out** (`!jacIsLoggedIn()`): `Login` and `Sign up` links.
     - If logged **in**: a green‑outlined **Logout** button, wired to `jacLogout()` and `useNavigate()` to send the user back to `/login`.
 
-This keeps all navigation (tabs and auth controls) in a single header row.
+### 5.3 Layout & styling
 
-### 5.3 Auth pages
+**`PageShell.cl.jac`**
 
-**`AuthPages.cl.jac`** defines:
+- Wraps all pages in a full‑width container:
 
-- `LoginPage`
-  - Centered card with email/password inputs.
-  - Calls `jacLogin(email, password)` under the hood (via `@jac-client/utils` helper or a small wrapper) and redirects to `/` on success.
-- `SignupPage`
-  - Similar card with email/password confirmation.
-  - Calls `jacSignup` (or `/user/create`) and then logs the user in or redirects to login.
+  - Uses `w-full` instead of `max-w-6xl`, so on large screens the content can stretch wide.
+  - Horizontal padding (`px-4 sm:px-6 lg:px-10`) keeps content away from the very edges.
 
-Both pages use the same green/neutral color palette as the rest of the app.
+**Styling highlights**
+
+- Tailwind CSS utilities throughout (`global.css` is imported at the top of `app.cl.jac`).
+- General design language:
+  - Light green/neutral page background (`bg-[#F3F7F2]`).
+  - White cards with rounded corners and soft borders.
+  - Primary actions in bright greens (`bg-green-500`, `border-emerald-600`).
+  - Responsive grid layout for the main advisor view: form on the left, results on the right.
 
 ### 5.4 Advisor page and components
 
@@ -414,6 +436,19 @@ Both pages use the same green/neutral color palette as the rest of the app.
 - Shows a detailed view of the parsed cache key plus any available metadata (usage count, timestamps, etc.).
 - Designed as a debugging/inspection tool to see what was cached for a given crop/problem/location/lang combination.
 
+### 5.6 Auth pages
+
+**`AuthPages.cl.jac`** defines:
+
+- `LoginPage`
+  - Centered card with email/password inputs.
+  - Calls `jacLogin(email, password)` under the hood (via `@jac-client/utils` helper or a small wrapper) and redirects to `/` on success.
+- `SignupPage`
+  - Similar card with email/password confirmation.
+  - Calls `jacSignup` (or `/user/create`) and then logs the user in or redirects to login.
+
+Both pages use the same green/neutral color palette as the rest of the app.
+
 ---
 
 ## 6. Getting started
@@ -425,6 +460,7 @@ Both pages use the same green/neutral color palette as the rest of the app.
 - Jac CLI
 - API keys as needed:
   - Groq (or other LLM provider) for `byllm.llm`.
+  - Gemini for image analysis
   - Weather API key used by `fetch_weather_raw`.
 
 ### 6.2 Setup
@@ -432,16 +468,16 @@ Both pages use the same green/neutral color palette as the rest of the app.
 1. **Clone the repository**
 
    ```bash
-   git clone <your-repo-url> virtual-agro-advisor
-   cd virtual-agro-advisor/agro-advisor
+   git clone https://github.com/nathanrufus/Virtual-Agro-Advisor.git
+   cd Virtual-Agro-Advisor/agro-advisor
    ```
 
 2. **Python environment**
 
    ```bash
    python -m venv venv
-   source venv/bin/activate  # Linux/macOS
-   # .\venv\Scripts\activate  # Windows
+   source venv/bin/activate        # Linux/macOS
+   # .\venv\Scripts\activate       # Windows
 
    pip install -r requirements.txt
    ```
@@ -454,11 +490,11 @@ Both pages use the same green/neutral color palette as the rest of the app.
 
 4. **Environment variables**
 
-   Create `.env` and add at minimum:
+   Create `.env` inside `agro-advisor/` and add at minimum:
 
    ```bash
    GROQ_API_KEY=your_groq_api_key_here
-   WEATHER_API_KEY=your_weather_api_key_here  # if needed by integrations
+   WEATHER_API_KEY=your_weather_api_key_here  
    ```
 
    These are loaded at startup via:
@@ -469,9 +505,9 @@ Both pages use the same green/neutral color palette as the rest of the app.
    }
    ```
 
-### 6.3 Running the app
+### 6.3 Running the app (local dev)
 
-From the directory where `app.jac` lives:
+From `Virtual-Agro-Advisor/agro-advisor`:
 
 ```bash
 jac serve app.jac
@@ -488,12 +524,51 @@ Open:
 - After logging in, you’ll be redirected to the main **Advisor** view.
 
 ---
+ ### 6.4 Running the app with Docker
 
+You can run the Jac server and frontend entirely in a Docker container using Docker Compose.  
+There is:
+
+- `Dockerfile` is inside `Virtual-Agro-Advisor/agro-advisor/`
+- `requirements.txt`, `package.json`, `app.jac`, etc. are all in the same `agro-advisor/` folder
+- You have a `.env` file inside `agro-advisor/` with your keys:
+
+  ```bash
+  GROQ_API_KEY=your_groq_api_key_here
+  WEATHER_API_KEY=your_weather_api_key_here
+  ```
+
+From the project root (`Virtual-Agro-Advisor/`), build and start the app:
+
+```bash
+cd Virtual-Agro-Advisor
+docker compose up --build
+```
+
+Once it is running, open:
+
+```text
+http://localhost:8000
+```
+
+(or the port defined in `docker-compose.yml`) in your browser.
+
+To run the app in the background:
+
+```bash
+docker compose up --build -d
+```
+
+To stop and remove the containers:
+
+```bash
+docker compose down
+```
 ## 7. Using the app
 
 1. **Sign up**
 
-   - Click **Sign up** in the top‑right.
+   - Click **Sign up** in the header.
    - Create a new account (email/password).
    - Either get auto‑logged in or go back to **Login**.
 
