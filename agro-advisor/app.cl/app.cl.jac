@@ -1,6 +1,5 @@
 cl import "../global.css";
 
-cl import from react { useEffect }
 
 cl import from "@jac-client/utils" {
     Router,
