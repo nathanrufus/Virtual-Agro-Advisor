@@ -487,6 +487,19 @@ impl AgroAdvisor.run {
     }
 
     session.last_active_at = get_current_datetime();
+    
+    # 2b. Let the LLM gently fix spelling in crop/location
+    let norm = normalize_crop_location(
+            crop=self.crop,
+            location=self.location
+        );
+
+        if norm.crop {
+            self.crop = norm.crop;
+        }
+        if norm.location {
+            self.location = norm.location;
+        }
 
     # 3. Cache lookup
     let cache_key = make_cache_key(

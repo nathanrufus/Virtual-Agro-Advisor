@@ -7,6 +7,7 @@ cl import from "@jac-client/utils" {
     Route,
     Navigate,
     jacIsLoggedIn,
+    jacLogin,
     jacLogout,
     jacSignup
 }

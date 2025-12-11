@@ -141,9 +141,19 @@ obj ImageSymptomSummary {
     has confidences: list[float, ...] = []; 
     has notes: str = "";                    # 2–4 sentences about what the model sees
 }
+obj NormalizedInput {
+    has crop: str;
+    has location: str;
+}
 
 
 # LLM-powered helper functions (byLLM) - declarations only
+
+"""Normalize crop and location strings (fix spelling and use common names)."""
+def normalize_crop_location(
+    crop: str,
+    location: str
+) -> NormalizedInput by llm();
 
 """Analyze the farmer's problem into structured issue fields."""
 def analyze_issue(
@@ -189,6 +199,24 @@ def analyze_crop_image(
 ) -> ImageSymptomSummary by llm_vision();
 
 # sem stubs: behavior constraints for the LLM helpers
+sem normalize_crop_location = """
+You receive:
+- crop: short text naming a crop (e.g. 'maiz', 'maize', 'wheet')
+- location: short text naming a place or region (e.g. 'kiambu, kenia')
+
+Your job:
+1. Correct obvious spelling mistakes.
+2. Use standard English crop and place names used in Kenya.
+3. If the input is already correct, return it unchanged.
+4. If you cannot guess, return the original text.
+
+Return a NormalizedInput object with fields:
+- crop: normalized crop name (e.g. 'maize')
+- location: normalized location string (e.g. 'Kiambu, Kenya')
+
+Do not add extra commentary or fields.
+""";
+
 sem analyze_crop_image = """
 You are an agronomy vision assistant.
 

@@ -1,7 +1,7 @@
 import {__jacJsx, __jacSpawn} from "@jac-client/utils";
 import { useState } from "react";
 import "..//global.css";
-import { Router, Routes, Link, Route, Navigate, jacIsLoggedIn, jacSignup } from "@jac-client/utils";
+import { Router, Routes, Link, Route, Navigate, jacIsLoggedIn, jacLogin, jacLogout, jacSignup } from "@jac-client/utils";
 import { useEffect } from "react";
 import { subDays, format } from "date-fns";
 import { useParams, useNavigate } from "react-router-dom";
@@ -284,9 +284,6 @@ function LoginPage() {
   let [error, setError] = useState("");
   let [loading, setLoading] = useState(false);
   let navigate = useNavigate();
-  if (jacIsLoggedIn()) {
-    return __jacJsx(Navigate, {"to": "/", "replace": true}, []);
-  }
   async function handleLogin(e) {
     e.preventDefault();
     setError("");

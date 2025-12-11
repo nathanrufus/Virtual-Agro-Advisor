@@ -277,7 +277,7 @@ cl {
                                     <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                         Steps
                                     </p>
-                                    <ol className="list-decimal space-y-1 pl-5">
+                                    <ol className="space-y-1 pl-5">
                                         {advice.steps.map(
                                             lambda step: any, idx: any -> any {
                                                 return <li key={idx}>{step}</li>;
