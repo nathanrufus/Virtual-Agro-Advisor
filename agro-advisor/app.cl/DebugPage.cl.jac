@@ -184,11 +184,11 @@ cl {
             }
         }
 
-        let severityClass = "inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-700";
+        let severityClass = "inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-medium text-slate-700";
         if severity == "low" {
-            severityClass = "inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-800";
+            severityClass = "inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-medium text-emerald-800";
         } elif severity == "high" {
-            severityClass = "inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-medium text-rose-800";
+            severityClass = "inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 font-medium text-rose-800";
         }
 
         return <div className="space-y-6">
@@ -196,25 +196,25 @@ cl {
                 <h1 className="text-xl font-semibold text-slate-900">
                     Debug tools
                 </h1>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-slate-500">
                     Run the LLM analysis and advice walkers directly with test inputs.
                 </p>
             </div>
 
             {error and (
-                <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
                     {error}
                 </div>
             )}
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 space-y-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-slate-700 space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1">
-                        <label className=" text-[11px]  sm:text-xs  md:text-sm  lg:text-base  font-medium  text-slate-700">
+                        <label className=" font-medium text-slate-700">
                             Crop
                         </label>
                         <input
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                             value={crop}
                             onChange={lambda e: any -> None { setCrop(e.target.value); }}
                             placeholder="maize"
@@ -222,11 +222,11 @@ cl {
                     </div>
 
                     <div className="space-y-1">
-                        <label className=" text-[11px]  sm:text-xs  md:text-sm  lg:text-base  font-medium  text-slate-700">
+                        <label className="font-medium text-slate-700">
                             Location
                         </label>
                         <input
-                            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                             value={location}
                             onChange={lambda e: any -> None { setLocation(e.target.value); }}
                             placeholder="Kiambu, Kenya"
@@ -235,11 +235,11 @@ cl {
                 </div>
 
                 <div className="space-y-1">
-                    <label className=" text-[11px]  sm:text-xs  md:text-sm  lg:text-base  font-medium  text-slate-700">
+                    <label className="font-medium text-slate-700">
                         Problem description
                     </label>
                     <textarea
-                        className="h-28 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        className="h-28 w-full rounded-lg border border-slate-200 px-3 py-2 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                         value={problemText}
                         onChange={lambda e: any -> None { setProblemText(e.target.value); }}
                         placeholder="Describe the farmer&#39;s issue here (e.g. leaves are curling and turning yellow)…"
@@ -249,15 +249,14 @@ cl {
 
                 <div className="flex flex-wrap gap-2">
                     <button
-                        className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium hover:bg-slate-50 disabled:opacity-60"
-                        disabled={loadingAnalysis}
+                        className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium hover:bg-slate-50 disabled:opacity-60" disabled={loadingAnalysis}
                         onClick={lambda e: any -> None { runAnalyzeDebug(); }}
                     >
                         { "Running LLMAnalyzeDebug…" if loadingAnalysis else "Run LLMAnalyzeDebug" }
                     </button>
 
                     <button
-                        className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+                        className="rounded-lg bg-emerald-600 px-3 py-1.5 font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
                         disabled={loadingAdvice}
                         onClick={lambda e: any -> None { runAdviceDebug(); }}
                     >
@@ -268,12 +267,12 @@ cl {
 
             <div className="grid gap-4 lg:grid-cols-2">
                 # -------- IssueAnalysis card --------
-                <div className="flex h-[320px] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                <div className="flex h-[320px] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-slate-700">
                     <div className="mb-2 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-slate-800">
+                        <h2 className="font-semibold text-slate-800">
                             IssueAnalysis
                         </h2>
-                        <span className="text-[10px] uppercase tracking-wide text-slate-400">
+                        <span className="uppercase tracking-wide text-slate-400">
                             LLMAnalyzeDebug
                         </span>
                     </div>
@@ -282,14 +281,14 @@ cl {
                         {(
                             <div className="space-y-3">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <span className="text-[11px] uppercase tracking-wide text-slate-400">
+                                    <span className=" uppercase tracking-wide text-slate-400">
                                         Problem type
                                     </span>
-                                    <span className="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-800">
+                                    <span className="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5  font-medium text-slate-800">
                                         {problemType or "—"}
                                     </span>
 
-                                    <span className="ml-3 text-[11px] uppercase tracking-wide text-slate-400">
+                                    <span className="ml-3  uppercase tracking-wide text-slate-400">
                                         Severity
                                     </span>
                                     <span className={severityClass}>
@@ -298,12 +297,12 @@ cl {
                                 </div>
 
                                 <div>
-                                    <p className="mb-1 text-[11px] font-medium text-slate-500">
+                                    <p className="mb-1 font-medium text-slate-500">
                                         Key symptoms
                                     </p>
 
                                     {(
-                                        <ul className="list-disc space-y-1 pl-5 text-[11px]">
+                                        <ul className="list-disc space-y-1 pl-5 ">
                                             {analysis["key_symptoms"].map(
                                                 lambda s: any, idx: any -> any {
                                                     return <li key={idx}>
@@ -313,14 +312,14 @@ cl {
                                             )}
                                         </ul>
                                     ) if ("key_symptoms" in analysis and analysis["key_symptoms"] and analysis["key_symptoms"].length > 0) else (
-                                        <p className="text-[11px] text-slate-400">
+                                        <p className="text-slate-400">
                                             No key symptoms returned.
                                         </p>
                                     )}
                                 </div>
                             </div>
                         ) if analysis else (
-                            <p className="text-[11px] text-slate-500">
+                            <p className="text-slate-500">
                                 Run LLMAnalyzeDebug to see structured IssueAnalysis here.
                             </p>
                         )}
@@ -328,12 +327,12 @@ cl {
                 </div>
 
                 # -------- AdvicePlan card --------
-                <div className="flex h-[320px] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                <div className="flex h-[320px] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-slate-700">
                     <div className="mb-2 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-slate-800">
+                        <h2 className="font-semibold text-slate-800">
                             AdvicePlan
                         </h2>
-                    <span className="text-[10px] uppercase tracking-wide text-slate-400">
+                    <span className=" uppercase tracking-wide text-slate-400">
                             LLMAdviceDebug
                         </span>
                     </div>
@@ -342,49 +341,44 @@ cl {
                         {(
                             <div className="space-y-4">
                                 <div>
-                                    <p className="mb-1 text-[11px] font-medium text-slate-500">
+                                    <p className="mb-1  font-medium text-slate-500">
                                         Overview
                                     </p>
-                                    <p className="text-[11px] leading-relaxed text-slate-700">
+                                    <p className="leading-relaxed text-slate-700">
                                         {advice["overview"] or "No overview returned."}
                                     </p>
                                 </div>
 
                                 <div>
-                                    <p className="mb-1 text-[11px] font-medium text-slate-500">
+                                    <p className="mb-1  font-medium text-slate-500">
                                         Recommended steps
                                     </p>
                                     {(
-                                        <ol className="space-y-2 text-[11px]">
+                                       <ul className="space-y-2">
                                             {advice["steps"].map(
                                                 lambda step: any, idx: any -> any {
                                                     return <li
                                                         key={idx}
-                                                        className="flex gap-2"
+                                                        className="text-slate-700"
                                                     >
-                                                        <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 text-[10px] font-semibold text-emerald-800">
-                                                            {idx + 1}
-                                                        </span>
-                                                        <span className="text-slate-700">
-                                                            {step}
-                                                        </span>
+                                                        {step}
                                                     </li>;
                                                 }
                                             )}
-                                        </ol>
+                                        </ul>
                                     ) if ("steps" in advice and advice["steps"] and advice["steps"].length > 0) else (
-                                        <p className="text-[11px] text-slate-400">
+                                        <p className="text-slate-400">
                                             No steps returned.
                                         </p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <p className="mb-1 text-[11px] font-medium text-slate-500">
+                                    <p className="mb-1 font-medium text-slate-500">
                                         Cautions
                                     </p>
                                     {(
-                                        <ul className="list-disc space-y-1 pl-5 text-[11px] text-slate-700">
+                                        <ul className="list-disc space-y-1 pl-5  text-slate-700">
                                             {advice["cautions"].map(
                                                 lambda c: any, idx: any -> any {
                                                     return <li key={idx}>
@@ -394,14 +388,14 @@ cl {
                                             )}
                                         </ul>
                                     ) if ("cautions" in advice and advice["cautions"] and advice["cautions"].length > 0) else (
-                                        <p className="text-[11px] text-slate-400">
+                                        <p className="text-slate-400">
                                             No cautions returned.
                                         </p>
                                     )}
                                 </div>
                             </div>
                         ) if advice else (
-                            <p className="text-[11px] text-slate-500">
+                            <p className=" text-slate-500">
                                 Run LLMAdviceDebug to see the generated AdvicePlan here.
                             </p>
                         )}

@@ -41,7 +41,7 @@ cl {
                 {sourceLabel && (
                     <span
                         className={
-                            "inline-flex items-center gap-1 rounded-full px-3 py-1 text-[11px] font-medium " +
+                            "inline-flex items-center gap-1 rounded-full px-3 py-1 font-medium " +
                             sourceColor
                         }
                     >
@@ -53,26 +53,26 @@ cl {
 
             <div className="mt-1 flex-1 overflow-y-auto rounded-xl bg-slate-50/70 px-3 py-2">
                 {props.error && (
-                    <p className="text-sm text-red-600">
+                    <p className="text-red-600">
                         {props.error}
                     </p>
                 )}
 
                 {not props.error && props.loading && (
-                    <p className="text-sm text-slate-500">
+                    <p className="text-slate-500">
                         Generating advice…
                     </p>
                 )}
 
                 {not props.error && not props.loading && not props.advicePlan && (
-                    <p className="text-sm text-slate-500">
+                    <p className="text-slate-500">
                         Fill in the form on the left and click{" "}
                         <span className="font-semibold">Get Advice</span> to see your plan here.
                     </p>
                 )}
 
                 {not props.error && not props.loading && props.advicePlan && (
-                    <div className="space-y-3 text-sm text-slate-800">
+                    <div className="space-y-3 text-slate-800">
                         <div>
                             <p className="mb-1 font-semibold">{overviewTitle}</p>
                             <p className="leading-relaxed">
@@ -93,10 +93,10 @@ cl {
 
                         {props.advicePlan.cautions && props.advicePlan.cautions.length > 0 && (
                             <div className="rounded-xl border border-amber-100 bg-amber-50 p-3">
-                                <p className="mb-1 text-sm font-semibold text-amber-800">
+                                <p className="mb-1 font-semibold text-amber-800">
                                     {cautionsTitle}
                                 </p>
-                                <ul className="list-disc space-y-1 pl-5 text-xs text-amber-900">
+                                <ul className="list-disc space-y-1 pl-5 text-amber-900">
                                     {props.advicePlan.cautions.map(lambda c: any -> any {
                                         return <li>{c}</li>;
                                     })}

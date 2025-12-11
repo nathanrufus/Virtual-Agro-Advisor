@@ -37,7 +37,7 @@ cl {
                 <h1 className="text-2xl font-semibold text-slate-900">
                     Get Personalized Agricultural Advice
                 </h1>
-                <p className="text-sm text-slate-500">
+                <p className="text-slate-500">
                     Fill in the details below to receive a tailored plan for your crops.
                 </p>
             </div>
@@ -45,7 +45,7 @@ cl {
             # {/* Main fields */}
             <div className="mt-4 flex-1 space-y-4 overflow-y-auto pr-1">
                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-800">
+                    <label className="font-medium text-slate-800">
                         Give Crop
                     </label>
                     <input
@@ -55,12 +55,12 @@ cl {
                         onChange={lambda e: any -> None {
                             props.onCropChange(e.target.value);
                         }}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"
                     />
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-800">
+                    <label className="font-medium text-slate-800">
                         Enter Location
                     </label>
                     <input
@@ -70,20 +70,20 @@ cl {
                         onChange={lambda e: any -> None {
                             props.onLocationChange(e.target.value);
                         }}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"
                     />
                 </div>
 
                 # ===== IMAGE UPLOAD (RIGHT AFTER LOCATION) =====
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-800">
+                    <label className="font-medium text-slate-800">
                         Upload Image (optional)
                     </label>
                     <input
                         type="file"
                         accept="image/*"
                         onChange={handleImageChange}
-                        className="block w-full text-sm text-slate-700 file:mr-4 file:rounded-full file:border-0 file:bg-green-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-green-700 hover:file:bg-green-100"
+                        className="block w-full text-slate-700 file:mr-4 file:rounded-full file:border-0 file:bg-green-50 file:px-4 file:py-2 file:file:font-semibold file:text-green-700 hover:file:bg-green-100"
                     />
 
                     # Preview / placeholder
@@ -96,7 +96,7 @@ cl {
                             />
                         </div>
                     ) if props.imagePreviewUrl && props.imagePreviewUrl != "" else  (
-                        <div className="mt-2 flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400">
+                        <div className="mt-2 flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400">
                             No image selected – you can upload a clear photo of the affected plant.
                         </div>
                     )}
@@ -104,7 +104,7 @@ cl {
                 # ===== END IMAGE UPLOAD =====
 
                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-800">
+                    <label className="font-medium text-slate-800">
                         Describe Your Problem
                     </label>
                     <textarea
@@ -120,7 +120,7 @@ cl {
 
                 # {/* LANGUAGE SEGMENTED CONTROL */}
                 <div className="space-y-2 pt-1">
-                    <label className="text-sm font-medium text-slate-800">
+                    <label className="font-medium text-slate-800">
                         Select Language
                     </label>
 
@@ -138,7 +138,7 @@ cl {
                                 className="peer sr-only"
                             />
                             <div
-                                className="w-full rounded-md border border-green-600 bg-white px-4 py-2 text-sm font-semibold text-green-700 transition peer-checked:bg-green-600 peer-checked:text-white">
+                                className="w-full rounded-md border border-green-600 bg-white px-4 py-2 font-semibold text-green-700 transition peer-checked:bg-green-600 peer-checked:text-white">
                                 EN - English
                             </div>
                         </label>
@@ -156,7 +156,7 @@ cl {
                                 className="peer sr-only"
                             />
                             <div
-                                className=" w-full rounded-md border border-green-600 bg-white px-4 py-2 text-sm font-semibold text-green-700 transition peer-checked:bg-green-600 peer-checked:text-white">
+                                className=" w-full rounded-md border border-green-600 bg-white px-4 py-2 font-semibold text-green-700 transition peer-checked:bg-green-600 peer-checked:text-white">
                                 SW - Swahili
                             </div>
                         </label>
@@ -167,7 +167,7 @@ cl {
                 <div className="border-t border-slate-200 pt-3" />
 
                 # {/* TOGGLE SWITCHES */}
-                <div className="space-y-3 text-sm text-slate-800">
+                <div className="space-y-3 text-slate-800">
                     # {/* Include Weather */}
                     <label className="flex items-center gap-3">
                         <span className="relative inline-flex h-6 w-11 items-center">

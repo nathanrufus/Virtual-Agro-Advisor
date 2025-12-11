@@ -251,14 +251,14 @@ cl {
                     <h1 className="text-xl font-semibold text-slate-900">
                         Admin dashboard
                     </h1>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="mt-1 text-slate-500">
                         Inspect sessions and advice cache, and run maintenance tasks.
                     </p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
                     <button
-                        className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50 disabled:opacity-60"
+                        className="rounded-lg border border-slate-300 px-3 py-1 font-medium hover:bg-slate-50 disabled:opacity-60"
                         disabled={loading}
                         onClick={lambda e: any -> None { loadAdminData(); }}
                     >
@@ -266,7 +266,7 @@ cl {
                     </button>
 
                     <button
-                        className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60"
+                        className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1 font-medium text-amber-900 hover:bg-amber-100 disabled:opacity-60"
                         disabled={cleaningSessions}
                         onClick={lambda e: any -> None { handleCleanupSessions(); }}
                     >
@@ -274,7 +274,7 @@ cl {
                     </button>
 
                     <button
-                        className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-900 hover:bg-rose-100 disabled:opacity-60"
+                        className="rounded-lg border border-rose-300 bg-rose-50 px-3 py-1 font-medium text-rose-900 hover:bg-rose-100 disabled:opacity-60"
                         disabled={clearingCache}
                         onClick={lambda e: any -> None { handleClearCache(); }}
                     >
@@ -284,20 +284,20 @@ cl {
             </div>
 
             {flash and (
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-800">
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-emerald-800">
                     {flash}
                 </div>
             )}
 
             {error and (
-                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700">
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-red-700">
                     {error}
                 </div>
             )}
 
             <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-slate-500">
                         Total sessions
                     </p>
                     <p className="mt-1 text-xl font-semibold text-slate-900">
@@ -306,7 +306,7 @@ cl {
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-slate-500">
                         Advice cache entries
                     </p>
                     <p className="mt-1 text-xl font-semibold text-slate-900">
@@ -315,10 +315,10 @@ cl {
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-slate-500">
                         Latest session activity
                     </p>
-                    <p className="mt-1 text-sm font-medium text-slate-900">
+                    <p className="mt-1 font-medium text-slate-900">
                         {formatShortDatetime(stats["latestSessionTime"]) if stats["latestSessionTime"] else "_"}
                     </p>
                 </div>
@@ -326,9 +326,9 @@ cl {
 
             <div className="grid gap-4 lg:grid-cols-2">
                 # Sessions table 
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 text-slate-700">
                     <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-slate-800">
+                        <h2 className="font-semibold text-slate-800">
                             Sessions
                         </h2>
                         <span className="text-[10px] uppercase tracking-wide text-slate-400">
@@ -337,7 +337,7 @@ cl {
                     </div>
                     {( 
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left text-[11px]">
+                            <table className="min-w-full text-left ">
                                 <thead className="border-b border-slate-100 text-[10px] uppercase tracking-wide text-slate-400">
                                     <tr>
                                         <th className="py-1 pr-3">Session ID</th>
@@ -346,7 +346,7 @@ cl {
                                         <th className="py-1">Last active</th>
                                     </tr>
                                 </thead>
-                                <tbody className="text-xs">
+                                <tbody className="">
                                     {sessionRows.map(
                                         lambda sess: any, idx: any -> any {
                                             return <tr
@@ -378,16 +378,16 @@ cl {
                             )}
                         </div>
                     ) if sessionRows and sessionRows.length > 0 else (
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-slate-500">
                             No sessions yet.
                         </p>
                     )}
                 </div>
 
                 # Advice cache table 
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 text-slate-700">
                     <div className="mb-3 flex items-center justify-between">
-                        <h2 className="text-sm font-semibold text-slate-800">
+                        <h2 className="font-semibold text-slate-800">
                             Advice cache
                         </h2>
                         <span className="text-[10px] uppercase tracking-wide text-slate-400">
@@ -396,17 +396,16 @@ cl {
                     </div>
                     {( 
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left text-[11px]">
+                            <table className="min-w-full text-left ">
                                 <thead className="border-b border-slate-100 text-[10px] uppercase tracking-wide text-slate-400">
                                     <tr>
                                         <th className="py-1 pr-3">Crop</th>
                                         <th className="py-1 pr-3">Region</th>
-                                        <th className="py-1 pr-3">Problem</th>
                                         <th className="py-1 pr-3">Usage</th>
                                         <th className="py-1">Last used</th>
                                     </tr>
                                 </thead>
-                                <tbody className="text-xs">
+                                <tbody className="">
                                     {adviceRows.map(
                                         lambda entry: any, idx: any -> any {
                                             let meta = parseCacheKey(entry["cache_key"] or "");
@@ -420,9 +419,6 @@ cl {
                                                 </td>
                                                 <td className="py-1 pr-3">
                                                     {meta["region"] or "—"}
-                                                </td>
-                                                <td className="py-1 pr-3">
-                                                    {meta["problem"] or "—"}
                                                 </td>
                                                 <td className="py-1 pr-3">
                                                     {entry["usage_count"] or 0}
@@ -443,7 +439,7 @@ cl {
                             )}
                         </div>
                     ) if adviceRows and adviceRows.length > 0 else (
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-slate-500">
                             No advice cache entries yet.
                         </p>
                     )}
