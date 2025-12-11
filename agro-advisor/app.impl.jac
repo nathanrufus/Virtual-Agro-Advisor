@@ -645,7 +645,6 @@ impl AgroAdvisor.run {
             disengage;
         }
 
-
     # 5. Cache miss: run full LLM pipeline
 
     # 5a. Optional: image-based symptom enrichment (like weather/market, but for images)

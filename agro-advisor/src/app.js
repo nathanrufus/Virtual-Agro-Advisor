@@ -5,6 +5,7 @@ import { Router, Routes, Link, Route, Navigate, jacIsLoggedIn, jacLogin, jacLogo
 import { useEffect } from "react";
 import { subDays, format } from "date-fns";
 import { useParams, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 function AdvisorPage() {
   let [crop, setCrop] = useState("maize");
   let [location, setLocation] = useState("Kiambu, Kenya");
@@ -118,13 +119,13 @@ function app() {
 }
 function MarketSummaryPanel(props) {
   if (!props.summary) {
-    return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4 text-slate-500"}, ["Market summary will appear here when you request it."]);
+    return __jacJsx("div", {"className": "h-[200px] rounded-2xl border border-lime-100 bg-white p-4 text-slate-500"}, ["Market summary will appear here when you request it."]);
   }
   let heading = "Market Summary";
   if (props.meta && props.meta.titles && props.meta.titles.market_summary) {
     heading = props.meta.titles.market_summary;
   }
-  return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "font-semibold text-slate-900"}, [heading])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
+  return __jacJsx("div", {"className": "h-[200px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "font-semibold text-slate-900"}, [heading])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
 }
 function extractReports(res) {
   if (!res) {
@@ -320,7 +321,7 @@ function LoginPage() {
   if (loading) {
     buttonLabel = "Logging in\u2026";
   }
-  return __jacJsx("div", {"className": "min-h-screen bg-[#F3F7F2] flex items-center justify-center px-4"}, [__jacJsx("div", {"className": "w-full max-w-md rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"}, [__jacJsx("h1", {"className": "text-2xl font-semibold text-slate-900"}, ["Welcome back"]), __jacJsx("p", {"className": "mt-1 text-slate-500"}, ["Log in to use the Virtual Agro-Advisor and see your past advice sessions."]), error && __jacJsx("div", {"className": "mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700"}, [error]), __jacJsx("form", {"onSubmit": handleLogin, "className": "mt-4 space-y-4"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "font-medium text-slate-700"}, ["Email"]), __jacJsx("input", {"type": "email", "value": email, "onChange": e => {
+  return __jacJsx("div", {"className": " bg-[#F3F7F2] flex items-center justify-center px-4 mt-20"}, [__jacJsx("div", {"className": "w-full max-w-md rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"}, [__jacJsx("h1", {"className": "text-2xl font-semibold text-slate-900"}, ["Welcome back"]), error && __jacJsx("div", {"className": "mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700"}, [error]), __jacJsx("form", {"onSubmit": handleLogin, "className": "mt-4 space-y-4"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "font-medium text-slate-700"}, ["Email"]), __jacJsx("input", {"type": "email", "value": email, "onChange": e => {
     setEmail(e.target.value);
   }, "placeholder": "you@example.com", "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "font-medium text-slate-700"}, ["Password"]), __jacJsx("input", {"type": "password", "value": password, "onChange": e => {
     setPassword(e.target.value);
@@ -370,7 +371,7 @@ function SignupPage() {
   if (loading) {
     buttonLabel = "Creating account\u2026";
   }
-  return __jacJsx("div", {"className": "min-h-screen bg-[#F3F7F2] flex items-center justify-center px-4"}, [__jacJsx("div", {"className": "w-full max-w-md rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"}, [__jacJsx("h1", {"className": "text-2xl font-semibold text-slate-900"}, ["Create your account"]), __jacJsx("p", {"className": "mt-1 text-slate-500"}, ["Sign up once, and your sessions and advice history will be saved under your login."]), error && __jacJsx("div", {"className": "mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700"}, [error]), __jacJsx("form", {"onSubmit": handleSignup, "className": "mt-4 space-y-4"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "font-medium text-slate-700"}, ["Email"]), __jacJsx("input", {"type": "email", "value": email, "onChange": e => {
+  return __jacJsx("div", {"className": " bg-[#F3F7F2] flex items-center justify-center px-4 mt-20"}, [__jacJsx("div", {"className": "w-full max-w-md rounded-2xl border border-lime-100 bg-white p-6 shadow-sm"}, [__jacJsx("h1", {"className": "text-2xl font-semibold text-slate-900"}, ["Create your account"]), error && __jacJsx("div", {"className": "mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700"}, [error]), __jacJsx("form", {"onSubmit": handleSignup, "className": "mt-4 space-y-4"}, [__jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "font-medium text-slate-700"}, ["Email"]), __jacJsx("input", {"type": "email", "value": email, "onChange": e => {
     setEmail(e.target.value);
   }, "placeholder": "you@example.com", "className": "w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600"}, [])]), __jacJsx("div", {"className": "space-y-1"}, [__jacJsx("label", {"className": "font-medium text-slate-700"}, ["Password"]), __jacJsx("input", {"type": "password", "value": password, "onChange": e => {
     setPassword(e.target.value);
@@ -662,26 +663,39 @@ function TopNav() {
   let tabs = [{"id": "advisor", "label": "Advisor", "path": "/"}, {"id": "admin", "label": "Manage", "path": "/admin"}, {"id": "debug", "label": "Debug", "path": "/debug"}];
   let isLoggedIn = jacIsLoggedIn();
   let navigate = useNavigate();
+  let [mobileOpen, setMobileOpen] = useState(false);
   function handleLogout(e) {
     e.preventDefault();
     jacLogout();
     navigate("/login");
   }
-  return __jacJsx("header", {"className": "border-b border-slate-200 bg-white/80 backdrop-blur"}, [__jacJsx("div", {"className": "flex w-full items-center justify-between px-4 lg:px-10 py-3"}, [__jacJsx("div", {"className": "flex items-center gap-2"}, [__jacJsx("div", {"className": "flex h-8 w-8 items-center justify-center rounded-xl bg-lime-500"}, [__jacJsx("span", {"className": "h-4 w-4 rounded-md bg-white/80"}, [])]), __jacJsx("span", {"className": "font-semibold text-slate-900"}, ["Virtual Agro-Advisor"])]), __jacJsx("nav", {"className": "flex items-center gap-3 "}, [isLoggedIn && tabs.map(tab => {
+  function toggleMobile(e) {
+    e.preventDefault();
+    setMobileOpen(!mobileOpen);
+  }
+  return __jacJsx("header", {"className": "border-b border-lime-200 bg-lime-50 backdrop-blur fixed inset-x-0 top-0 z-50 "}, [__jacJsx("div", {"className": "mx-auto flex w-full  items-center justify-between px-6 py-3"}, [__jacJsx("div", {"className": "flex items-center gap-2"}, [__jacJsx("div", {"className": "flex h-8 w-8 items-center justify-center rounded-xl bg-lime-500"}, [__jacJsx("span", {"className": "h-4 w-4 rounded-md bg-white/80"}, [])]), __jacJsx("span", {"className": "font-semibold text-slate-900"}, ["Virtual Agro-Advisor"])]), __jacJsx("nav", {"className": "hidden md:flex items-center gap-3"}, [isLoggedIn && tabs.map(tab => {
     return __jacJsx(Link, {"key": tab.id, "to": tab.path, "className": "rounded-full px-4 py-1.5 font-medium text-slate-600 hover:bg-lime-50 transition"}, [tab.label]);
-  }), __jacJsx("span", {"className": "h-5 w-px bg-slate-200"}, []), isLoggedIn && __jacJsx("button", {"onClick": handleLogout, "className": "rounded-full border border-emerald-600 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm hover:bg-emerald-600 hover:text-white transition"}, ["Logout"]), !isLoggedIn && __jacJsx("div", {"className": "flex items-center gap-2 "}, [__jacJsx(Link, {"to": "/login", "className": "font-medium text-emerald-700 hover:text-emerald-900"}, ["Login"]), __jacJsx("span", {"className": "h-4 w-px bg-slate-300"}, []), __jacJsx(Link, {"to": "/signup", "className": "font-medium text-emerald-700 hover:text-emerald-900"}, ["Sign up"])])])])]);
+  }), __jacJsx("span", {"className": "h-5 w-px bg-slate-200"}, []), isLoggedIn && __jacJsx("button", {"onClick": handleLogout, "className": "rounded-full border border-emerald-600 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm hover:bg-emerald-600 hover:text-white transition"}, ["Logout"]), !isLoggedIn && __jacJsx("div", {"className": "flex items-center gap-2 "}, [__jacJsx(Link, {"to": "/login", "className": "font-medium text-emerald-700 hover:text-emerald-900"}, ["Login"]), __jacJsx("span", {"className": "h-4 w-px bg-slate-300"}, []), __jacJsx(Link, {"to": "/signup", "className": "font-medium text-emerald-700 hover:text-emerald-900"}, ["Sign up"])])]), __jacJsx("button", {"className": "md:hidden inline-flex items-center justify-center rounded-full border border-slate-200 p-2 text-slate-700 hover:bg-slate-50 transition", "onClick": toggleMobile, "aria-label": "Toggle navigation"}, [mobileOpen ? __jacJsx(X, {"className": "h-5 w-5"}, []) : __jacJsx(Menu, {"className": "h-5 w-5"}, [])])]), mobileOpen && __jacJsx("div", {"className": "md:hidden border-t border-slate-200 bg-white"}, [__jacJsx("div", {"className": "mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-3"}, [isLoggedIn && __jacJsx("div", {"className": "flex flex-col gap-1"}, [tabs.map(tab => {
+    return __jacJsx(Link, {"key": tab.id, "to": tab.path, "className": "rounded-full px-3 py-1.5 font-medium text-slate-600 hover:bg-lime-50 transition", "onClick": _e => {
+      setMobileOpen(false);
+    }}, [tab.label]);
+  })]), isLoggedIn && __jacJsx("button", {"onClick": handleLogout, "className": "mt-1 rounded-full border border-emerald-600 bg-white px-3 py-1 font-medium text-slate-600 shadow-sm hover:bg-emerald-600 hover:text-white transition"}, ["Logout"]), !isLoggedIn && __jacJsx("div", {"className": "mt-1 flex flex-col gap-1"}, [__jacJsx(Link, {"to": "/login", "className": "rounded-full px-3 py-1.5 font-medium text-emerald-700 hover:bg-emerald-50 hover:text-emerald-900 transition", "onClick": _e => {
+    setMobileOpen(false);
+  }}, ["Login"]), __jacJsx(Link, {"to": "/signup", "className": "rounded-full px-3 py-1.5 font-medium text-emerald-700 hover:bg-emerald-50 hover:text-emerald-900 transition", "onClick": _e => {
+    setMobileOpen(false);
+  }}, ["Sign up"])])])])]);
 }
 function WeatherSummaryPanel(props) {
   if (!props.summary) {
-    return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4 text-slate-500"}, ["Weather summary will appear here when you request it."]);
+    return __jacJsx("div", {"className": "h-[200px] rounded-2xl border border-lime-100 bg-white p-4 text-slate-500"}, ["Weather summary will appear here when you request it."]);
   }
   let heading = "Weather Summary";
   if (props.meta && props.meta.titles && props.meta.titles.weather_summary) {
     heading = props.meta.titles.weather_summary;
   }
-  return __jacJsx("div", {"className": "h-[150px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "font-semibold text-slate-900"}, [heading])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
+  return __jacJsx("div", {"className": "h-[200px] rounded-2xl border border-lime-100 bg-white p-4"}, [__jacJsx("div", {"className": "mb-2 flex items-center justify-between"}, [__jacJsx("h3", {"className": "font-semibold text-slate-900"}, [heading])]), __jacJsx("div", {"className": "h-full overflow-y-auto"}, [__jacJsx("p", {"className": "text-slate-700 leading-relaxed"}, [props.summary.summary_text])])]);
 }
 function PageShell(props) {
-  return __jacJsx("main", {"className": "w-full px-4 sm:px-6 lg:px-10 py-6"}, [props.children]);
+  return __jacJsx("main", {"className": "w-full px-4 sm:px-6 lg:px-10 py-6 pt-25"}, [props.children]);
 }
 export { AdminPage, AdvicePlanPanel, AdvisorForm, AdvisorPage, CacheDetailPage, DebugPage, LoginPage, MarketSummaryPanel, PageShell, ProtectedRoute, SignupPage, TopNav, WeatherSummaryPanel, app, computeStats, extractAdvice, extractAnalysis, extractReports, formatShortDatetime, makeCutoffString, parseCacheKey };

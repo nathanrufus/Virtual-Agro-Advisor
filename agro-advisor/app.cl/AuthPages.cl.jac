@@ -40,14 +40,12 @@ cl {
             buttonLabel = "Logging in…";
         }
 
-        return <div className="min-h-screen bg-[#F3F7F2] flex items-center justify-center px-4">
+        return <div className=" bg-[#F3F7F2] flex items-center justify-center px-4 mt-20">
             <div className="w-full max-w-md rounded-2xl border border-lime-100 bg-white p-6 shadow-sm">
                 <h1 className="text-2xl font-semibold text-slate-900">
                     Welcome back
                 </h1>
-                <p className="mt-1 text-slate-500">
-                    Log in to use the Virtual Agro-Advisor and see your past advice sessions.
-                </p>
+               
 
                 {error and (
                     <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700">
@@ -159,14 +157,12 @@ cl {
             buttonLabel = "Creating account…";
         }
 
-        return <div className="min-h-screen bg-[#F3F7F2] flex items-center justify-center px-4">
+        return <div className=" bg-[#F3F7F2] flex items-center justify-center px-4 mt-20">
             <div className="w-full max-w-md rounded-2xl border border-lime-100 bg-white p-6 shadow-sm">
                 <h1 className="text-2xl font-semibold text-slate-900">
                     Create your account
                 </h1>
-                <p className="mt-1 text-slate-500">
-                    Sign up once, and your sessions and advice history will be saved under your login.
-                </p>
+            
 
                 {error and (
                     <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700">

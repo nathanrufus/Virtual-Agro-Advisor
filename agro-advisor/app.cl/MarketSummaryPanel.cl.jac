@@ -1,7 +1,7 @@
 cl {
     def MarketSummaryPanel(props: any) -> any {
         if not props.summary {
-            return <div className="h-[150px] rounded-2xl border border-lime-100 bg-white p-4 text-slate-500">
+            return <div className="h-[200px] rounded-2xl border border-lime-100 bg-white p-4 text-slate-500">
                 Market summary will appear here when you request it.
             </div>;
         }
@@ -12,7 +12,7 @@ cl {
             heading = props.meta.titles.market_summary;
         }
 
-        return <div className="h-[150px] rounded-2xl border border-lime-100 bg-white p-4">
+        return <div className="h-[200px] rounded-2xl border border-lime-100 bg-white p-4">
             <div className="mb-2 flex items-center justify-between">
                 <h3 className="font-semibold text-slate-900">
                     {heading}

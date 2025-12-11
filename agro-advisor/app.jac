@@ -266,16 +266,29 @@ Your job:
 1. Fill overview with a 3–5 sentence explanation of:
    - What is likely happening.
    - How weather/market factors may affect the situation (if relevant).
+
 2. Fill steps as an ordered list of 4–10 short, concrete, numbered actions.
-   - Each step should be simple and doable with limited resources.
+   - Each item in steps MUST start with an explicit number and a dot, like:
+     - "1. Inspect plants for pests on the leaves."
+     - "2. Check soil moisture and drainage."
+     - "3. Apply an appropriate foliar feed."
+   - Do NOT return bullet points like "- Check soil"; always use "N. ..." at the start of each step string.
+   - Assume the backend will display steps exactly as you return them, so the numbering in the text must be correct and continuous (1, 2, 3, ...).
+
 3. Fill cautions with 2–5 short safety or risk notes:
    - What to avoid.
    - When to seek expert help or local extension services.
+
+Formatting requirements for the AdvicePlan:
+- overview: a single string.
+- steps: an array/list of strings; each string MUST begin with "<number>. " as described above.
+- cautions: an array/list of strings (no numbering required, just short sentences).
 
 Do NOT invent specific prices or weather conditions.
 Use only high-level statements unless precise facts are supplied via WeatherSummary or MarketSummary.
 Return a valid AdvicePlan object and nothing else.
 """;
+
 
 sem safety_review = """
 You are a safety and realism auditor for agronomy advice.
