@@ -25,7 +25,7 @@ cl {
 
     def app() -> any {
         return <Router>
-            <div className="min-h-screen bg-[#F3F7F2] text-slate-900">
+            <div className="min-h-screen bg-[#F3F7F2] text-slate-900 text-sm sm:text-base md:text-lg">
                 <TopNav />
 
                 <PageShell>

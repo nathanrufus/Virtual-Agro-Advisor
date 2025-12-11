@@ -210,7 +210,7 @@ cl {
             <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 space-y-4">
                 <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1">
-                        <label className="text-[11px] font-medium text-slate-700">
+                        <label className=" text-[11px]  sm:text-xs  md:text-sm  lg:text-base  font-medium  text-slate-700">
                             Crop
                         </label>
                         <input
@@ -222,7 +222,7 @@ cl {
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[11px] font-medium text-slate-700">
+                        <label className=" text-[11px]  sm:text-xs  md:text-sm  lg:text-base  font-medium  text-slate-700">
                             Location
                         </label>
                         <input
@@ -235,7 +235,7 @@ cl {
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[11px] font-medium text-slate-700">
+                    <label className=" text-[11px]  sm:text-xs  md:text-sm  lg:text-base  font-medium  text-slate-700">
                         Problem description
                     </label>
                     <textarea

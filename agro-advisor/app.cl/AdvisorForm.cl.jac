@@ -114,7 +114,7 @@ cl {
                         onChange={lambda e: any -> None {
                             props.onProblemTextChange(e.target.value);
                         }}
-                        className="w-full min-h-[120px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none placeholder:text-lime-500/70 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600 resize-y"
+                        className="w-full min-h-[120px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 outline-none placeholder:text-green-500 focus:border-emerald-600 focus:bg-white focus:ring-1 focus:ring-emerald-600 resize-y"
                     />
                 </div>
 
