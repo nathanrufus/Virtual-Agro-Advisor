@@ -1,5 +1,7 @@
 cl import "../global.css";
 
+cl import from react { useEffect }
+
 cl import from "@jac-client/utils" {
     Router,
     Routes,
@@ -24,19 +26,32 @@ cl {
     }
     
     def app() -> any {
-         useEffect(lambda -> None {
+        useEffect(lambda -> None {
+            # ----- Page title -----
             document.title = "Virtual Agro-Advisor";
 
+            # ----- Favicon -----
             link = document.querySelector("link[rel='icon']");
             if not link {
                 link = document.createElement("link");
                 link.rel = "icon";
                 document.head.appendChild(link);
             }
-
             # Point this to your logo in /assets
-            link.href = "/static/assets/agro-logo.png";  
+            link.href = "/static/assets/agro-logo.png";
+
+            # ----- Mobile viewport meta -----
+            meta = document.querySelector("meta[name='viewport']");
+            if not meta {
+                meta = document.createElement("meta");
+                meta.name = "viewport";
+                meta.content = "width=device-width, initial-scale=1.0";
+                document.head.appendChild(meta);
+            } else {
+                meta.setAttribute("content", "width=device-width, initial-scale=1.0");
+            }
         }, []);
+
         return <Router>
             <div className="min-h-screen bg-[#F3F7F2] text-slate-900 text-sm sm:text-base md:text-lg">
                 <TopNav />

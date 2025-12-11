@@ -2,18 +2,14 @@ version: "3.9"
 
 services:
   app:
-    # Build from the Dockerfile in the current directory
     build: .
     container_name: virtual-agro-advisor
 
-    # Map container port 8000 → host port 8000
     ports:
       - "8000:8000"
 
-    # Load environment variables from your local .env file
     env_file:
       - .env
 
-    # Comment this out if you only want to test the built image.
     volumes:
       - .:/app
