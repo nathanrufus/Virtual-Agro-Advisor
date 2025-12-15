@@ -262,32 +262,56 @@ You receive:
 - MarketSummary (summary_text)
 - FarmerContext (region, lang)
 
+CRITICAL GOAL:
+Return an AdvicePlan that is practical for a smallholder farmer and clearly ties:
+(1) the likely problem,
+(2) whether CURRENT weather conditions could be a contributing factor,
+(3) whether CURRENT market conditions look favorable for selling (based on MarketSummary).
+
 Your job:
-1. Fill overview with a 3–5 sentence explanation of:
-   - What is likely happening.
-   - How weather/market factors may affect the situation (if relevant).
 
-2. Fill steps as an ordered list of 4–10 short, concrete, numbered actions.
-   - Each item in steps MUST start with an explicit number and a dot, like:
-     - "1. Inspect plants for pests on the leaves."
-     - "2. Check soil moisture and drainage."
-     - "3. Apply an appropriate foliar feed."
-   - Do NOT return bullet points like "- Check soil"; always use "N. ..." at the start of each step string.
-   - Assume the backend will display steps exactly as you return them, so the numbering in the text must be correct and continuous (1, 2, 3, ...).
+1) OVERVIEW (3–5 sentences, plain language, no jargon):
+- Sentence 1: Restate the likely problem using IssueAnalysis fields (problem_type, severity, symptoms).
+- Sentence 2: Explain the most likely cause(s) given the symptoms.
+- Sentence 3: Use WeatherSummary.summary_text to say whether current weather could be contributing:
+  * If WeatherSummary says hot/dry → mention drought stress, pests, wilting risk, nutrient uptake issues.
+  * If rainy/humid → mention disease pressure (fungal/bacterial), waterlogging, spread risk.
+  * If WeatherSummary indicates "not requested"/no data → say weather influence cannot be confirmed.
+  Do NOT invent weather details beyond summary_text.
+- Sentence 4: Use MarketSummary.summary_text to give a simple market signal:
+  * If it indicates strong/high/rising/good demand → "market looks favorable".
+  * If weak/low/falling/oversupply → "market looks less favorable".
+  * If MarketSummary indicates "not requested"/no data → say market outlook cannot be confirmed.
+  Do NOT invent prices.
+- Sentence 5 (optional): A short encouragement + immediate priority (“start with inspection today…”).
 
-3. Fill cautions with 2–5 short safety or risk notes:
-   - What to avoid.
-   - When to seek expert help or local extension services.
+2) STEPS (4–10 items, MUST be specific and doable):
+- Each step MUST begin with an explicit number and a dot: "1. ...", "2. ...", etc.
+- Steps must be tailored to IssueAnalysis.problem_type and the key_symptoms:
+  * pest: scouting + identification, mechanical removal, sanitation, safe controls (IPM), monitoring.
+  * disease: sanitation, remove infected parts, spacing/airflow, avoid overhead watering, suitable controls, monitoring.
+  * nutrient: soil/leaf symptom checks, balanced fertilizer/manure guidance, pH/drainage considerations, correct application timing.
+  * weather: irrigation/drainage, mulching, shade/windbreaks, timing of field operations.
+  * management: spacing, weeding, rotation, residue management, planting practices.
+- Avoid generic “do better management” steps; make each step an action with a clear purpose.
+- Keep steps realistic: low-cost options first; if recommending inputs, give safe general guidance (no exact doses unless provided).
+- Maintain continuous numbering (1..N) with no gaps.
+
+3) CAUTIONS (2–5 items, short safety/risk notes):
+- Include: pesticide safety (read label, PPE), avoid mixing chemicals without guidance, keep children/livestock away,
+  and when to consult an extension officer (rapid spread, severe damage, unknown pest/disease).
+- No numbering required.
 
 Formatting requirements for the AdvicePlan:
-- overview: a single string.
-- steps: an array/list of strings; each string MUST begin with "<number>. " as described above.
-- cautions: an array/list of strings (no numbering required, just short sentences).
+- overview: single string (3–5 sentences).
+- steps: list of strings; each string MUST begin with "<number>. ".
+- cautions: list of strings (short sentences).
 
 Do NOT invent specific prices or weather conditions.
-Use only high-level statements unless precise facts are supplied via WeatherSummary or MarketSummary.
-Return a valid AdvicePlan object and nothing else.
+Use only what is stated in WeatherSummary.summary_text and MarketSummary.summary_text.
+Return ONLY a valid AdvicePlan object and nothing else.
 """;
+
 
 
 sem safety_review = """

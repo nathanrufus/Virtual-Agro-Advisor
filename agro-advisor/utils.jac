@@ -91,7 +91,73 @@ def http_get(url: str) -> str {
     }
 }
 
+def strip_step_prefix(s: str) -> str {
+    if not s {
+        return "";
+    }
 
+    let t = s.strip();
+
+    # Remove common bullets
+    if t.startswith("- ") { t = t[2:].strip(); }
+    if t.startswith("* ") { t = t[2:].strip(); }
+    if t.startswith("• ") { t = t[2:].strip(); }
+
+    # Remove leading digits + "." or ")"
+    let i = 0;
+    while i < len(t) and t[i].isdigit() {
+        i = i + 1;
+    }
+
+    if i > 0 and i < len(t) and (t[i] == "." or t[i] == ")") {
+        let j = i + 1;
+        while j < len(t) and t[j] == " " {
+            j = j + 1;
+        }
+        t = t[j:].strip();
+    }
+
+    return t;
+}
+
+def ensure_numbered_steps(advice: AdvicePlan) -> AdvicePlan {
+    let cleaned = [];
+    let n = 1;
+
+    for s in advice.steps {
+        let base = strip_step_prefix(s);
+        if base {
+            cleaned = cleaned + [f"{n}. {base}"];
+            n = n + 1;
+        }
+    }
+
+    return AdvicePlan(
+        overview=advice.overview,
+        steps=cleaned,
+        cautions=advice.cautions
+    );
+}
+def clean_steps_for_ui(advice: AdvicePlan) -> AdvicePlan {
+    let cleaned = [];
+
+    for s in advice.steps {
+        let base = strip_step_prefix(s);
+        if base {
+            cleaned = cleaned + [base];
+        }
+    }
+
+    return AdvicePlan(
+        overview=advice.overview,
+        steps=cleaned,
+        cautions=advice.cautions
+    );
+}
+
+def normalize_advice_for_ui(advice: AdvicePlan) -> AdvicePlan {
+    return clean_steps_for_ui(advice);
+}
 
 def get_current_datetime() -> str {
     return str(datetime.now());

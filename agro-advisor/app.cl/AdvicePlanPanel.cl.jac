@@ -84,10 +84,11 @@ cl {
                             <div>
                                 <p className="mb-1 font-semibold">{stepsTitle}</p>
                                 <ol className=" space-y-1 pl-5">
-                                    {props.advicePlan.steps.map(lambda step: any -> any {
-                                        return <li>{step}</li>;
-                                    })}
+                                {props.advicePlan.steps.map(lambda step: any, idx: any -> any {
+                                    return <li key={idx}>{step}</li>;
+                                })}
                                 </ol>
+
                             </div>
                         )}
 

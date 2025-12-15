@@ -354,18 +354,16 @@ cl {
                                         Recommended steps
                                     </p>
                                     {(
-                                       <ul className="space-y-2">
+                                      <ol className=" space-y-2 pl-5">
                                             {advice["steps"].map(
                                                 lambda step: any, idx: any -> any {
-                                                    return <li
-                                                        key={idx}
-                                                        className="text-slate-700"
-                                                    >
-                                                        {step}
-                                                    </li>;
+                                                return <li key={idx} className="text-slate-700">
+                                                    {step}
+                                                </li>;
                                                 }
                                             )}
-                                        </ul>
+                                            </ol>
+
                                     ) if ("steps" in advice and advice["steps"] and advice["steps"].length > 0) else (
                                         <p className="text-slate-400">
                                             No steps returned.

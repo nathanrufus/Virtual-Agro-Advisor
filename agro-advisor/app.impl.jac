@@ -617,6 +617,7 @@ impl AgroAdvisor.run {
                 advice=advice_cached,
                 target_lang=self.language
             );
+            final_advice_cached = ensure_numbered_steps(final_advice_cached);
 
             # NEW: translate weather & market summary text if needed
             weather_summary.summary_text = translate_summary_text_if_needed(
@@ -876,13 +877,13 @@ impl LLMAdviceDebug.run {
     );
 
     # 4.3 Safety review
-    safe_advice = safety_review(advice=raw_advice);
+    safe_advice = ensure_numbered_steps(safety_review(advice=raw_advice));
 
     # 4.4 Translate back to target language if needed
-    final_advice = translate_advice_if_needed(
+    final_advice = ensure_numbered_steps(translate_advice_if_needed(
         advice=safe_advice,
         target_lang=self.language
-    );
+    ));
 
     # 5. Report everything useful for debugging
     report {

@@ -40,7 +40,7 @@ cl {
                     "imagePreviewUrl": imagePreviewUrl
                 });
 
-                result = root spawn AgroAdvisor(
+                result = await root spawn AgroAdvisor(
                     crop=crop,
                     problem_text=problemText,
                     location=location,
@@ -48,9 +48,7 @@ cl {
                     language=language,
                     include_weather=includeWeather,
                     include_market=includeMarket
-                    # NOTE: when your backend is ready, you can add:
-                    # , image_data=imagePreviewUrl
-                    # , include_image=True
+                    
                 );
 
                 console.log("[AdvisorPage] Raw AgroAdvisor result:", result);
