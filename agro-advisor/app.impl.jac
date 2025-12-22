@@ -880,10 +880,10 @@ impl LLMAdviceDebug.run {
     safe_advice = ensure_numbered_steps(safety_review(advice=raw_advice));
 
     # 4.4 Translate back to target language if needed
-    final_advice = ensure_numbered_steps(translate_advice_if_needed(
+    final_advice = translate_advice_if_needed(
         advice=safe_advice,
         target_lang=self.language
-    ));
+    );
 
     # 5. Report everything useful for debugging
     report {

@@ -1,6 +1,7 @@
 import from datetime { datetime }
 import from requests { get as py_get }
 import json;
+include app;
 
 
 def json_get(raw: str, path: str) -> any {
@@ -120,11 +121,23 @@ def strip_step_prefix(s: str) -> str {
     return t;
 }
 
-def ensure_numbered_steps(advice: AdvicePlan) -> AdvicePlan {
+def ensure_numbered_steps(advice: any) -> any {
+    if not advice {
+        return advice;
+    }
+
     let cleaned = [];
     let n = 1;
 
-    for s in advice.steps {
+    # Read steps safely
+    let steps = [];
+    if hasattr(advice, "steps") {
+        steps = advice.steps;
+    } elif ("steps" in advice) {
+        steps = advice["steps"];
+    }
+
+    for s in steps {
         let base = strip_step_prefix(s);
         if base {
             cleaned = cleaned + [f"{n}. {base}"];
@@ -132,30 +145,48 @@ def ensure_numbered_steps(advice: AdvicePlan) -> AdvicePlan {
         }
     }
 
-    return AdvicePlan(
-        overview=advice.overview,
-        steps=cleaned,
-        cautions=advice.cautions
-    );
+    # ✅ mutate in-place (no AdvicePlan constructor)
+    if hasattr(advice, "steps") {
+        advice.steps = cleaned;
+    } else {
+        advice["steps"] = cleaned;
+    }
+
+    return advice;
 }
-def clean_steps_for_ui(advice: AdvicePlan) -> AdvicePlan {
+
+def clean_steps_for_ui(advice: any) -> any {
+    if not advice {
+        return advice;
+    }
+
     let cleaned = [];
 
-    for s in advice.steps {
+    let steps = [];
+    if hasattr(advice, "steps") {
+        steps = advice.steps;
+    } elif ("steps" in advice) {
+        steps = advice["steps"];
+    }
+
+    for s in steps {
         let base = strip_step_prefix(s);
         if base {
             cleaned = cleaned + [base];
         }
     }
 
-    return AdvicePlan(
-        overview=advice.overview,
-        steps=cleaned,
-        cautions=advice.cautions
-    );
+    # ✅ mutate in-place (no AdvicePlan constructor)
+    if hasattr(advice, "steps") {
+        advice.steps = cleaned;
+    } else {
+        advice["steps"] = cleaned;
+    }
+
+    return advice;
 }
 
-def normalize_advice_for_ui(advice: AdvicePlan) -> AdvicePlan {
+def normalize_advice_for_ui(advice: any) -> any {
     return clean_steps_for_ui(advice);
 }
 
