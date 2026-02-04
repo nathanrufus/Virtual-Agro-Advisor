@@ -72,7 +72,6 @@ cl {
         let crop = parts[0] if parts.length > 0 else "";
         let region = parts[1] if parts.length > 1 else "";
         let lang = parts[2] if parts.length > 2 else "";
-        # Try to use the last part as the "problem" text
         let problem = parts[parts.length - 1] if parts.length > 0 else "";
 
         return {
@@ -123,9 +122,6 @@ cl {
                 let sessionsRes = await root spawn GetAllSessions();
                 let adviceRes = await root spawn GetAllAdviceCache();
 
-                console.log("GetAllSessions result:", sessionsRes);
-                console.log("GetAllAdviceCache result:", adviceRes);
-
                 let sessionsList = extractReports(sessionsRes);
                 let adviceList = extractReports(adviceRes);
 
@@ -157,8 +153,6 @@ cl {
                 let res = await root spawn CleanupOldSessions(
                     cutoff="ALL"
                 );
-                console.log("CleanupOldSessions result:", res);
-
                 let deleted = 0;
                 if res and "reports" in res and res.reports.length > 0 {
                     let r0 = res.reports[0];
@@ -199,7 +193,6 @@ cl {
 
             try {
                 let res = await root spawn ClearAdviceCache();
-                console.log("ClearAdviceCache result:", res);
 
                 let deleted = 0;
                 if res and "reports" in res and res.reports.length > 0 {
@@ -249,7 +242,7 @@ cl {
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h1 className="text-xl font-semibold text-slate-900">
-                        Admin dashboard
+                        Manage dashboard
                     </h1>
                     <p className="mt-1 text-slate-500">
                         Inspect sessions and advice cache, and run maintenance tasks.
@@ -314,14 +307,14 @@ cl {
                     </p>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-4">
-                    <p className="text-slate-500">
-                        Latest session activity
-                    </p>
-                    <p className="mt-1 font-medium text-slate-900">
-                        {formatShortDatetime(stats["latestSessionTime"]) if stats["latestSessionTime"] else "_"}
-                    </p>
-                </div>
+                # <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                #     <p className="text-slate-500">
+                #         Latest session activity
+                #     </p>
+                #     <p className="mt-1 font-medium text-slate-900">
+                #         {formatShortDatetime(stats["latestSessionTime"]) if stats["latestSessionTime"] else "_"}
+                #     </p>
+                # </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">

@@ -29,16 +29,16 @@ cl {
             setError("");
 
             try {
-                console.log("[AdvisorPage] Sending request with:", {
-                    "crop": crop,
-                    "location": location,
-                    "problemText": problemText,
-                    "language": language,
-                    "includeWeather": includeWeather,
-                    "includeMarket": includeMarket,
-                    "sessionId": sessionId,
-                    "imagePreviewUrl": imagePreviewUrl
-                });
+                # console.log("[AdvisorPage] Sending request with:", {
+                #     "crop": crop,
+                #     "location": location,
+                #     "problemText": problemText,
+                #     "language": language,
+                #     "includeWeather": includeWeather,
+                #     "includeMarket": includeMarket,
+                #     "sessionId": sessionId,
+                #     "imagePreviewUrl": imagePreviewUrl
+                # });
 
                 result = await root spawn AgroAdvisor(
                     crop=crop,
@@ -51,8 +51,8 @@ cl {
                     
                 );
 
-                console.log("[AdvisorPage] Raw AgroAdvisor result:", result);
-                console.log("[AdvisorPage] result.reports:", result && result.reports);
+                # console.log("[AdvisorPage] Raw AgroAdvisor result:", result);
+                # console.log("[AdvisorPage] result.reports:", result && result.reports);
 
                 let payload = None;
 
@@ -65,8 +65,8 @@ cl {
                     return;
                 }
 
-                console.log("[AdvisorPage] Selected payload:", payload);
-                console.log("[AdvisorPage] payload.advice_plan:", payload.advice_plan);
+                # console.log("[AdvisorPage] Selected payload:", payload);
+                # console.log("[AdvisorPage] payload.advice_plan:", payload.advice_plan);
 
                 if payload.session_id {
                     setSessionId(payload.session_id);
@@ -79,7 +79,7 @@ cl {
                 setMarketSummary(payload.market_summary);
                 setMeta(payload.meta);
 
-                console.log("[AdvisorPage] advicePlan state after set:", payload.advice_plan);
+                # console.log("[AdvisorPage] advicePlan state after set:", payload.advice_plan);
             } except (err) {
                 console.error("[AdvisorPage] AgroAdvisor error:", err);
                 setError("Something went wrong while fetching advice. Please try again.");

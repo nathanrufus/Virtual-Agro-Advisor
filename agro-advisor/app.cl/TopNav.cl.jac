@@ -5,7 +5,7 @@ cl {
         let tabs = [
             {"id": "advisor", "label": "Advisor", "path": "/"},
             {"id": "admin", "label": "Manage", "path": "/admin"},
-            {"id": "debug", "label": "Debug", "path": "/debug"}
+            {"id": "debug", "label": "Monitor", "path": "/debug"}
         ];
 
         let isLoggedIn = jacIsLoggedIn();

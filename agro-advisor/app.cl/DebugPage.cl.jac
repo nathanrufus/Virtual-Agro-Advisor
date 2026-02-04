@@ -194,10 +194,10 @@ cl {
         return <div className="space-y-6">
             <div>
                 <h1 className="text-xl font-semibold text-slate-900">
-                    Debug tools
+                    Monitor tools
                 </h1>
                 <p className="mt-1 text-slate-500">
-                    Run the LLM analysis and advice walkers directly with test inputs.
+                    Run the  analysis and advice  directly with inputs.
                 </p>
             </div>
 
@@ -252,7 +252,7 @@ cl {
                         className="rounded-lg border border-slate-300 px-3 py-1.5 font-medium hover:bg-slate-50 disabled:opacity-60" disabled={loadingAnalysis}
                         onClick={lambda e: any -> None { runAnalyzeDebug(); }}
                     >
-                        { "Running LLMAnalyzeDebug…" if loadingAnalysis else "Run LLMAnalyzeDebug" }
+                        { "Running AnalyzeIssue…" if loadingAnalysis else "Run AnalyzeIssue" }
                     </button>
 
                     <button
@@ -260,7 +260,7 @@ cl {
                         disabled={loadingAdvice}
                         onClick={lambda e: any -> None { runAdviceDebug(); }}
                     >
-                        { "Running LLMAdviceDebug…" if loadingAdvice else "Run LLMAdviceDebug" }
+                        { "Running Advice…" if loadingAdvice else "Run Advice" }
                     </button>
                 </div>
             </div>

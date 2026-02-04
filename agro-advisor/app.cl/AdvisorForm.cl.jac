@@ -19,7 +19,6 @@ cl {
 
             let file = files[0];
 
-            # Use browser URL API – no `new` keyword.
             # This is only for FRONTEND preview; backend can ignore for now.
             let previewUrl = URL.createObjectURL(file);
 
