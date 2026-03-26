@@ -6,9 +6,14 @@ entry-point = "main.jac"
 
 [dependencies.npm]
 jac-client-node = "1.0.7"
+date-fns = "latest"
+lucide-react = "latest"
+react-router-dom = "latest"
 
 [dependencies.npm.dev]
 "@jac-client/dev-deps" = "2.0.0"
+tailwindcss = "latest"
+"@tailwindcss/vite" = "latest"
 
 [dev-dependencies]
 watchdog = ">=3.0.0"
@@ -17,3 +22,7 @@ watchdog = ">=3.0.0"
 base_route_app = "app"
 
 [plugins.client]
+
+[plugins.client.vite]
+plugins = ["tailwindcss()"]
+lib_imports = ["import tailwindcss from '@tailwindcss/vite'"]

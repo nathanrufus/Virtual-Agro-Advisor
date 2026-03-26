@@ -158,7 +158,7 @@ All walkers described below run **within the logged‑in user’s graph**.
 **Nodes**
 
 - `Memory`
-  - Singleton node that hangs off the Jac `root` object.
+  - Singleton node that hangs off the Jac Root` object.
   - Acts as the root for sessions, profiles, cache, weather, market, and audit logs.
 - `Session`
   - `session_id: str`
@@ -237,7 +237,7 @@ Each helper is constrained to return **only structured data**, no extra commenta
 
 #### `SessionManager`
 
-- **Entry:** `root`
+- **Entry:** Root`
 - **Use:** Ensure the existence of a `Memory` node and a `Session` matching a given `session_id` (or create one).
 - **Output:** JSON with session metadata (id, lang, created/last active).
 
@@ -255,7 +255,7 @@ Each helper is constrained to return **only structured data**, no extra commenta
 
 #### `AgroAdvisor` (main advisor API)
 
-- **Entry:** `root`
+- **Entry:** Root`
 - **Inputs:**
 
   ```text
@@ -417,8 +417,8 @@ The frontend is written in Jac’s client‑side React flavor.
 
 - Fetches data using:
 
-  - `root spawn GetAllSessions()`
-  - `root spawn GetAllAdviceCache()`
+  - Root spawn GetAllSessions()`
+  - Root spawn GetAllAdviceCache()`
 
 - Shows:
 
