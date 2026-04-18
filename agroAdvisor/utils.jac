@@ -53,21 +53,18 @@ def http_get_with_header(url: str, header_name: str, header_value: str) -> str {
         response = py_get(url, headers=headers, timeout=10);
 
         if response.status_code != 200 {
-            # Return empty string so callers can fall back gracefully
             return "";
         }
 
-        # Return response body as string
         return response.text;
 
-    } except Exception as e {
-        # Swallow network errors and let callers detect empty string
+    } except Exception {
         return "";
     }
 }
 
 
-# Basic HTTP GET without headers (for weather, etc.)
+# Basic HTTP GET without headers
 def http_get(url: str) -> str {
     try {
         response = py_get(url, timeout=15);
@@ -75,7 +72,6 @@ def http_get(url: str) -> str {
         print(f"[HTTP] GET {url} -> {response.status_code}");
 
         if response.status_code != 200 {
-            # Print a small preview of the error body so we can see what FEWS NET says
             text = response.text;
             if text and len(text) > 200 {
                 text = text[:200];
@@ -86,10 +82,10 @@ def http_get(url: str) -> str {
 
         return response.text;
 
-    } except Exception as e {
-        print(f"[HTTP] Exception calling {url}: {e}");
-        return "";
-    }
+    } except Exception {
+    print(f"[HTTP] Exception calling {url}");
+    return "";
+}
 }
 
 def strip_step_prefix(s: str) -> str {
@@ -99,7 +95,6 @@ def strip_step_prefix(s: str) -> str {
 
     t = s.strip();
 
-    # Remove common bullets
     if t.startswith("- ") {
         t = t[2:].strip();
     }
@@ -110,7 +105,6 @@ def strip_step_prefix(s: str) -> str {
         t = t[2:].strip();
     }
 
-    # Remove leading digits + "." or ")"
     i = 0;
     while i < len(t) and t[i].isdigit() {
         i = i + 1;
@@ -135,7 +129,6 @@ def ensure_numbered_steps(advice: any) -> any {
     cleaned = [];
     n = 1;
 
-    # Read steps safely
     steps = [];
     if hasattr(advice, "steps") {
         steps = advice.steps;
@@ -151,7 +144,6 @@ def ensure_numbered_steps(advice: any) -> any {
         }
     }
 
-    # mutate in-place (no AdvicePlan constructor)
     if hasattr(advice, "steps") {
         advice.steps = cleaned;
     } else {
@@ -182,7 +174,6 @@ def clean_steps_for_ui(advice: any) -> any {
         }
     }
 
-    # mutate in-place (no AdvicePlan constructor)
     if hasattr(advice, "steps") {
         advice.steps = cleaned;
     } else {
@@ -198,4 +189,35 @@ def normalize_advice_for_ui(advice: any) -> any {
 
 def get_current_datetime() -> str {
     return str(datetime.now());
+}
+
+def parse_datetime_safe(dt_str: str) -> any {
+    try {
+        return datetime.fromisoformat(dt_str);
+    } except Exception {
+        try {
+            return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S.%f");
+        } except Exception {
+            try {
+                return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S");
+            } except Exception {
+                return None;
+            }
+        }
+    }
+}
+
+def hours_since(dt_str: str) -> float {
+    dt = parse_datetime_safe(dt_str);
+
+    if not dt {
+        return 10000.0;
+    }
+
+    try {
+        delta = datetime.now() - dt;
+        return delta.total_seconds() / 3600.0;
+    } except Exception {
+        return 10000.0;
+    }
 }

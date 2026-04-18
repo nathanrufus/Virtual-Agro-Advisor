@@ -7,6 +7,7 @@ include backend.sessions;
 include backend.cache;
 include backend.debug;
 include backend.advisor;
+include backend.seed_knowledge;
 
 cl import "./global.css";
 cl import from react { useEffect }

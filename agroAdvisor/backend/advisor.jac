@@ -26,13 +26,16 @@ sv import from backend.helpers {
     normalize_location,
     normalize_crop,
     normalize_region,
+    normalize_region_to_id,
     make_cache_key,
     translate_advice_if_needed,
     translate_summary_text_if_needed,
     get_ui_titles,
-    ensure_numbered_steps
+    ensure_numbered_steps,
+    hours_since,
+    retrieve_relevant_diseases,
+    format_disease_context
 }
-
 
 sv import from backend.models {
     normalize_crop_location,
@@ -40,10 +43,6 @@ sv import from backend.models {
     generate_advice,
     safety_review,
     analyze_crop_image
-}
-
-sv import from backend.sessions {
-    MarketAgent
 }
 
 walker ImageAnalysisAgent {
@@ -150,6 +149,16 @@ walker:pub AgroAdvisor {
             self.location = norm.location;
         }
 
+        # -------------------------------
+        # NEW: resolve region_id early
+        # -------------------------------
+        region_id = normalize_region_to_id(self.location);
+
+        # fallback so the system does not crash for unsupported regions
+        if not region_id {
+            region_id = "";
+        }
+
         cache_key = make_cache_key(
             crop=self.crop,
             problem_text=self.problem_text,
@@ -175,29 +184,63 @@ walker:pub AgroAdvisor {
             summary_text="Market data not requested."
         );
 
-        if self.include_weather {
-            loc_key = normalize_location(self.location);
+        # -------------------------------
+        # UPDATED WEATHER FLOW
+        # -------------------------------
+       if self.include_weather {
+            weather_key = region_id;
+            if not weather_key {
+                weather_key = normalize_location(self.location);
+            }
 
             existing_snapshots = [];
             for snap in [session ->:HAS_WEATHER:->] {
-                if snap.location_key == loc_key {
+                if snap.location_key == weather_key {
                     existing_snapshots = existing_snapshots + [snap];
                 }
             }
 
             snapshot_w = None;
+            weather_ttl_hours = 3.0;
 
             if existing_snapshots {
-                snapshot_w = existing_snapshots[0];
-            } else {
-                raw_weather = fetch_weather_raw(loc_key);
-                summary_text = summarize_weather(raw_weather, self.location);
+                newest = existing_snapshots[0];
+                for snap in existing_snapshots {
+                    if hours_since(snap.created_at) < hours_since(newest.created_at) {
+                        newest = snap;
+                    }
+                }
 
+                if hours_since(newest.created_at) <= weather_ttl_hours {
+                    snapshot_w = newest;
+                }
+            }
+
+            if not snapshot_w {
+                raw_weather = "";
+                weather_data = {};
+
+                raw_weather = fetch_weather_raw(self.location);
+                weather_data = build_weather_snapshot_data(raw_weather, self.location);
+                
                 snapshot_w = WeatherSnapshot(
-                    location_key=loc_key,
-                    summary=summary_text,
+                    location_key=weather_key,
+                    summary=weather_data["summary"],
+                    region_id=region_id,
+                    region_name=self.location,
+                    temperature_c=weather_data["temperature_c"],
+                    humidity_pct=weather_data["humidity_pct"],
+                    precipitation_mm=weather_data["precipitation_mm"],
+                    wind_kph=weather_data["wind_kph"],
+                    forecast_temp_min_c=weather_data["forecast_temp_min_c"],
+                    forecast_temp_max_c=weather_data["forecast_temp_max_c"],
+                    forecast_precipitation_mm=weather_data["forecast_precipitation_mm"],
+                    disease_risk_score=weather_data["disease_risk_score"],
+                    disease_risk_level=weather_data["disease_risk_level"],
+                    disease_risk_reason=weather_data["disease_risk_reason"],
                     raw_source=raw_weather
                 );
+
                 session +>: HAS_WEATHER() :+> snapshot_w;
             }
 
@@ -206,37 +249,42 @@ walker:pub AgroAdvisor {
             );
         }
 
-        if self.include_market {
-            crop_key = normalize_crop(self.crop);
-            region_key = normalize_region(self.location);
+                # -------------------------------
+                # UPDATED MARKET FLOW
+                # -------------------------------
+          if self.include_market {
+                crop_key = normalize_crop(self.crop);
+                market_region_key = normalize_region(self.location);
 
-            existing_ms = [];
-            for snap in [session ->:HAS_MARKET:->] {
-                if snap.crop_key == crop_key and snap.region_key == region_key {
-                    existing_ms = existing_ms + [snap];
-                }
-            }
-
-            if not existing_ms {
-                session spawn MarketAgent(
-                    crop=self.crop,
-                    region=self.location
-                );
-
+                existing_ms = [];
                 for snap in [session ->:HAS_MARKET:->] {
-                    if snap.crop_key == crop_key and snap.region_key == region_key {
+                    if snap.crop_key == crop_key and snap.region_key == market_region_key {
                         existing_ms = existing_ms + [snap];
                     }
                 }
-            }
 
-            if existing_ms {
-                snapshot_m = existing_ms[0];
-                market_summary = MarketSummary(
-                    summary_text=snapshot_m.summary
-                );
+                if not existing_ms {
+                    raw_market = fetch_market_price_raw(self.crop, self.location);
+                    summary_text = summarize_market(raw_market, self.crop, self.location);
+
+                    snapshot_m = MarketSnapshot(
+                        crop_key=crop_key,
+                        region_key=market_region_key,
+                        summary=summary_text,
+                        raw_source=raw_market
+                    );
+                    session +>: HAS_MARKET() :+> snapshot_m;
+
+                    existing_ms = [snapshot_m];
+                }
+
+                if existing_ms {
+                    snapshot_m = existing_ms[0];
+                    market_summary = MarketSummary(
+                        summary_text=snapshot_m.summary
+                    );
+                }
             }
-        }
 
         if existing_cache {
             existing_cache.touch();
@@ -276,7 +324,8 @@ walker:pub AgroAdvisor {
                 "meta": {
                     "source": "cache",
                     "lang": self.language,
-                    "titles": ui_titles
+                    "titles": ui_titles,
+                    "region_id": region_id
                 }
             };
             disengage;
@@ -318,10 +367,10 @@ walker:pub AgroAdvisor {
         }
 
         history_text = session.get_history();
-        farmer_ctx = FarmerContext(
-            region=self.location,
-            lang=self.language
-        );
+        # farmer_ctx = FarmerContext(
+        #     region=self.location,
+        #     lang=self.language
+        # );
 
         combined_problem = self.problem_text;
         if image_notes {
@@ -341,6 +390,28 @@ walker:pub AgroAdvisor {
             problem_text=combined_problem,
             location=self.location,
             history=history_text
+        );
+        #  RAG STEP 1: RETRIEVE
+       
+
+        diseases = retrieve_relevant_diseases(combined_problem);
+
+        if len(diseases) > 5 {
+            diseases = diseases[:5];
+        }
+
+        #  RAG STEP 2: FORMAT
+       
+
+        rag_context = format_disease_context(diseases);
+
+        # RAG STEP 3: NEW CONTEXT
+        
+
+        farmer_ctx = FarmerContext(
+            region=self.location,
+            lang=self.language,
+            knowledge=rag_context
         );
 
         if not issue {
@@ -433,7 +504,8 @@ walker:pub AgroAdvisor {
             "meta": {
                 "source": "fresh",
                 "lang": self.language,
-                "titles": ui_titles
+                "titles": ui_titles,
+                "region_id": region_id
             }
         };
     }

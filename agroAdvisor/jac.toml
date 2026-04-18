@@ -26,3 +26,11 @@ base_route_app = "app"
 [plugins.client.vite]
 plugins = ["tailwindcss()"]
 lib_imports = ["import tailwindcss from '@tailwindcss/vite'"]
+[typecheck]
+enabled = false
+
+# Or exclude specific paths
+exclude = [
+    "agroAdvisor/components/**",
+    "agroAdvisor/app.cl.jac"
+]

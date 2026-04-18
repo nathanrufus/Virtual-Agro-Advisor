@@ -40,6 +40,21 @@ node FarmerProfile {
     has preferred_lang: str = "en";
 }
 
+# -----------------------------------------
+# NEW: explicit region profile
+# -----------------------------------------
+node RegionProfile {
+    has region_id: str;
+    has display_name: str = "";
+    has county: str = "";
+    has sub_county: str = "";
+    has lat: float = 0.0;
+    has lon: float = 0.0;
+    has agro_ecological_zone: str = "";
+    has dominant_crops: list[str, ...] = [];
+    has created_at: str = get_current_datetime();
+}
+
 node AdviceCache {
     has cache_key: str;
     has advice: AdvicePlan;
@@ -56,6 +71,18 @@ node AdviceCache {
 node WeatherSnapshot {
     has location_key: str;
     has summary: str;
+    has region_id: str = "";
+    has region_name: str = "";
+    has temperature_c: float = 0.0;
+    has humidity_pct: float = 0.0;
+    has precipitation_mm: float = 0.0;
+    has wind_kph: float = 0.0;
+    has forecast_temp_min_c: float = 0.0;
+    has forecast_temp_max_c: float = 0.0;
+    has forecast_precipitation_mm: float = 0.0;
+    has disease_risk_score: int = 0;
+    has disease_risk_level: str = "UNKNOWN";
+    has disease_risk_reason: str = "";
     has raw_source: str = "";
     has created_at: str = get_current_datetime();
 }
@@ -64,9 +91,18 @@ node MarketSnapshot {
     has crop_key: str;
     has region_key: str;
     has summary: str;
+    has region_id: str = "";
+    has region_name: str = "";
+    has market_name: str = "";
+    has admin1: str = "";
+    has price: float = 0.0;
+    has currency: str = "KES";
+    has unit: str = "kg";
+    has observed_date: str = "";
     has raw_source: str = "";
     has created_at: str = get_current_datetime();
 }
+
 
 node ImageAnalysisResult {
     has image_id: str;
@@ -86,11 +122,16 @@ node AuditLog {
 
 edge HAS_SESSION {}
 edge HAS_PROFILE {}
+edge HAS_REGION {}
 edge HAS_WEATHER {}
 edge HAS_MARKET {}
 edge HAS_ADVICE {}
 edge HAS_IMAGE_ANALYSIS {}
 edge HAS_AUDIT {}
+edge AFFECTS {}
+edge OCCURS_IN {}
+edge RELATED_TO_DISEASE {}
+edge REPORTED_IN {}
 
 obj IssueAnalysis {
     has problem_type: str;
@@ -101,6 +142,7 @@ obj IssueAnalysis {
 obj FarmerContext {
     has region: str;
     has lang: str = "en";
+    has knowledge: str = "";
 }
 
 obj WeatherSummary {
@@ -285,8 +327,6 @@ Use only what is stated in WeatherSummary.summary_text and MarketSummary.summary
 Return ONLY a valid AdvicePlan object and nothing else.
 """;
 
-
-
 sem safety_review = """
 You are a safety and realism auditor for agronomy advice.
 Input: AdvicePlan.
@@ -314,7 +354,6 @@ Preserve agricultural terminology and safety notes accurately.
 Return only the translated text as a plain string.
 """;
 
-
 sem estimate_market_price = """
 You are an agricultural market analyst.
 
@@ -333,6 +372,28 @@ CRITICAL OUTPUT FORMAT:
 
 Return a float representing KES per kg.
 """;
+
+
+#  KNOWLEDGE LAYER START
+
+
+node DiseaseDoc {
+    has disease_id: str;
+    has disease_name: str;
+    has description: str;
+    has symptoms: str;
+    has treatments: str;
+}
+
+node CaseStudy {
+    has case_id: str;
+    has crop: str;
+    has region: str;
+    has problem: str;
+    has diagnosis: str;
+    has outcome: str;
+}
+
 
 with entry {
     load_dotenv();

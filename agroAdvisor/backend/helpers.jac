@@ -36,6 +36,38 @@ def normalize_region(region: str) -> str {
     return region.strip().lower();
 }
 
+def normalize_region_to_id(location: str) -> str {
+    if not location {
+        return "";
+    }
+
+    loc = location.strip().lower();
+
+    if "kiambu" in loc {
+        return "ke-kiambu";
+    } elif "nairobi" in loc {
+        return "ke-nairobi";
+    } elif "nakuru" in loc {
+        return "ke-nakuru";
+    } elif "uasin gishu" in loc or "eldoret" in loc {
+        return "ke-uasin-gishu";
+    } elif "kisumu" in loc {
+        return "ke-kisumu";
+    } elif "meru" in loc {
+        return "ke-meru";
+    } elif "machakos" in loc {
+        return "ke-machakos";
+    } elif "mombasa" in loc {
+        return "ke-mombasa";
+    } elif "kakamega" in loc {
+        return "ke-kakamega";
+    } elif "nyeri" in loc {
+        return "ke-nyeri";
+    }
+
+    return "";
+}
+
 def make_cache_key(
     crop: str,
     problem_text: str,
@@ -181,4 +213,90 @@ def get_ui_titles(lang: str) -> dict {
         "weather_summary": "Weather summary",
         "market_summary": "Market summary"
     };
+}
+
+def parse_datetime_safe(dt_str: str) -> any {
+    try {
+        return datetime.fromisoformat(dt_str);
+    } except Exception {
+        try {
+            return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S.%f");
+        } except Exception {
+            try {
+                return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S");
+            } except Exception {
+                return None;
+            }
+        }
+    }
+}
+
+def hours_since(dt_str: str) -> float {
+    dt = parse_datetime_safe(dt_str);
+
+    if not dt {
+        return 10000.0;
+    }
+
+    try {
+        delta = datetime.now() - dt;
+        return delta.total_seconds() / 3600.0;
+    } except Exception {
+        return 10000.0;
+    }
+}
+
+# RAG FUNCTIONS
+
+
+def retrieve_relevant_diseases(problem: str) -> list {
+    results = [];
+    problem_lower = problem.lower();
+
+    for d in [root -->][?:DiseaseDoc] {
+
+        score = 0;
+
+        if problem_lower in d.symptoms.lower() {
+            score += 2;
+        }
+
+        if problem_lower in d.description.lower() {
+            score += 1;
+        }
+
+        if problem_lower in d.disease_name.lower() {
+            score += 3;
+        }
+
+        if score > 0 {
+            results = results + [{"d": d, "score": score}];
+        }
+    }
+
+    sorted_results = [];
+    while results {
+        best = results[0];
+        for r in results {
+            if r["score"] > best["score"] {
+                best = r;
+            }
+        }
+        sorted_results = sorted_results + [best["d"]];
+        results.remove(best);
+    }
+
+    return sorted_results;
+}
+
+def format_disease_context(diseases: list) -> str {
+    context = "";
+
+    for d in diseases {
+        context += "Disease: " + d.disease_name + "\n";
+        context += "Symptoms: " + d.symptoms + "\n";
+        context += "Treatment: " + d.treatments + "\n\n";
+    }
+
+    return context;
 }

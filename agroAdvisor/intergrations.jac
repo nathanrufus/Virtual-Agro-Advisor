@@ -1,10 +1,10 @@
 import from dotenv { load_dotenv }
 import os;
 import json;
-include utils;  # http_get, json_get, get_current_datetime, etc.
+include utils;
 
 
-# WEATHER INTEGRATION (WeatherAPI)
+# WEATHER INTEGRATION (WeatherAPI Forecast)
 
 def fetch_weather_raw(location_key: str) -> str {
     api_key = os.getenv("WEATHER_API_KEY");
@@ -13,7 +13,7 @@ def fetch_weather_raw(location_key: str) -> str {
         return "";
     }
 
-    url = f"https://api.weatherapi.com/v1/current.json?key={api_key}&q={location_key}";
+    url = f"https://api.weatherapi.com/v1/forecast.json?key={api_key}&q={location_key}&days=1&aqi=no&alerts=no";
     print(f"[Weather] Requesting: {url}");
 
     response_text = http_get(url);
@@ -32,7 +32,6 @@ def summarize_weather(raw: str, location: str) -> str {
         return f"No live weather data available for '{location}'.";
     }
 
-    # Parse JSON safely
     try {
         data = json.loads(raw);
     } except Exception {
@@ -41,36 +40,154 @@ def summarize_weather(raw: str, location: str) -> str {
     }
 
     current = data.get("current", {});
+    forecast = data.get("forecast", {});
+    forecastday = forecast.get("forecastday", []);
+
     temp_c = current.get("temp_c", None);
     cond_obj = current.get("condition", {});
     cond_text = cond_obj.get("text", "typical conditions");
     humidity = current.get("humidity", None);
     wind_kph = current.get("wind_kph", None);
 
+    min_temp = None;
+    max_temp = None;
+    total_precip = None;
+
+    if forecastday and len(forecastday) > 0 {
+        day = forecastday[0].get("day", {});
+        min_temp = day.get("mintemp_c", None);
+        max_temp = day.get("maxtemp_c", None);
+        total_precip = day.get("totalprecip_mm", None);
+    }
+
     if temp_c is None {
         return f"Live weather data for '{location}' is incomplete.";
     }
 
-    # Build human-friendly description
-    details = f"about {temp_c}°C with {cond_text.lower()}";
+    parts = [f"it is currently about {temp_c}°C with {cond_text.lower()}"];
 
     if humidity is not None {
-        details = f"{details}, humidity around {humidity}%.";
-    } else {
-        details = f"{details}.";
+        parts = parts + [f"humidity is around {humidity}%"];
     }
 
     if wind_kph is not None {
-        details = f"{details} Winds near {wind_kph} km/h.";
+        parts = parts + [f"winds are near {wind_kph} km/h"];
     }
 
-    return f"In {location}, it is currently {details}";
+    if min_temp is not None and max_temp is not None {
+        parts = parts + [f"today ranges roughly from {min_temp}°C to {max_temp}°C"];
+    }
+
+    if total_precip is not None {
+        parts = parts + [f"expected rainfall today is about {total_precip} mm"];
+    }
+
+    return f"In {location}, " + ". ".join(parts) + ".";
+}
+
+def build_weather_snapshot_data(raw: str, location_key: str) -> dict {
+    out = {
+        "summary": summarize_weather(raw, location_key),
+        "temperature_c": 0.0,
+        "humidity_pct": 0.0,
+        "precipitation_mm": 0.0,
+        "wind_kph": 0.0,
+        "forecast_temp_min_c": 0.0,
+        "forecast_temp_max_c": 0.0,
+        "forecast_precipitation_mm": 0.0,
+        "disease_risk_score": 0,
+        "disease_risk_level": "UNKNOWN",
+        "disease_risk_reason": ""
+    };
+
+    if not raw {
+        return out;
+    }
+
+    try {
+        data = json.loads(raw);
+    } except Exception {
+        return out;
+    }
+
+    current = data.get("current", {});
+    forecast = data.get("forecast", {});
+    forecastday = forecast.get("forecastday", []);
+
+    temp_c = current.get("temp_c", 0.0) or 0.0;
+    humidity = current.get("humidity", 0.0) or 0.0;
+    wind_kph = current.get("wind_kph", 0.0) or 0.0;
+    precip_mm = current.get("precip_mm", 0.0) or 0.0;
+
+    min_temp = temp_c;
+    max_temp = temp_c;
+    total_precip = precip_mm;
+
+    if forecastday and len(forecastday) > 0 {
+        day = forecastday[0].get("day", {});
+        min_temp = day.get("mintemp_c", temp_c) or temp_c;
+        max_temp = day.get("maxtemp_c", temp_c) or temp_c;
+        total_precip = day.get("totalprecip_mm", precip_mm) or precip_mm;
+    }
+
+    risk_score = 0;
+    risk_reasons = [];
+
+    if humidity >= 85 {
+        risk_score = risk_score + 35;
+        risk_reasons = risk_reasons + ["high humidity"];
+    } elif humidity >= 70 {
+        risk_score = risk_score + 20;
+        risk_reasons = risk_reasons + ["moderately high humidity"];
+    }
+
+    if total_precip >= 10 {
+        risk_score = risk_score + 20;
+        risk_reasons = risk_reasons + ["meaningful rainfall expected"];
+    } elif total_precip > 0 {
+        risk_score = risk_score + 10;
+        risk_reasons = risk_reasons + ["some rainfall expected"];
+    }
+
+    if max_temp >= 28 and humidity >= 70 {
+        risk_score = risk_score + 10;
+        risk_reasons = risk_reasons + ["warm and humid conditions"];
+    }
+
+    risk_level = "LOW";
+    if risk_score >= 70 {
+        risk_level = "HIGH";
+    } elif risk_score >= 40 {
+        risk_level = "MEDIUM";
+    }
+
+    out["temperature_c"] = float(temp_c);
+    out["humidity_pct"] = float(humidity);
+    out["precipitation_mm"] = float(precip_mm);
+    out["wind_kph"] = float(wind_kph);
+    out["forecast_temp_min_c"] = float(min_temp);
+    out["forecast_temp_max_c"] = float(max_temp);
+    out["forecast_precipitation_mm"] = float(total_precip);
+    out["disease_risk_score"] = int(risk_score);
+    out["disease_risk_level"] = risk_level;
+    out["disease_risk_reason"] = ", ".join(risk_reasons) if risk_reasons else "No major moisture-driven disease signal detected.";
+
+    return out;
+}
+
+def fetch_regional_weather(region_id: str) -> str {
+    return fetch_weather_raw(region_id);
+}
+
+def summarize_regional_weather(raw: str, region_id: str) -> dict {
+    return {
+        "ok": bool(raw),
+        "summary": summarize_weather(raw, region_id)
+    };
 }
 
 
 # MARKET INTEGRATION (FEWS NET Staple Food Price Data)
-# Uses public FEWS NET FDW endpoint:
-# https://fdw.fews.net/api/marketpricefacts/?dataset=FEWS_NET_Staple_Food_Price_Data&country=KE&format=json&fields=simple
 
 def normalize_crop_for_fews(crop: str) -> str {
     if not crop {
@@ -87,12 +204,10 @@ def normalize_crop_for_fews(crop: str) -> str {
         return "Beans";
     }
 
-    # Fallback: title-case whatever we got
     return c.title();
 }
 
 def fetch_market_price_raw(crop: str, region: str) -> str {
-    # FEWS NET uses ISO country codes; KE = Kenya
     base_url = "https://fdw.fews.net/api/marketpricefacts/";
     commodity = normalize_crop_for_fews(crop);
 
@@ -133,9 +248,6 @@ def summarize_market(raw: str, crop: str, region: str) -> str {
         return f"Could not parse live market price data for {crop} in {region}.";
     }
 
-    # FEWS NET API sometimes returns:
-    #  - a list of rows, or
-    #  - an object with a 'results' list.
     rows = [];
 
     if isinstance(data, list) {
@@ -201,7 +313,6 @@ def summarize_market(raw: str, crop: str, region: str) -> str {
         filtered = rows;
     }
 
-    # Pick the latest point by period_date (YYYY-MM-DD) or mp_year/mp_month
     latest_row = filtered[0];
     latest_date = latest_row.get("period_date", "") or "";
 
@@ -273,6 +384,76 @@ def summarize_market(raw: str, crop: str, region: str) -> str {
     );
 }
 
+def build_market_snapshot_data(raw: str, crop: str, region: str) -> dict {
+    out = {
+        "summary": summarize_market(raw, crop, region),
+        "region_id": "",
+        "region_name": region,
+        "market_name": "",
+        "admin1": "",
+        "price": 0.0,
+        "currency": "KES",
+        "unit": "kg",
+        "observed_date": ""
+    };
+
+    if not raw {
+        return out;
+    }
+
+    try {
+        data = json.loads(raw);
+    } except Exception {
+        return out;
+    }
+
+    rows = [];
+    if isinstance(data, list) {
+        rows = data;
+    } else {
+        maybe_results = data.get("results", None);
+        if maybe_results and isinstance(maybe_results, list) {
+            rows = maybe_results;
+        }
+    }
+
+    if not rows {
+        return out;
+    }
+
+    latest_row = rows[0];
+    latest_date = latest_row.get("period_date", "") or "";
+
+    for row in rows {
+        d = row.get("period_date", "") or "";
+        if d and (not latest_date or d > latest_date) {
+            latest_row = row;
+            latest_date = d;
+        }
+    }
+
+    price_val = latest_row.get("price", None) or latest_row.get("value", None) or 0.0;
+
+    out["market_name"] = latest_row.get("market", "");
+    out["admin1"] = latest_row.get("admin_1", "") or latest_row.get("admin1", "");
+    out["price"] = float(price_val);
+    out["currency"] = latest_row.get("currency", "KES");
+    out["unit"] = latest_row.get("unit", "kg");
+    out["observed_date"] = latest_date;
+
+    return out;
+}
+
+def fetch_regional_market(crop: str, region_id: str) -> str {
+    return fetch_market_price_raw(crop, region_id);
+}
+
+def summarize_regional_market(raw: str, crop: str, region_id: str) -> dict {
+    return {
+        "ok": bool(raw),
+        "summary": summarize_market(raw, crop, region_id)
+    };
+}
 
 with entry {
     load_dotenv();
