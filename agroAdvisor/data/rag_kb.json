@@ -1,0 +1,111 @@
+{
+  "diseases": [
+    {
+      "id": "N_DEF",
+      "name": "Nitrogen Deficiency",
+      "crop": "maize",
+      "symptoms": "Yellowing of leaves starting from lower leaves moving upward",
+      "description": "Nitrogen deficiency in maize causes progressive yellowing \n            of leaves. It starts from the lower leaves and moves upward. The entire \n            leaf may turn yellow without spots. Plant height is reduced. This is very \n            common in Kiambu region after continuous cropping without fertilizer.",
+      "treatment": [
+        "Apply urea fertilizer (46% N) at 200-250 kg/ha",
+        "Apply DAP (18-46-0) at 150-200 kg/ha",
+        "Apply farm yard manure 3-5 tons/acre",
+        "Second application at V6-V8 growth stage"
+      ],
+      "effectiveness": 85,
+      "region_common": [
+        "kiambu",
+        "nakuru",
+        "nyeri",
+        "muranga"
+      ],
+      "cost": 500
+    },
+    {
+      "id": "MSV",
+      "name": "Maize Streak Virus",
+      "crop": "maize",
+      "symptoms": "Yellow/white streaks along leaf veins, stunted growth",
+      "description": "Maize Streak Virus causes distinctive yellowing and white \n            streaks along the main leaf veins. Plants are severely stunted with very \n            reduced grain production. The disease is transmitted by leafhoppers. \n            Very common in Kiambu during March-April.",
+      "treatment": [
+        "Use resistant varieties (H614, H516)",
+        "Control leafhoppers with insecticides",
+        "Remove infected plants",
+        "Avoid planting near infected fields",
+        "Crop rotation away from maize"
+      ],
+      "effectiveness": 70,
+      "region_common": [
+        "kiambu",
+        "nakuru",
+        "nairobi"
+      ],
+      "cost": 0
+    },
+    {
+      "id": "NCLB",
+      "name": "Northern Corn Leaf Blight",
+      "crop": "maize",
+      "symptoms": "Long, narrow gray-brown lesions on leaves",
+      "description": "Fungal disease causing long, narrow lesions on maize leaves. \n            The lesions are gray-brown and may merge together. Common in cool, wet highland \n            areas. Particularly problematic in Nyeri and Muranga where it reduces yields.",
+      "treatment": [
+        "Use resistant varieties",
+        "Spray with Mancozeb fungicide",
+        "Avoid overhead irrigation",
+        "Improve spacing for air circulation",
+        "Remove infected leaves"
+      ],
+      "effectiveness": 80,
+      "region_common": [
+        "nyeri",
+        "muranga",
+        "kiambu"
+      ],
+      "cost": 1500
+    }
+  ],
+  "pests": [
+    {
+      "id": "FAW",
+      "name": "Fall Armyworm",
+      "crop": "maize",
+      "symptoms": "Holes in leaves, stripped tissue between veins, cob damage",
+      "description": "Fall Armyworm larvae feed on maize leaves creating holes \n            and stripping the tissue. They also damage the cob and grain. This invasive \n            pest is now widespread in Kenya with multiple generations per year. \n            Most damaging September-December.",
+      "control": [
+        "Use Bt maize varieties",
+        "Spray Lambda-cyhalothrin insecticide",
+        "Scout fields regularly and spray early",
+        "Encourage natural enemies",
+        "Crop rotation"
+      ],
+      "effectiveness": 90,
+      "region_common": [
+        "nakuru",
+        "eldoret",
+        "kiambu"
+      ],
+      "cost": 1200
+    },
+    {
+      "id": "SB",
+      "name": "Stalk Borer",
+      "crop": "maize",
+      "symptoms": "Holes in stalk, wilting of upper leaves, stalk breakage",
+      "description": "Stalk borer larvae tunnel inside maize stalks causing damage. \n            This causes the stalk to break and leads to lodging and grain loss. \n            Peak damage is during dry season when damage is most severe.",
+      "control": [
+        "Use resistant varieties",
+        "Spray Chlorpyrifos or Lambda-cyhalothrin",
+        "Remove crop residues properly",
+        "Good spacing and fertilization",
+        "Proper weeding"
+      ],
+      "effectiveness": 75,
+      "region_common": [
+        "kiambu",
+        "nyeri",
+        "muranga"
+      ],
+      "cost": 1000
+    }
+  ]
+}

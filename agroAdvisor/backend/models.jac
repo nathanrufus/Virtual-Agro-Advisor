@@ -393,7 +393,36 @@ node CaseStudy {
     has diagnosis: str;
     has outcome: str;
 }
+node CaseStudy {
+    has case_id: str;
+    has crop: str;
+    has region: str;
+    has problem: str;
+    has diagnosis: str;
+    has outcome: str;
+}
+node RagDocument {
+    has doc_id: str;
+    has doc_type: str;
+    has title: str;
+    has content: str;
+    has crop: str;
+    has region: str;
+    has created_at: str = get_current_datetime();
+}
 
+node DiseaseMatch {
+    has disease_id: str;
+    has disease_name: str;
+    has confidence: float;
+    has symptoms_matched: list[str, ...] = [];
+}
+
+obj RagSearchResult {
+    has query: str;
+    has diseases: list[DiseaseMatch, ...] = [];
+    has total_matches: int = 0;
+}
 
 with entry {
     load_dotenv();
