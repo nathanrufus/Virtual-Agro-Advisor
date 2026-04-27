@@ -1,6 +1,9 @@
 import from datetime { datetime }
 import from requests { get as py_get }
 import json;
+import subprocess;
+import os;
+
 # include app;
 
 
@@ -219,5 +222,51 @@ def hours_since(dt_str: str) -> float {
         return delta.total_seconds() / 3600.0;
     } except Exception {
         return 10000.0;
+    }
+}
+
+def system_call(args: list) -> str {
+
+    try {
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)));
+
+        print("[system_call] CWD:", base_dir);
+        print("[system_call] ARGS:", args);
+
+        result = py_run(
+            args,
+            shell=false,          # 🔥 CRITICAL FIX
+            cwd=base_dir,
+            capture_output=true,
+            text=true,
+            timeout=30
+        );
+
+        stdout = "";
+        stderr = "";
+
+        if result.stdout != null {
+            stdout = result.stdout.strip();
+        }
+
+        if result.stderr != null {
+            stderr = result.stderr.strip();
+        }
+
+        print("[system_call] RETURN CODE:", result.returncode);
+
+        if stdout != "" {
+            return stdout;
+        }
+
+        if stderr != "" {
+            return stderr;
+        }
+
+        return "";
+
+    } except Exception {
+        print("[system_call] Exception occurred");
+        return "";
     }
 }
