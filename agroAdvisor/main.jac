@@ -8,6 +8,8 @@ include backend.cache;
 include backend.debug;
 include backend.advisor;
 include backend.seed_knowledge;
+include backend.map_data;
+
 
 cl import "./global.css";
 cl import from react { useEffect }
@@ -28,6 +30,9 @@ cl import from .components.AdminPage { AdminPage }
 cl import from .components.DebugPage { DebugPage }
 cl import from .components.CacheDetail { CacheDetailPage }
 cl import from .components.AuthPages { LoginPage, SignupPage }
+cl import from .components.FarmerMap { FarmerMap }
+
+
 
 cl {
     def ProtectedRoute(props: any) -> any {
@@ -40,6 +45,16 @@ cl {
 
     def:pub app() -> any {
         useEffect(lambda -> None {
+
+            link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+            document.head.appendChild(link);
+
+            script = document.createElement("script");
+            script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+            document.head.appendChild(script);
+
             document.title = "Virtual Agro-Advisor";
 
             link = document.querySelector("link[rel='icon']");
@@ -75,6 +90,7 @@ cl {
                             path="/admin/cache/:encodedKey"
                             element={<ProtectedRoute element={<CacheDetailPage />} />}
                         />
+                        <Route path="/map" element={<ProtectedRoute element={<FarmerMap />} />} />
                     </Routes>
                 </PageShell>
             </div>
