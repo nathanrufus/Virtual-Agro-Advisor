@@ -1,49 +1,54 @@
 include utils;
-include intergrations;
+# include intergrations;
 sv import from byllm.lib { Image }
-
-sv import from backend.models {
-    Memory,
-    Session,
-    AdviceCache,
-    WeatherSnapshot,
-    MarketSnapshot,
-    ImageAnalysisResult,
-    AuditLog,
-    HAS_SESSION,
-    HAS_WEATHER,
-    HAS_MARKET,
-    HAS_ADVICE,
-    HAS_IMAGE_ANALYSIS,
-    HAS_AUDIT,
-    FarmerContext,
-    WeatherSummary,
-    MarketSummary
+sv import from intergrations {
+    build_weather_snapshot_data,
+    fetch_weather_raw
 }
+# sv import from backend.models {
+#     Memory,
+#     Session,
+#     AdviceCache,
+#     WeatherSnapshot,
+#     MarketSnapshot,
+#     ImageAnalysisResult,
+#     AuditLog,
+#     HAS_SESSION,
+#     HAS_WEATHER,
+#     HAS_MARKET,
+#     HAS_ADVICE,
+#     HAS_IMAGE_ANALYSIS,
+#     HAS_AUDIT,
+#     FarmerContext,
+#     WeatherSummary,
+#     MarketSummary
+# }
+include backend.models;
+include backend.helpers;
 
-sv import from backend.helpers {
-    generate_session_id,
-    normalize_location,
-    normalize_crop,
-    normalize_region,
-    normalize_region_to_id,
-    make_cache_key,
-    translate_advice_if_needed,
-    translate_summary_text_if_needed,
-    get_ui_titles,
-    ensure_numbered_steps,
-    hours_since,
-    retrieve_relevant_diseases,
-    format_disease_context
-}
+# sv import from backend.helpers {
+#     generate_session_id,
+#     normalize_location,
+#     normalize_crop,
+#     normalize_region,
+#     normalize_region_to_id,
+#     make_cache_key,
+#     translate_advice_if_needed,
+#     translate_summary_text_if_needed,
+#     get_ui_titles,
+#     ensure_numbered_steps,
+#     hours_since,
+#     retrieve_relevant_diseases,
+#     format_disease_context
+# }
 
-sv import from backend.models {
-    normalize_crop_location,
-    analyze_issue,
-    generate_advice,
-    safety_review,
-    analyze_crop_image
-}
+# sv import from backend.models {
+#     normalize_crop_location,
+#     analyze_issue,
+#     generate_advice,
+#     safety_review,
+#     analyze_crop_image
+# }
 
 walker ImageAnalysisAgent {
     has image_data: str;
@@ -264,14 +269,41 @@ walker:pub AgroAdvisor {
                 }
 
                 if not existing_ms {
-                    raw_market = fetch_market_price_raw(self.crop, self.location);
-                    summary_text = summarize_market(raw_market, self.crop, self.location);
+                    # TRY KAMIS FIRST
+                    clean_market = strip_country_from_location(self.location);
+
+                    kamis_result = fetch_best_kamis_price(self.crop, clean_market);                    summary_text = "";
+                    
+                    if kamis_result.get("success") {
+                        # Use KAMIS data
+                        best_price = kamis_result.get("best_price");
+                        best_market = kamis_result.get("best_market");
+                        best_date = kamis_result.get("date");
+                        best_currency = kamis_result.get("currency", "KES");
+                        
+                        summary_text = (
+                            f"KAMIS market data: {self.crop} is trading at {best_price} "
+                            + best_currency
+                            + f"/kg in {best_market}"
+                        );
+                        
+                        if best_date {
+                            summary_text = summary_text + f" (as of {best_date})";
+                        }
+                        
+                        summary_text = summary_text + ". This is the best available price across nearby markets.";
+                    } else {
+                        # FALLBACK TO FEWS NET
+                        print("[Market] KAMIS failed, falling back to FEWS NET");
+                        raw_market = fetch_market_price_raw(self.crop, self.location);
+                        summary_text = summarize_market(raw_market, self.crop, self.location);
+                    }
 
                     snapshot_m = MarketSnapshot(
                         crop_key=crop_key,
                         region_key=market_region_key,
                         summary=summary_text,
-                        raw_source=raw_market
+                        raw_source=""
                     );
                     session +>: HAS_MARKET() :+> snapshot_m;
 
@@ -393,8 +425,19 @@ walker:pub AgroAdvisor {
         );
         #  RAG STEP 1: RETRIEVE
        
+        # diseases = retrieve_relevant_diseases(combined_problem);
 
-        diseases = retrieve_relevant_diseases(combined_problem);
+        # if len(diseases) > 5 {
+        #     diseases = diseases[:5];
+        # }
+        #  RAG STEP 1: RETRIEVE (with Graph-RAG)
+
+        #  Use Graph-RAG if crop and region available
+        diseases = retrieve_relevant_diseases_graph(
+            problem=combined_problem,
+            crop=self.crop,
+            region=self.location,
+        );
 
         if len(diseases) > 5 {
             diseases = diseases[:5];

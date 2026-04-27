@@ -119,6 +119,84 @@ node AuditLog {
     has latency_ms: int = 0;
     has session_id: str = "";
 }
+node Crop {
+    has crop_id: str;
+    has crop_name: str;
+    has scientific_name: str;
+    has common_varieties: list[str, ...] = [];
+    has growing_season: str = "";
+    has maturity_days: int = 0;
+}
+
+node Season {
+    has season_id: str;
+    has season_name: str;
+    has months: list[str, ...] = [];
+    has typical_weather: str = "";
+}
+
+node Symptom {
+    has symptom_id: str;
+    has symptom_name: str;
+    has description: str;
+    has visual_markers: list[str, ...] = [];
+}
+
+node Treatment {
+    has treatment_id: str;
+    has treatment_name: str;
+    has method: str;  # "chemical", "organic", "cultural"
+    has effectiveness: float = 0.0;
+    has cost_kes: float = 0.0;
+    has timing: str = "";
+}
+
+node RegionDiseaseCase {
+    has case_id: str;
+    has region_id: str;
+    has disease_id: str;
+    has crop_id: str;
+    has season: str;
+    has year: int;
+    has severity: str;
+    has outcome: str;
+}
+#  KNOWLEDGE LAYER START
+node DiseaseDoc {
+    has disease_id: str;
+    has disease_name: str;
+    has description: str;
+    has symptoms: str;
+    has treatments: str;
+}
+
+node CaseStudy {
+    has case_id: str;
+    has crop: str;
+    has region: str;
+    has problem: str;
+    has diagnosis: str;
+    has outcome: str;
+}
+
+node RagDocument {
+    has doc_id: str;
+    has doc_type: str;
+    has title: str;
+    has content: str;
+    has crop: str;
+    has region: str;
+    has created_at: str = get_current_datetime();
+}
+
+node DiseaseMatch {
+    has disease_id: str;
+    has disease_name: str;
+    has confidence: float;
+    has symptoms_matched: list[str, ...] = [];
+}
+
+
 
 edge HAS_SESSION {}
 edge HAS_PROFILE {}
@@ -132,7 +210,30 @@ edge AFFECTS {}
 edge OCCURS_IN {}
 edge RELATED_TO_DISEASE {}
 edge REPORTED_IN {}
+# Disease relationships
+edge AFFECTS_CROP {}          # Disease → Crop
+edge OCCURS_IN_SEASON {}      # Disease → Season
+edge COMMON_IN_REGION {}      # Disease → RegionProfile
+edge HAS_SYMPTOM {}           # Disease → Symptom
+edge TREATED_BY {}            # Disease → Treatment
 
+# Crop relationships
+edge GROWN_IN_REGION {}       # Crop → RegionProfile
+edge GROWS_IN_SEASON {}       # Crop → Season
+
+# Case study relationships
+edge DOCUMENTED_CASE {}       # Disease → RegionDiseaseCase
+edge CASE_IN_REGION {}        # RegionDiseaseCase → RegionProfile
+
+# Co-occurrence relationships
+edge CO_OCCURS_WITH {}        # Disease → Disease (link strength)
+edge FOLLOWS_DISEASE {}       # Disease → Disease (temporal)
+
+obj RagSearchResult {
+    has query: str;
+    has diseases: list[DiseaseMatch, ...] = [];
+    has total_matches: int = 0;
+}
 obj IssueAnalysis {
     has problem_type: str;
     has severity: str;
@@ -374,55 +475,7 @@ Return a float representing KES per kg.
 """;
 
 
-#  KNOWLEDGE LAYER START
 
-
-node DiseaseDoc {
-    has disease_id: str;
-    has disease_name: str;
-    has description: str;
-    has symptoms: str;
-    has treatments: str;
-}
-
-node CaseStudy {
-    has case_id: str;
-    has crop: str;
-    has region: str;
-    has problem: str;
-    has diagnosis: str;
-    has outcome: str;
-}
-node CaseStudy {
-    has case_id: str;
-    has crop: str;
-    has region: str;
-    has problem: str;
-    has diagnosis: str;
-    has outcome: str;
-}
-node RagDocument {
-    has doc_id: str;
-    has doc_type: str;
-    has title: str;
-    has content: str;
-    has crop: str;
-    has region: str;
-    has created_at: str = get_current_datetime();
-}
-
-node DiseaseMatch {
-    has disease_id: str;
-    has disease_name: str;
-    has confidence: float;
-    has symptoms_matched: list[str, ...] = [];
-}
-
-obj RagSearchResult {
-    has query: str;
-    has diseases: list[DiseaseMatch, ...] = [];
-    has total_matches: int = 0;
-}
 
 with entry {
     load_dotenv();

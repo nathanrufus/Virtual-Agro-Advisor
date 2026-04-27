@@ -1,8 +1,9 @@
-sv import from backend.models {
-    Memory,
-    HAS_SESSION,
-    HAS_ADVICE
-}
+# sv import from backend.models {
+#     Memory,
+#     HAS_SESSION,
+#     HAS_ADVICE
+# }
+include backend.models;
 
 sv import from backend.helpers {
     parse_cache_key

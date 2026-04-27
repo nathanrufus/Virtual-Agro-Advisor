@@ -16,7 +16,8 @@ sv import from backend.models {
     analyze_issue,
     generate_advice,
     safety_review,
-    translate_to_pivot
+    translate_to_pivot,
+    IssueAnalysis
 }
 
 walker:pub LLMAnalyzeDebug {

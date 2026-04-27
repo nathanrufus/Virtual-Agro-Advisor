@@ -2,7 +2,9 @@ include utils;
 include intergrations;
 
 sv import from backend.models {
-    AdvicePlan
+    AdvicePlan,
+    DiseaseDoc,
+    Crop
 }
 
 sv import from backend.models {
@@ -231,49 +233,213 @@ def parse_datetime_safe(dt_str: str) -> any {
     }
 }
 
-def hours_since(dt_str: str) -> float {
-    dt = parse_datetime_safe(dt_str);
-
-    if not dt {
-        return 10000.0;
-    }
-
-    try {
-        delta = datetime.now() - dt;
-        return delta.total_seconds() / 3600.0;
-    } except Exception {
-        return 10000.0;
-    }
-}
 
 # RAG FUNCTIONS
-
-
 def retrieve_relevant_diseases(problem: str) -> list {
+
+    print("\n[RAG] ========================================");
+    print("[RAG] SEARCHING KNOWLEDGE BASE");
+
+    preview = problem;
+    if len(problem) > 100 {
+        preview = problem[0:100];
+    }
+
+    print("[RAG] Query: " + preview + "...");
+    print("[RAG] ========================================");
+
     results = [];
     problem_lower = problem.lower();
 
-    for d in [root -->][?:DiseaseDoc] {
+    all_diseases = [root -->][?:DiseaseDoc];
+    print("[RAG] Total diseases in knowledge base: " + str(len(all_diseases)));
+
+    for d in all_diseases {
 
         score = 0;
 
         if problem_lower in d.symptoms.lower() {
-            score += 2;
+            score = score + 2;
+            print("[RAG]   ✓ Symptom match in: " + d.disease_name);
         }
 
         if problem_lower in d.description.lower() {
-            score += 1;
+            score = score + 1;
+            print("[RAG]   ✓ Description match in: " + d.disease_name);
         }
 
         if problem_lower in d.disease_name.lower() {
-            score += 3;
+            score = score + 3;
+            print("[RAG]   ✓ Name match in: " + d.disease_name);
         }
 
         if score > 0 {
-            results = results + [{"d": d, "score": score}];
+            results.append({"d": d, "score": score});
+            print("[RAG]   → " + d.disease_name + ": score = " + str(score));
         }
     }
 
+    sorted_results = [];
+
+    while len(results) > 0 {
+
+        best = results[0];
+
+        for r in results {
+            if r["score"] > best["score"] {
+                best = r;
+            }
+        }
+
+        sorted_results.append(best["d"]);
+        results.remove(best);
+    }
+
+    print("\n[RAG] FOUND " + str(len(sorted_results)) + " RELEVANT DISEASES");
+
+    i = 0;
+    for d in sorted_results {
+
+        if i < 5 {
+            print("[RAG]   " + str(i + 1) + ". " + d.disease_name);
+        }
+
+        i = i + 1;
+    }
+
+    print("[RAG] ========================================\n");
+
+    return sorted_results;
+}
+def format_disease_context(diseases: list) -> str {
+    # Format disease information for LLM context
+    # WITH LOGGING to show what's being sent to LLM
+
+    context = "";
+
+    print("\n[RAG] ========================================");
+    print("[RAG] FORMATTING CONTEXT FOR LLM");
+    print("[RAG] Number of diseases: " + str(len(diseases)));
+    print("[RAG] ========================================");
+
+    for d in diseases {
+        context += "Disease: " + d.disease_name + "\n";
+        context += "Symptoms: " + d.symptoms + "\n";
+        context += "Treatment: " + d.treatments + "\n\n";
+
+        print("[RAG] Added to context: " + d.disease_name);
+    }
+
+    print("[RAG] Total context length: " + str(len(context)) + " characters");
+    print("[RAG] ========================================\n");
+
+    return context;
+}
+def strip_country_from_location(location: str) -> str {
+
+    if not location {
+        return "";
+    }
+
+    loc = location.lower();
+
+    # remove country suffixes
+    loc = loc.replace(", kenya", "");
+    loc = loc.replace(" kenya", "");
+
+    return loc.strip();
+}
+def retrieve_relevant_diseases_graph(
+    problem: str,
+    crop: str,
+    region: str,
+    season: str = ""
+) -> list {
+   
+    # Graph-RAG search: Find diseases using graph relationships
+    
+    
+    print("\n[GRAPH-RAG] ========================================");
+    print(f"[GRAPH-RAG] SEARCHING WITH GRAPH CONTEXT");
+    print(f"[GRAPH-RAG] Problem: {problem[:80]}...");
+    print(f"[GRAPH-RAG] Crop: {crop}");
+    print(f"[GRAPH-RAG] Region: {region}");
+    print("[GRAPH-RAG] ========================================");
+    
+    results = [];
+    problem_lower = problem.lower();
+    crop_lower = crop.lower();
+    
+    # STEP 1: Find diseases that affect this crop
+    crop_diseases = [];
+    
+    for crop_node in [root -->][?:Crop] {
+        if crop_lower in crop_node.crop_name.lower() {
+            print(f"[GRAPH-RAG] Found crop: {crop_node.crop_name}");
+            
+            # Get all diseases affecting this crop
+            for disease in [crop_node <-:AFFECTS_CROP:<-] {
+                crop_diseases = crop_diseases + [disease];
+                print(f"[GRAPH-RAG]   → Affects: {disease.disease_name}");
+            }
+        }
+    }
+    
+    # STEP 2: Score diseases by symptom match + graph context
+    for disease in crop_diseases {
+        score = 0;
+        
+        # Symptom matching (as before)
+        if problem_lower in disease.symptoms.lower() {
+            score += 3;
+        }
+        
+        if problem_lower in disease.description.lower() {
+            score += 1;
+        }
+        
+        #  BONUS: Disease is for this crop
+        score += 2;
+        
+        #  BONUS: Check if disease common in this region
+        for region_profile in [root -->][?:RegionProfile] {
+            if region.lower() in region_profile.display_name.lower() {
+                for common_disease in [region_profile <-:COMMON_IN_REGION:<-] {
+                    if common_disease.disease_id == disease.disease_id {
+                        score += 3;
+                        print(f"[GRAPH-RAG]   ✓ Common in {region}: +3 score");
+                    }
+                }
+            }
+        }
+        
+        if score > 0 {
+            results = results + [{"d": disease, "score": score}];
+            print(f"[GRAPH-RAG]   {disease.disease_name}: score = {score}");
+        }
+    }
+    
+    # STEP 3: Add co-occurring diseases
+    for result in results {
+        disease = result["d"];
+        
+        for co_disease in [disease ->:CO_OCCURS_WITH:->] {
+            # Add co-occurring disease if not already in results
+            found = False;
+            for r in results {
+                if r["d"].disease_id == co_disease.disease_id {
+                    found = True;
+                }
+            }
+            
+            if not found {
+                results = results + [{"d": co_disease, "score": 1}];
+                print(f"[GRAPH-RAG]   + Co-occurs: {co_disease.disease_name}");
+            }
+        }
+    }
+    
+    #  STEP 4: Sort by score
     sorted_results = [];
     while results {
         best = results[0];
@@ -285,17 +451,57 @@ def retrieve_relevant_diseases(problem: str) -> list {
         sorted_results = sorted_results + [best["d"]];
         results.remove(best);
     }
-
+    
+    print(f"\n[GRAPH-RAG] FOUND {len(sorted_results)} DISEASES");
+    print("[GRAPH-RAG] ========================================\n");
+    
     return sorted_results;
 }
+def format_disease_context_graph(diseases: list) -> str {
+    
+    # Format disease information WITH GRAPH CONTEXT for LLM
+    
+    
+    context = "KNOWLEDGE BASE (Graph-Enhanced):\n\n";
 
-def format_disease_context(diseases: list) -> str {
-    context = "";
-
-    for d in diseases {
-        context += "Disease: " + d.disease_name + "\n";
-        context += "Symptoms: " + d.symptoms + "\n";
-        context += "Treatment: " + d.treatments + "\n\n";
+    for disease in diseases {
+        context += "Disease: " + disease.disease_name + "\n";
+        context += "Symptoms: " + disease.symptoms + "\n";
+        context += "Treatment: " + disease.treatments + "\n";
+        
+        # Add graph-derived information
+        
+        # Which crops affected
+        crops = [disease ->:AFFECTS_CROP:->];
+        if crops {
+            crop_names = [];
+            for c in crops {
+                crop_names = crop_names + [c.crop_name];
+            }
+            context += "Affects crops: " + ", ".join(crop_names) + "\n";
+        }
+        
+        # Which seasons
+        seasons = [disease ->:OCCURS_IN_SEASON:->];
+        if seasons {
+            season_names = [];
+            for s in seasons {
+                season_names = season_names + [s.season_name];
+            }
+            context += "Common in seasons: " + ", ".join(season_names) + "\n";
+        }
+        
+        # Co-occurring diseases
+        co_diseases = [disease ->:CO_OCCURS_WITH:->];
+        if co_diseases {
+            co_names = [];
+            for cd in co_diseases {
+                co_names = co_names + [cd.disease_name];
+            }
+            context += "Often co-occurs with: " + ", ".join(co_names) + "\n";
+        }
+        
+        context += "\n";
     }
 
     return context;
