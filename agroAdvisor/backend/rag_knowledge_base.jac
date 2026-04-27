@@ -1,5 +1,5 @@
-// RAG Knowledge Base for agroAdvisor
-// Contains diseases, pests, treatments data
+# RAG Knowledge Base for agroAdvisor
+# Contains diseases, pests, treatments data
 
 include utils;
 include intergrations;
@@ -9,13 +9,13 @@ sv import from backend.models {
     CaseStudy
 }
 
-// ============================================
-// DISEASE KNOWLEDGE BASE
-// ============================================
+# ============================================
+# DISEASE KNOWLEDGE BASE
+# ============================================
 
 def seed_diseases() {
     
-    // DISEASE 1: Nitrogen Deficiency
+    # DISEASE 1: Nitrogen Deficiency
     disease_1 = DiseaseDoc(
         disease_id="N_DEF",
         disease_name="Nitrogen Deficiency",
@@ -31,7 +31,7 @@ def seed_diseases() {
     );
     root ++> disease_1;
     
-    // DISEASE 2: Maize Streak Virus
+    # DISEASE 2: Maize Streak Virus
     disease_2 = DiseaseDoc(
         disease_id="MSV",
         disease_name="Maize Streak Virus",
@@ -47,7 +47,7 @@ def seed_diseases() {
     );
     root ++> disease_2;
     
-    // DISEASE 3: Northern Corn Leaf Blight
+    # DISEASE 3: Northern Corn Leaf Blight
     disease_3 = DiseaseDoc(
         disease_id="NCLB",
         disease_name="Northern Corn Leaf Blight",
@@ -62,7 +62,7 @@ def seed_diseases() {
     );
     root ++> disease_3;
     
-    // DISEASE 4: Maize Rust
+    # DISEASE 4: Maize Rust
     disease_4 = DiseaseDoc(
         disease_id="RUST",
         disease_name="Maize Rust",
@@ -76,7 +76,7 @@ def seed_diseases() {
     );
     root ++> disease_4;
     
-    // DISEASE 5: Maize Lethal Necrosis
+    # DISEASE 5: Maize Lethal Necrosis
     disease_5 = DiseaseDoc(
         disease_id="MLN",
         disease_name="Maize Lethal Necrosis",
@@ -90,7 +90,7 @@ def seed_diseases() {
     );
     root ++> disease_5;
     
-    // DISEASE 6: Beans - Anthracnose
+    # DISEASE 6: Beans - Anthracnose
     disease_6 = DiseaseDoc(
         disease_id="ANTH",
         disease_name="Bean Anthracnose",
@@ -109,7 +109,7 @@ def seed_diseases() {
 
 def seed_case_studies() {
     
-    // CASE STUDY 1: Kiambu Nitrogen Deficiency Success
+    # CASE STUDY 1: Kiambu Nitrogen Deficiency Success
     case_1 = CaseStudy(
         case_id="CS001",
         crop="maize",
@@ -120,7 +120,7 @@ def seed_case_studies() {
     );
     root ++> case_1;
     
-    // CASE STUDY 2: MSV in Nakuru
+    # CASE STUDY 2: MSV in Nakuru
     case_2 = CaseStudy(
         case_id="CS002",
         crop="maize",
@@ -131,7 +131,7 @@ def seed_case_studies() {
     );
     root ++> case_2;
     
-    // CASE STUDY 3: NCLB in Nyeri
+    # CASE STUDY 3: NCLB in Nyeri
     case_3 = CaseStudy(
         case_id="CS003",
         crop="maize",
@@ -142,7 +142,7 @@ def seed_case_studies() {
     );
     root ++> case_3;
     
-    // CASE STUDY 4: Bean Anthracnose in Kiambu
+    # CASE STUDY 4: Bean Anthracnose in Kiambu
     case_4 = CaseStudy(
         case_id="CS004",
         crop="beans",

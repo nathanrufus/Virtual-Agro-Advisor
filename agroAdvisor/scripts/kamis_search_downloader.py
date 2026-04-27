@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 """
 KAMIS Targeted Search and Download
-
-Downloads specific crop/market data from KAMIS
-
-Run:
-  python kamis_search_downloader.py --crop maize --market nairobi --days 30
-  python kamis_search_downloader.py --crop beans --region kiambu
 """
 
 import sys
@@ -19,8 +13,8 @@ from typing import List, Dict
 try:
     import requests
 except ImportError:
-    print("Install: pip install requests")
     sys.exit(1)
+
 
 class KAMISSearcher:
     """Search and download KAMIS data"""
@@ -31,7 +25,6 @@ class KAMISSearcher:
         self.data_dir = Path("data")
         self.data_dir.mkdir(exist_ok=True)
         
-        # KAMIS markets
         self.markets = {
             "nairobi": "nairobi_central",
             "kisumu": "kisumu",
@@ -46,7 +39,6 @@ class KAMISSearcher:
             "kitale": "kitale",
         }
         
-        # KAMIS crops
         self.crops = {
             "maize": "maize",
             "beans": "beans",
@@ -59,29 +51,13 @@ class KAMISSearcher:
         }
     
     def test_api(self):
-        """Test if KAMIS API is available"""
-        
-        print("🔍 Testing KAMIS API...")
-        
         try:
             response = requests.get(f"{self.api_url}/markets", timeout=5)
-            if response.status_code == 200:
-                print("✅ KAMIS API is available")
-                return True
+            return response.status_code == 200
         except:
-            pass
-        
-        print("⚠️  KAMIS API not responding")
-        return False
+            return False
     
     def search_api(self, crop=None, market=None, days=30):
-        """Search KAMIS API for specific data"""
-        
-        print(f"\n🔍 Searching KAMIS...")
-        print(f"   Crop: {crop or 'All'}")
-        print(f"   Market: {market or 'All'}")
-        print(f"   Days: {days}")
-        
         try:
             params = {
                 "format": "json",
@@ -105,26 +81,20 @@ class KAMISSearcher:
                     
                     if response.status_code == 200:
                         data = response.json()
-                        print(f"✅ Got {len(data) if isinstance(data, list) else 1} results")
                         return data if isinstance(data, list) else [data]
                 
                 except:
                     continue
             
-            print("⚠️  No API endpoint worked")
             return None
             
-        except Exception as e:
-            print(f"❌ API search failed: {e}")
+        except Exception:
             return None
     
     def create_mock_data(self, crop=None, market=None, days=30):
-        """Create mock KAMIS data for demo/testing"""
-        
         crop = (crop or "maize").lower()
         market = (market or "nairobi").lower()
         
-        # Mock prices for demo
         prices = {
             "maize": 32.50,
             "beans": 85.00,
@@ -152,51 +122,40 @@ class KAMISSearcher:
         return data
     
     def search_and_download(self, crop=None, market=None, days=30):
-        """Main search and download function"""
-        
-        print("\n" + "="*60)
-        print("KAMIS TARGETED SEARCH & DOWNLOAD")
-        print("="*60)
-        
-        # Try API first
         data = None
+        
         if self.test_api():
             data = self.search_api(crop, market, days)
         
-        # Fallback to mock data for demo
         if not data:
-            print("\n⚠️  Using demo data (no live API)")
             data = self.create_mock_data(crop, market, days)
         
-        # Save results
         if data:
             filename = self.data_dir / f"kamis_{crop or 'all'}_{market or 'all'}.json"
             
             with open(filename, 'w') as f:
                 json.dump(data, f, indent=2)
             
-            # Print as JSON for stdout
+            # ✅ CRITICAL: ONLY OUTPUT JSON
             print(json.dumps(data))
             
             return True
         
         return False
 
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="Search and download KAMIS market data"
-    )
+    parser = argparse.ArgumentParser()
     
-    parser.add_argument('--crop', help='Crop to search for')
-    parser.add_argument('--market', help='Specific market')
-    parser.add_argument('--region', help='Region/county')
-    parser.add_argument('--days', type=int, default=30, help='Days of history')
+    parser.add_argument('--crop')
+    parser.add_argument('--market')
+    parser.add_argument('--region')
+    parser.add_argument('--days', type=int, default=30)
     
     args = parser.parse_args()
     
     searcher = KAMISSearcher()
     
-    # Map region to market
     if args.region and not args.market:
         region_markets = {
             "nairobi": "nairobi",
@@ -213,6 +172,7 @@ def main():
     )
     
     sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
     main()
