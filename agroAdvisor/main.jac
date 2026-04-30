@@ -9,6 +9,7 @@ include backend.debug;
 include backend.advisor;
 include backend.seed_knowledge;
 include backend.map_data;
+include backend.debug_disease;
 
 
 cl import "./global.css";

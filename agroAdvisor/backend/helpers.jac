@@ -1,15 +1,16 @@
 include utils;
 include intergrations;
+include backend.models;
 
-sv import from backend.models {
-    AdvicePlan,
-    DiseaseDoc,
-    Crop
-}
+# sv import from backend.models {
+#     AdvicePlan,
+#     DiseaseDoc,
+#     Crop
+# }
 
-sv import from backend.models {
-    translate_from_pivot
-}
+# sv import from backend.models {
+#     translate_from_pivot
+# }
 
 def generate_session_id() -> str {
     ts = get_current_datetime();

@@ -3,12 +3,12 @@ import from dotenv { load_dotenv }
 include utils;
 include intergrations;
 
-glob llm = Model(
+glob llm1 = Model(
     model_name="groq/llama-3.3-70b-versatile",
 );
 
-glob llm_vision = Model(
-    model_name="gemini/gemini-2.0-flash",
+glob llm = Model(
+    model_name="gemini/gemini-2.5-flash-lite",
 );
 
 node Memory {
@@ -308,7 +308,7 @@ def analyze_crop_image(
     img: Image,
     crop: str,
     location: str
-) -> ImageSymptomSummary by llm_vision();
+) -> ImageSymptomSummary by llm();
 
 def estimate_market_price(
     crop: str,
