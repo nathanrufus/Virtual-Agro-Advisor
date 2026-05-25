@@ -1,205 +1,797 @@
 #!/usr/bin/env python3
 """
-Quick RAG setup - Create knowledge base and embeddings for agroAdvisor
+agroAdvisor RAG Setup
+Persistent ChromaDB + multilingual embeddings, synced with all 105 diseases
 
-Run: python scripts/quick_rag_setup.py
+Run once:  python scripts/quick_rag_setup.py
+Run again to rebuild after adding new diseases.
 """
 
 import json
+import sys
 from pathlib import Path
 
-# Simple knowledge base for RAG
+# ── FULL KNOWLEDGE BASE (synced with seed_knowledge.jac) ──────────────────
 KNOWLEDGE_BASE = {
     "diseases": [
-        {
-            "id": "N_DEF",
-            "name": "Nitrogen Deficiency",
-            "crop": "maize",
-            "symptoms": "Yellowing of leaves starting from lower leaves moving upward",
-            "description": """Nitrogen deficiency in maize causes progressive yellowing 
-            of leaves. It starts from the lower leaves and moves upward. The entire 
-            leaf may turn yellow without spots. Plant height is reduced. This is very 
-            common in Kiambu region after continuous cropping without fertilizer.""",
-            "treatment": [
-                "Apply urea fertilizer (46% N) at 200-250 kg/ha",
-                "Apply DAP (18-46-0) at 150-200 kg/ha", 
-                "Apply farm yard manure 3-5 tons/acre",
-                "Second application at V6-V8 growth stage"
-            ],
-            "effectiveness": 85,
-            "region_common": ["kiambu", "nakuru", "nyeri", "muranga"],
-            "cost": 500
-        },
-        {
-            "id": "MSV",
-            "name": "Maize Streak Virus",
-            "crop": "maize",
-            "symptoms": "Yellow/white streaks along leaf veins, stunted growth",
-            "description": """Maize Streak Virus causes distinctive yellowing and white 
-            streaks along the main leaf veins. Plants are severely stunted with very 
-            reduced grain production. The disease is transmitted by leafhoppers. 
-            Very common in Kiambu during March-April.""",
-            "treatment": [
-                "Use resistant varieties (H614, H516)",
-                "Control leafhoppers with insecticides",
-                "Remove infected plants",
-                "Avoid planting near infected fields",
-                "Crop rotation away from maize"
-            ],
-            "effectiveness": 70,
-            "region_common": ["kiambu", "nakuru", "nairobi"],
-            "cost": 0
-        },
-        {
-            "id": "NCLB",
-            "name": "Northern Corn Leaf Blight",
-            "crop": "maize",
-            "symptoms": "Long, narrow gray-brown lesions on leaves",
-            "description": """Fungal disease causing long, narrow lesions on maize leaves. 
-            The lesions are gray-brown and may merge together. Common in cool, wet highland 
-            areas. Particularly problematic in Nyeri and Muranga where it reduces yields.""",
-            "treatment": [
-                "Use resistant varieties",
-                "Spray with Mancozeb fungicide",
-                "Avoid overhead irrigation",
-                "Improve spacing for air circulation",
-                "Remove infected leaves"
-            ],
-            "effectiveness": 80,
-            "region_common": ["nyeri", "muranga", "kiambu"],
-            "cost": 1500
-        }
-    ],
-    "pests": [
-        {
-            "id": "FAW",
-            "name": "Fall Armyworm",
-            "crop": "maize",
-            "symptoms": "Holes in leaves, stripped tissue between veins, cob damage",
-            "description": """Fall Armyworm larvae feed on maize leaves creating holes 
-            and stripping the tissue. They also damage the cob and grain. This invasive 
-            pest is now widespread in Kenya with multiple generations per year. 
-            Most damaging September-December.""",
-            "control": [
-                "Use Bt maize varieties",
-                "Spray Lambda-cyhalothrin insecticide",
-                "Scout fields regularly and spray early",
-                "Encourage natural enemies",
-                "Crop rotation"
-            ],
-            "effectiveness": 90,
-            "region_common": ["nakuru", "eldoret", "kiambu"],
-            "cost": 1200
-        },
-        {
-            "id": "SB",
-            "name": "Stalk Borer",
-            "crop": "maize",
-            "symptoms": "Holes in stalk, wilting of upper leaves, stalk breakage",
-            "description": """Stalk borer larvae tunnel inside maize stalks causing damage. 
-            This causes the stalk to break and leads to lodging and grain loss. 
-            Peak damage is during dry season when damage is most severe.""",
-            "control": [
-                "Use resistant varieties",
-                "Spray Chlorpyrifos or Lambda-cyhalothrin",
-                "Remove crop residues properly",
-                "Good spacing and fertilization",
-                "Proper weeding"
-            ],
-            "effectiveness": 75,
-            "region_common": ["kiambu", "nyeri", "muranga"],
-            "cost": 1000
-        }
+        # ── MAIZE ─────────────────────────────────────────────────────────
+        {"id": "N_DEF", "crop": "maize",
+         "name": "Nitrogen Deficiency",
+         "symptoms": "Yellowing of lower leaves progressing upward pale green plant stunted growth thin stalks reduced grain fill",
+         "description": "Most common nutrient deficiency in Kenyan maize. Occurs after continuous cropping without fertilisation. Widespread in Kiambu Nakuru Nyeri Trans Nzoia. Source KALRO soil management guide.",
+         "treatment": "Apply urea (46% N) 200-250 kg/ha. Apply DAP (18-46-0) 150 kg/ha. Farm yard manure 3-5 tonnes/acre. Top-dress at V6 stage."},
+
+        {"id": "P_DEF", "crop": "maize",
+         "name": "Phosphorus Deficiency",
+         "symptoms": "Purple reddish discolouration of leaves and stems slow growth delayed maturity poor root development",
+         "description": "Common in acidic highland soils of Kenya including Kiambu Muranga Nyeri. Limits root development. Source KALRO soil fertility guide.",
+         "treatment": "Apply DAP (18-46-0) 150-200 kg/ha at planting. Apply TSP. Lime acidic soils to raise pH above 5.5."},
+
+        {"id": "K_DEF", "crop": "maize",
+         "name": "Potassium Deficiency",
+         "symptoms": "Scorching browning of leaf edges starting from tips weak stems lodging poor drought tolerance shrivelled kernels",
+         "description": "Occurs in sandy or over-leached soils. Common in coastal Kenya and low-lying areas. Worsened by heavy rainfall leaching.",
+         "treatment": "Apply muriate of potash MOP 100-150 kg/ha. Use NPK compound fertilisers 17:17:17."},
+
+        {"id": "ZN_DEF", "crop": "maize",
+         "name": "Zinc Deficiency",
+         "symptoms": "White yellow striping on young leaves broad white band along midrib stunted plants shortened internodes",
+         "description": "Increasingly common in intensively cultivated Kenyan soils. Reported by KALRO in Rift Valley and Western Kenya.",
+         "treatment": "Apply zinc sulphate 20-25 kg/ha. Foliar spray 0.5% zinc sulphate solution. Use Zincated DAP."},
+
+        {"id": "MG_DEF", "crop": "maize",
+         "name": "Magnesium Deficiency",
+         "symptoms": "Interveinal chlorosis on older leaves yellowing between green veins starts at leaf margins progresses inward",
+         "description": "Common in highly leached highland soils of Kenya and in acidic soils. Source KALRO soil health bulletin.",
+         "treatment": "Apply dolomitic lime which contains Mg. Foliar spray Epsom salt magnesium sulphate at 2%. Apply Kieserite 100 kg/ha."},
+
+        {"id": "MSV", "crop": "maize",
+         "name": "Maize Streak Virus",
+         "symptoms": "Continuous yellow or white streaks along leaf veins severe stunting reduced cob size premature plant death",
+         "description": "Serious viral disease transmitted by leafhoppers Cicadulina mbila. Widespread across all maize-growing zones in Kenya. Reported by KALRO as major constraint since 1930s.",
+         "treatment": "Plant resistant varieties H614 H516 H625 WE3128. Control leafhopper vectors with Lambda-cyhalothrin. Early planting. Remove infected plants."},
+
+        {"id": "MLN", "crop": "maize",
+         "name": "Maize Lethal Necrosis",
+         "symptoms": "Necrosis starting from leaf margins mottling plant death within 2-3 weeks premature drying poor pollination",
+         "description": "Devastating viral disease caused by co-infection of MCMV and SCMV. First confirmed in Kenya 2012 in Bomet. CIMMYT-KALRO developed MLN-tolerant varieties. Can cause 100% crop loss.",
+         "treatment": "Plant MLN-tolerant varieties FAWTH2001 FAWTH2002. Use certified seeds only. Remove and burn infected plants. Control aphid and thrip vectors."},
+
+        {"id": "MDMV", "crop": "maize",
+         "name": "Maize Dwarf Mosaic Virus",
+         "symptoms": "Mosaic patterns on leaves dwarfing of plants leaf distortion reduced tassel development",
+         "description": "Potyvirus transmitted by aphids. Component virus of MLN complex in Kenya.",
+         "treatment": "Control aphid vectors with systemic insecticides. Remove infected plants early. Use virus-free certified seeds."},
+
+        {"id": "NCLB", "crop": "maize",
+         "name": "Northern Corn Leaf Blight",
+         "symptoms": "Long narrow grey-brown lesions 2-15cm parallel to leaf veins tan centres darker borders premature drying of leaves from tip",
+         "description": "Fungal disease Exserohilum turcicum. Common in cool humid highland areas Nyeri Muranga Kiambu Nyandarua. Worsened by morning dew and frequent rainfall. Source KALRO crop protection guide.",
+         "treatment": "Plant resistant varieties H614D DK8031. Apply Mancozeb 2.5 kg/ha when disease first appears. Improve plant spacing. Crop rotation. Remove infected crop residue."},
+
+        {"id": "SCLB", "crop": "maize",
+         "name": "Southern Corn Leaf Blight",
+         "symptoms": "Small oval to rectangular tan lesions yellow halos lesions limited by leaf veins giving rectangular appearance leaf death",
+         "description": "Fungal disease Cochliobolus heterostrophus. More common in warmer lowland areas of Kenya.",
+         "treatment": "Use resistant varieties. Apply Mancozeb or Propiconazole. Crop rotation. Remove infected debris. Improve field drainage."},
+
+        {"id": "GLS", "crop": "maize",
+         "name": "Grey Leaf Spot",
+         "symptoms": "Rectangular grey tan lesions bounded by leaf veins lesions run parallel to veins heavy infection causes leaf death",
+         "description": "Fungal disease Cercospora zeae-maydis. Increasingly important in Kenya highlands. Reported by KALRO as emerging threat in Uasin Gishu and Trans Nzoia.",
+         "treatment": "Plant tolerant varieties. Apply Strobilurin fungicides Azoxystrobin at first sign. Crop rotation 2+ seasons. Minimum tillage."},
+
+        {"id": "POLYSORA_RUST", "crop": "maize",
+         "name": "Polysora Rust",
+         "symptoms": "Small circular to oval orange-yellow pustules on upper leaf surface pustules rupture releasing orange powder premature leaf death",
+         "description": "Fungal disease Puccinia polysora. Common in lowland and coastal Kenya. More severe in warm humid conditions.",
+         "treatment": "Apply Triazole fungicides Propiconazole or Tebuconazole. Use resistant varieties. Early planting."},
+
+        {"id": "COMMON_RUST", "crop": "maize",
+         "name": "Common Rust",
+         "symptoms": "Circular to elongated brown pustules on both leaf surfaces pustules break open releasing red-brown powdery spores yellow halos",
+         "description": "Fungal disease Puccinia sorghi. Common in Kenyan highlands with cool temperatures.",
+         "treatment": "Apply Mancozeb or Triazole fungicides. Plant resistant varieties. Apply fungicide at first sign before pustules rupture."},
+
+        {"id": "SMUT", "crop": "maize",
+         "name": "Common Smut",
+         "symptoms": "Large galls on cobs tassels and leaves filled with black powdery spores galls start white then turn grey-black",
+         "description": "Fungal disease Ustilago maydis. Widespread in all maize-growing areas of Kenya.",
+         "treatment": "Remove and burn galls before they rupture. Use resistant varieties. Apply seed treatment fungicides. Crop rotation."},
+
+        {"id": "HEAD_SMUT", "crop": "maize",
+         "name": "Head Smut",
+         "symptoms": "Smut replacing tassels and ears entirely plant appears normal until heading smut balls contain dark powdery spores infected ears produce no grain",
+         "description": "Fungal disease Sphacelotheca reiliana. Soil-borne pathogen. Reported in Kenya drier areas.",
+         "treatment": "Use resistant varieties. Seed treatment with Carboxin or Thiram. Avoid planting in infested soil. Crop rotation 3+ years."},
+
+        {"id": "EAR_ROT_FUSA", "crop": "maize",
+         "name": "Fusarium Ear Rot",
+         "symptoms": "Pinkish-white mould on kernels starburst pattern of white mycelium on cob discoloured brown kernels musty odour",
+         "description": "Fungal disease Fusarium species. Produces mycotoxins fumonisins harmful to humans and livestock. Common in highland Kenya. Source KALRO post-harvest guide.",
+         "treatment": "Harvest at correct moisture 13-14%. Dry maize immediately after harvest. Store in aerated structures. Apply Aflasafe Kenya."},
+
+        {"id": "EAR_ROT_ASP", "crop": "maize",
+         "name": "Aspergillus Ear Rot",
+         "symptoms": "Olive green powdery mould on and between kernels musty smell discoloured kernels most visible at tip of cob",
+         "description": "Caused by Aspergillus flavus. Produces aflatoxins. Major food safety concern in Kenya ASAL regions. Monitored by KEPHIS.",
+         "treatment": "Use certified seeds. Apply Aflasafe Kenya IITA/KALRO biological control. Harvest on time. Dry to below 13% within 72 hours."},
+
+        {"id": "DIPLODIA_ROT", "crop": "maize",
+         "name": "Diplodia Ear Rot",
+         "symptoms": "White mould starting at base of cob husks bleached and tightly bound kernels rotted lightweight black pycnidia on husks",
+         "description": "Fungal disease Stenocarpella maydis. Common in maize areas with frequent rainfall at silking. Reported in Western and Rift Valley Kenya.",
+         "treatment": "Harvest early when moisture is around 30%. Use resistant varieties. Crop rotation. Remove crop residue. Improve field drainage."},
+
+        {"id": "STALK_ROT_FUSA", "crop": "maize",
+         "name": "Fusarium Stalk Rot",
+         "symptoms": "Yellowing death of lower leaves brown discolouration inside lower stalk nodes stalk collapses pinkish rot inside stalk",
+         "description": "Soil-borne fungal disease. Common throughout Kenya. Plants become susceptible under drought stress. Source KALRO pathology unit.",
+         "treatment": "Maintain balanced soil nutrition K and N. Avoid water stress then sudden irrigation. Control stalk borers. Harvest early."},
+
+        {"id": "CHARCOAL_ROT", "crop": "maize",
+         "name": "Charcoal Rot",
+         "symptoms": "Premature ripening grey streaking inside lower stalk tiny black sclerotia visible stalk breakage near harvest",
+         "description": "Caused by Macrophomina phaseolina. Common in ASAL regions of Kenya under drought stress conditions.",
+         "treatment": "Maintain adequate soil moisture. Avoid excessive N fertilisation. Use tolerant varieties. Practice crop rotation with legumes."},
+
+        {"id": "FAW", "crop": "maize",
+         "name": "Fall Armyworm",
+         "symptoms": "Ragged holes in leaves frass sawdust-like droppings in leaf whorl window pane feeding caterpillars with four dots in square pattern cob damage",
+         "description": "Invasive pest Spodoptera frugiperda first detected Kenya 2016. Now most damaging maize pest nationwide. KALRO and CABI developed IPM protocols for Kenya.",
+         "treatment": "Scout weekly spray when more than 10% plants show fresh damage. Apply Lambda-cyhalothrin Emamectin benzoate or Spinosad. Use push-pull with Desmodium. Apply Bt for organic control."},
+
+        {"id": "STALK_BORER", "crop": "maize",
+         "name": "Spotted Stalk Borer",
+         "symptoms": "Dead heart in young plants central shoot dies pin holes in leaves frass in leaf axils hollowed stalk plant lodging",
+         "description": "Chilo partellus. Most important stalk borer in Kenya. Widespread in all maize zones. Source ICIPE pest management guide.",
+         "treatment": "Apply Chlorpyrifos or Lambda-cyhalothrin into leaf whorl before age 3 weeks. Use push-pull technology Napier grass and Desmodium. Destroy crop residues. Plant early."},
+
+        {"id": "PINK_BORER", "crop": "maize",
+         "name": "Pink Stalk Borer",
+         "symptoms": "Dead hearts pinholes in leaves pink-coloured larvae inside stalk deadening of upper stalk stalk breakage at internodes",
+         "description": "Sesamia calamistis. Second most important stalk borer in Kenya. More common in humid coastal and western regions.",
+         "treatment": "Apply insecticides at early larval stage same as spotted stalk borer. Encourage parasitic wasp populations. Destroy infected crop residues."},
+
+        {"id": "MAIZE_WEEVIL", "crop": "maize",
+         "name": "Maize Weevil",
+         "symptoms": "Round holes in kernels fine flour-like dust inside grain store live weevils visible in stored grain heating of grain mass",
+         "description": "Sitophilus zeamais. Most destructive storage pest in Kenya. Can cause 50-100% post-harvest losses. Monitored by KEPHIS.",
+         "treatment": "Clean and dry grain thoroughly below 13% moisture. Apply Actellic Super dust 1g/kg. Use hermetic storage PICS bags or metal silos."},
+
+        {"id": "APHIDS_MAIZE", "crop": "maize",
+         "name": "Corn Leaf Aphid",
+         "symptoms": "Colonies of bluish-green aphids on upper leaves and tassels sticky honeydew on leaves black sooty mould curling yellowing of affected leaves",
+         "description": "Rhopalosiphum maidis. Sap-sucking pest transmitting MDMV and other viruses. Common in dry periods throughout Kenya maize zones.",
+         "treatment": "Apply systemic insecticide Dimethoate or Imidacloprid when colonies first appear. Encourage ladybirds and lacewings. Avoid excessive nitrogen."},
+
+        {"id": "ARMY_WORM", "crop": "maize",
+         "name": "African Armyworm",
+         "symptoms": "Large numbers of caterpillars moving through fields complete defoliation starting from field edges caterpillars with distinctive stripes on side",
+         "description": "Spodoptera exempta. Major migratory pest of cereals in Kenya especially during La Nina events. Outbreaks tracked by KALRO and Pest Control Products Board.",
+         "treatment": "Apply Lambda-cyhalothrin or Emamectin benzoate immediately. Dig trenches at field edges to stop marching bands. Apply Bt kurstaki for organic control."},
+
+        {"id": "CUTWORM", "crop": "maize",
+         "name": "Cutworm",
+         "symptoms": "Seedlings cut at or below soil level at night wilted or missing seedlings in morning fat smooth caterpillars found coiled in soil near damaged plant",
+         "description": "Agrotis species. Common soil pest affecting transplanted vegetables maize and other crops in Kenya.",
+         "treatment": "Apply Chlorpyrifos bait granules or soil drench at planting. Till soil to expose and kill larvae. Apply neem cake to soil."},
+
+        # ── BEANS ─────────────────────────────────────────────────────────
+        {"id": "ALS_BEAN", "crop": "beans",
+         "name": "Angular Leaf Spot",
+         "symptoms": "Angular reddish-brown spots on leaves limited by leaf veins grey powdery growth on lower leaf surface dark brown lesions on pods and stems premature defoliation",
+         "description": "Caused by Phaeoisariopsis griseola. Most important bean disease in Kenya. Yield losses up to 80% in Western Kenya. MMUST/KALRO research. Found in all bean-growing areas.",
+         "treatment": "Use resistant varieties Lyamungu 85 GLP2 Miezi Mbili KK22. Apply Mancozeb or Chlorothalonil. Use certified disease-free seeds. Crop rotation 2 seasons."},
+
+        {"id": "ANTH_BEAN", "crop": "beans",
+         "name": "Bean Anthracnose",
+         "symptoms": "Dark brown to black sunken lesions on pods with pink or salmon spore masses dark lesions on leaves along veins chocolate brown lesions on stems",
+         "description": "Caused by Colletotrichum lindemuthianum. Serious in cool wet highland areas Kenya. Seed-borne. Found in Kiambu Nyeri Muranga Meru.",
+         "treatment": "Use certified disease-free seeds. Apply Mancozeb at first sign. Avoid overhead irrigation. Practice 3-year crop rotation."},
+
+        {"id": "RUST_BEAN", "crop": "beans",
+         "name": "Bean Rust",
+         "symptoms": "Small white flecks developing into yellow pustules on upper leaf surface brown powdery pustules on lower leaf surface premature leaf drop",
+         "description": "Caused by Uromyces appendiculatus. Common in moderate to cool temperatures in Kenya. Worse during long and short rains. Widespread in Western and Central Kenya.",
+         "treatment": "Apply Mancozeb Sulfur or Triazole fungicide at first sign. Use resistant varieties. Avoid dense planting. Improve air circulation."},
+
+        {"id": "CBB", "crop": "beans",
+         "name": "Common Bacterial Blight",
+         "symptoms": "Water-soaked spots on leaves turning yellow with brown centre yellow border around lesions greasy lesions on pods brown seed staining wilting of entire branches",
+         "description": "Caused by Xanthomonas axonopodis pv. phaseoli. Seed-borne and soil-borne bacterial disease. Major yield constraint in Kenya. Source CIAT/KALRO bean programme.",
+         "treatment": "Use certified disease-free seeds. Avoid overhead irrigation. Apply copper-based bactericides Copper hydroxide. Remove infected plants. Practice crop rotation."},
+
+        {"id": "BCMV", "crop": "beans",
+         "name": "Bean Common Mosaic Virus",
+         "symptoms": "Mosaic yellowing on leaves leaf distortion and crumpling dark green blisters on lighter green areas stunted plants malformed pods with few seeds",
+         "description": "Major viral disease of beans in Kenya. Transmitted by aphids. Seed-borne. Prevalent in Western Kenya.",
+         "treatment": "Plant resistant varieties BILL 82 KK22 Lyamungu 85. Control aphid vectors immediately. Remove and destroy infected plants. Use certified virus-free seeds."},
+
+        {"id": "ROOT_ROT_BEAN", "crop": "beans",
+         "name": "Bean Root Rot",
+         "symptoms": "Reddish-brown to dark lesions on roots wilting of above-ground plant in middle of season orange-brown internal discolouration of tap root poor nodulation",
+         "description": "Caused by Fusarium and Pythium species. Major problem in waterlogged and poorly drained soils Kenya. Common in Lake Victoria basin and low-lying areas Central Kenya.",
+         "treatment": "Improve field drainage. Avoid planting in waterlogged areas. Treat seeds with Thiram or Metalaxyl. Crop rotation 3-year. Use raised beds."},
+
+        {"id": "HALO_BLIGHT", "crop": "beans",
+         "name": "Halo Blight",
+         "symptoms": "Small circular spots surrounded by yellow-green halo on leaves water-soaked spots on pods turning brown greasy appearance of infected pods",
+         "description": "Caused by Pseudomonas syringae pv. phaseolicola. Common in cool highland areas Kenya. Seed-borne and spread by rain splash.",
+         "treatment": "Use clean certified seeds. Apply copper bactericides before rains. Avoid working in wet crop. Practice 2-year rotation."},
+
+        {"id": "BEAN_FLY", "crop": "beans",
+         "name": "Bean Stem Maggot",
+         "symptoms": "Yellow cotyledons on young seedlings swollen and cracked stem at soil level white maggots inside stem base wilting and death of young seedlings",
+         "description": "Ophiomyia phaseoli. Very common in Kenya causing 20-100% bean seedling losses. Attacks soon after germination. Source CABI datasheet.",
+         "treatment": "Treat seeds with Imidacloprid before planting. Apply soil drench Chlorpyrifos at planting. Plant in optimal growing conditions."},
+
+        {"id": "BEAN_APHID", "crop": "beans",
+         "name": "Bean Aphid",
+         "symptoms": "Black aphid colonies on stems and undersides of leaves sticky honeydew with sooty mould leaf curling and yellowing reduced pod set",
+         "description": "Aphis fabae. Major vector of BCMV and BCMNV viruses in Kenyan bean fields. Widespread throughout Kenya.",
+         "treatment": "Apply Dimethoate or Imidacloprid when colonies first detected. Encourage natural enemies. Use yellow sticky traps."},
+
+        {"id": "BEAN_WEEVIL", "crop": "beans",
+         "name": "Bean Bruchid Weevil",
+         "symptoms": "Round holes in stored bean seeds powdery frass around seeds live beetles in grain loss of seed weight and viability",
+         "description": "Acanthoscelides obtectus and Zabrotes subfasciatus. Major storage pests of beans in Kenya. Source KEPHIS storage pest guide.",
+         "treatment": "Dry beans thoroughly below 13% moisture. Use hermetic PICS bags. Apply Actellic dust 1g/kg. Mix beans with wood ash or diatomaceous earth."},
+
+        # ── POTATO ─────────────────────────────────────────────────────────
+        {"id": "LB_POT", "crop": "potato",
+         "name": "Potato Late Blight",
+         "symptoms": "Water-soaked dark lesions on leaves starting from tips and margins white fungal growth on underside in humid conditions lesions turn brown and papery oily appearance on stems rotting of tubers with coppery-brown internal rot",
+         "description": "Caused by Phytophthora infestans. Most serious potato disease Kenya affecting 67% of farms KEPHIS. Occurs in all potato-growing highland areas Nyandarua Meru Nakuru.",
+         "treatment": "Apply Ridomil Gold metalaxyl-mancozeb preventively before rains. Apply Dithane mancozeb 2.5kg/ha every 7-10 days. Plant certified seed tubers. Use resistant varieties Unica Kenya Karibu Shangi."},
+
+        {"id": "BW_POT", "crop": "potato",
+         "name": "Potato Bacterial Wilt",
+         "symptoms": "Sudden wilting of plants starting with youngest leaves brown vascular tissue visible when stem cut slimy bacterial ooze from cut stem in water rotted tubers with bacterial slime",
+         "description": "Caused by Ralstonia solanacearum. Most damaging potato disease Kenya affecting 70%+ of farms KEPHIS. No effective cure once soil is infested.",
+         "treatment": "Plant certified disease-free seed tubers only KEPHIS certified. Practice strict 4-year rotation with non-solanaceous crops. Disinfect tools with bleach. Remove and burn infected plants."},
+
+        {"id": "EB_POT", "crop": "potato",
+         "name": "Potato Early Blight",
+         "symptoms": "Dark brown-black circular spots with concentric rings giving target-board appearance yellow halo around lesions lesions on older lower leaves first premature defoliation",
+         "description": "Caused by Alternaria solani. Common in all potato-growing areas Kenya. Source NPCK disease guide.",
+         "treatment": "Apply Mancozeb or Chlorothalonil at first sign. Ensure balanced nutrition adequate K and N. Destroy crop debris after harvest. Crop rotation 2-3 years."},
+
+        {"id": "BLACKLEG_POT", "crop": "potato",
+         "name": "Potato Blackleg",
+         "symptoms": "Black slimy rot at base of stem from soil level yellowing and wilting of stems plants easily pulled from soil due to rotten stems soft wet rot in tubers",
+         "description": "Caused by Pectobacterium atrosepticum. Seed-borne bacterial disease. Detected in Kenya highlands including Meru Nyandarua Nakuru. Source NPCK 2021 report.",
+         "treatment": "Use certified disease-free seed tubers. Avoid planting in waterlogged soils. Let seed cuts dry before planting. Practice strict rotation."},
+
+        {"id": "PCN", "crop": "potato",
+         "name": "Potato Cyst Nematode",
+         "symptoms": "Patches of stunted yellow plants wilting in warm afternoons tiny golden or white cysts on roots visible with magnifying glass reduced tuber size and number",
+         "description": "Globodera rostochiensis and G. pallida. First reported Kenya 2014 in Nyandarua. Classified as quarantine pest by KEPHIS.",
+         "treatment": "Plant certified nematode-free seed tubers. Long rotation 7+ years with non-host crops. Apply Carbofuran nematicide at planting."},
+
+        {"id": "PTM", "crop": "potato",
+         "name": "Potato Tuber Moth",
+         "symptoms": "Mines under leaf surface tunnels in tubers and stems webbing over tuber eyes in store caterpillars visible inside tubers tubers become inedible",
+         "description": "Phthorimaea operculella. Major pest in storage and field Kenya. Identified as most important potato pest East Africa UoN 2019.",
+         "treatment": "Hill up soil to cover tubers completely. Harvest immediately at crop maturity. Apply Chlorpyrifos in field. Store tubers in dark cool conditions."},
+
+        {"id": "PLRV", "crop": "potato",
+         "name": "Potato Leafroll Virus",
+         "symptoms": "Upward rolling of lower leaves pale yellow discolouration leathery texture of leaves net-like brown necrosis in tubers when cut reduced tuber size",
+         "description": "Transmitted by peach-potato aphid Myzus persicae. Common in Kenyan potato zones. Seed-borne.",
+         "treatment": "Use certified virus-free seed tubers. Apply systemic insecticides to control aphid vectors. Practice 3-year crop rotation."},
+
+        {"id": "COMMON_SCAB", "crop": "potato",
+         "name": "Potato Common Scab",
+         "symptoms": "Raised corky scab-like lesions on tuber surface rough or pitted tuber skin lesions do not affect eating quality but reduce market value",
+         "description": "Caused by Streptomyces scabies. Common in neutral to alkaline Kenyan potato soils. Found widely in Nyandarua and Meru.",
+         "treatment": "Maintain soil pH between 5.0-5.5. Use certified seed tubers. Avoid fresh manure application. Crop rotation. Irrigate to maintain even soil moisture."},
+
+        {"id": "POWDERY_SCAB", "crop": "potato",
+         "name": "Potato Powdery Scab",
+         "symptoms": "Raised scabby pustules on tuber surface filled with dry powdery spores galls on roots lesions break open releasing spore powder",
+         "description": "Caused by Spongospora subterranea. Common in cool wet potato soils Kenya highlands. NPCK identified as significant disease. Soil persists for 10+ years.",
+         "treatment": "Maintain soil pH at 5.2-6.0. Use certified seed tubers. Practice 5-year rotation with non-host crops. Improve soil drainage."},
+
+        # ── TOMATO ─────────────────────────────────────────────────────────
+        {"id": "EB_TOM", "crop": "tomato",
+         "name": "Tomato Early Blight",
+         "symptoms": "Circular dark brown lesions with concentric rings on older leaves yellow halo around lesions premature defoliation starting from bottom dark lesions at stem base",
+         "description": "Caused by Alternaria solani. Very common in all Kenyan tomato growing areas. Major constraint in Kirinyaga Meru Rift Valley. Source KALRO horticulture guide.",
+         "treatment": "Apply Mancozeb or Chlorothalonil at first appearance. Ensure adequate K and Ca nutrition. Avoid overhead watering. Remove lower infected leaves."},
+
+        {"id": "LB_TOM", "crop": "tomato",
+         "name": "Tomato Late Blight",
+         "symptoms": "Greasy water-soaked lesions on leaves and stems white mould on underside in humid conditions lesions turn brown and papery hard dark brown rot on green or ripe tomatoes",
+         "description": "Caused by Phytophthora infestans. Extremely destructive in cool humid conditions Kenya highlands. Can destroy entire tomato crop in 2-3 weeks.",
+         "treatment": "Apply Ridomil Gold preventively before and during rains. Avoid overhead irrigation. Destroy infected plants immediately. Use resistant varieties Anna F1 Kilele F1."},
+
+        {"id": "BW_TOM", "crop": "tomato",
+         "name": "Tomato Bacterial Wilt",
+         "symptoms": "Sudden wilting of plants in warm afternoons quick recovery at night initially permanent wilting and plant death bacterial ooze from cut stem in water brown vascular discolouration",
+         "description": "Caused by Ralstonia solanacearum. Major disease in all Kenyan tomato zones including Kirinyaga Meru Naivasha.",
+         "treatment": "Use resistant rootstocks by grafting. Plant certified seedlings. Strict rotation 4+ years. Disinfect tools. Solarise soil before planting."},
+
+        {"id": "FUSA_WILT_TOM", "crop": "tomato",
+         "name": "Tomato Fusarium Wilt",
+         "symptoms": "Yellowing of lower leaves on one side of plant browning of vascular tissue in stem progressive wilting from bottom plant death over several weeks",
+         "description": "Caused by Fusarium oxysporum f.sp. lycopersici. Soil-borne disease. Increasingly common Kenya as tomato monoculture increases.",
+         "treatment": "Use resistant varieties Kilele F1 Anna F1. Graft onto resistant rootstocks. Practice 4-year rotation. Solarise soil. Apply Trichoderma harzianum."},
+
+        {"id": "TSWV", "crop": "tomato",
+         "name": "Tomato Spotted Wilt Virus",
+         "symptoms": "Bronze discolouration of young leaves ring spots on leaves and fruits stunted plants necrosis of growing tips streaks on stems and petioles",
+         "description": "Transmitted by thrips Frankliniella occidentalis. Common in greenhouse and open-field tomatoes Kenya. Significant losses in Naivasha and Rift Valley greenhouse sector.",
+         "treatment": "Control thrips with Spinosad or Abamectin. Use silver reflective mulch. Remove infected plants immediately. Use insect-proof netting in greenhouses."},
+
+        {"id": "TOM_MOTH", "crop": "tomato",
+         "name": "Tomato Leaf Miner",
+         "symptoms": "Irregular leaf mines with frass tunnels inside stems and fruits small entry holes in fruits caterpillars inside green and ripe tomatoes massive defoliation",
+         "description": "Tuta absoluta. Highly invasive pest first reported Kenya 2014. Now established in all tomato zones. Can cause 80-100% crop loss.",
+         "treatment": "Apply Spinosad Abamectin or Chlorantraniliprole. Use pheromone mass trapping. Install insect-proof nets. Scout twice weekly."},
+
+        {"id": "BER_TOM", "crop": "tomato",
+         "name": "Blossom End Rot",
+         "symptoms": "Dark sunken leathery area at blossom end of fruit affected area turns black internal browning of affected tissue fruits not marketable",
+         "description": "Physiological disorder caused by calcium deficiency at blossom end of fruit. Common in Kenyan tomatoes during irregular watering or drought stress.",
+         "treatment": "Apply calcium nitrate foliar spray at 0.4%. Maintain even soil moisture through mulching and consistent irrigation. Raise soil pH to 6.0-6.5."},
+
+        # ── WHEAT ─────────────────────────────────────────────────────────
+        {"id": "STEM_RUST", "crop": "wheat",
+         "name": "Wheat Stem Rust",
+         "symptoms": "Brick-red elongated pustules on stems and leaf sheaths pustules rupture releasing reddish-brown spore powder weakened stems prone to lodging",
+         "description": "Caused by Puccinia graminis f.sp. tritici. Historically most feared wheat disease Kenya. Epidemics since 1908. Ug99 race present in Kenya. KALRO Njoro is global monitoring centre.",
+         "treatment": "Apply Propiconazole Tilt fungicide at first sign. Plant resistant varieties Robin Fahari Kwale. Monitor for new virulent races."},
+
+        {"id": "YELLOW_RUST", "crop": "wheat",
+         "name": "Wheat Yellow Stripe Rust",
+         "symptoms": "Yellow to orange stripe patterns of pustules arranged in lines along leaf veins leaves die from tips",
+         "description": "Caused by Puccinia striiformis. Common in cool moist highland wheat areas Kenya including Uasin Gishu Trans Nzoia Nyandarua.",
+         "treatment": "Apply Propiconazole or Tebuconazole at first stripe appearance. Plant resistant varieties. Monitor weekly during cool wet periods."},
+
+        {"id": "LEAF_RUST_WHEAT", "crop": "wheat",
+         "name": "Wheat Leaf Rust",
+         "symptoms": "Small round orange-brown pustules on upper leaf surface random distribution dark brown-black telial pustules in dry conditions",
+         "description": "Caused by Puccinia triticina. Most common and widely distributed of the three wheat rusts in Kenya. Yield losses 5-40%. Source IntechOpen 2022.",
+         "treatment": "Apply Triazole fungicides Propiconazole or Epoxiconazole. Plant varieties with leaf rust resistance."},
+
+        {"id": "SEP_WHEAT", "crop": "wheat",
+         "name": "Wheat Septoria Leaf Blotch",
+         "symptoms": "Initially water-soaked lesions on lower leaves lesions turn tan to brown with yellow margins pycnidia visible as tiny black dots lesions merge causing leaf death",
+         "description": "Caused by Mycosphaerella graminicola. Common in humid wheat areas Kenya. Source IntechOpen 2022.",
+         "treatment": "Apply Strobilurin plus Triazole mixture. Plant resistant varieties. Burn or plough crop residue."},
+
+        {"id": "BUNTS_WHEAT", "crop": "wheat",
+         "name": "Wheat Bunt",
+         "symptoms": "Infected plants appear normal until heading grain replaced by dark powdery smut balls fishy smell from infected grain",
+         "description": "Covered smut Tilletia tritici. Seed-borne disease. Managed by KALRO through certified seed programme.",
+         "treatment": "Treat seeds with Carboxin or Thiram before planting. Use certified clean seed."},
+
+        # ── CASSAVA ────────────────────────────────────────────────────────
+        {"id": "CBSD", "crop": "cassava",
+         "name": "Cassava Brown Streak Disease",
+         "symptoms": "Yellow streaks and blotches on leaves brown-black necrotic streaks on stems dry corky brown necrotic patches in cassava roots making them inedible",
+         "description": "Caused by Cassava brown streak virus. Devastating viral disease of cassava. Spreading rapidly in Kenya Western and Coastal regions. MMUST/KALRO monitoring programme.",
+         "treatment": "Use certified virus-free planting material. Plant resistant varieties Tajirika Kizimbani Migyera. Rogue and destroy infected plants immediately."},
+
+        {"id": "CMD", "crop": "cassava",
+         "name": "Cassava Mosaic Disease",
+         "symptoms": "Mosaic yellowing of leaves leaf distortion and curling chlorosis between leaf veins stunted plants severely reduced root yield",
+         "description": "Caused by East African cassava mosaic virus EACMV. Most widespread cassava disease Kenya. Transmitted by whitefly Bemisia tabaci.",
+         "treatment": "Plant resistant varieties MM8 Tajirika Sili. Control Bemisia tabaci with systemic insecticides. Use certified planting material."},
+
+        {"id": "CASSAVA_BACT_BLIGHT", "crop": "cassava",
+         "name": "Cassava Bacterial Blight",
+         "symptoms": "Angular water-soaked lesions on leaves turning brown wilting of shoot tips die-back gummy exudate on stems brown discolouration inside stems",
+         "description": "Caused by Xanthomonas axonopodis pv. manihotis. Common in Kenya cassava zones during rainy season.",
+         "treatment": "Use healthy certified cuttings. Remove infected shoots. Apply copper-based bactericide. Avoid working in wet crops."},
+
+        {"id": "CGMCC", "crop": "cassava",
+         "name": "Cassava Green Mite",
+         "symptoms": "Pale green yellowing of young leaves leaf distortion and curling silvery sheen on leaf undersurface stunted shoot tips",
+         "description": "Mononychellus tanajoa. Serious pest of cassava in dryland Kenya. Severe in ASAL areas Eastern and Coastal regions.",
+         "treatment": "Apply Abamectin miticide where economically justified. Biological control using Typhlodromalus aripo released by CABI."},
+
+        {"id": "MEALYBUG", "crop": "cassava",
+         "name": "Cassava Mealybug",
+         "symptoms": "White cottony wax on growing tips stunted shoots crinkled distorted leaves at tips yellowing of leaves",
+         "description": "Phenacoccus manihoti. Present in coastal Kenya affecting cassava production. Biological control using parasitic wasp Apoanagyrus lopezi by CABI/IITA.",
+         "treatment": "Biological control using Apoanagyrus lopezi wasp released by CABI. Apply Chlorpyrifos where infestation severe."},
+
+        # ── SORGHUM ────────────────────────────────────────────────────────
+        {"id": "STRIGA", "crop": "sorghum",
+         "name": "Striga Witchweed",
+         "symptoms": "Yellow stunted crop plants small reddish-purple flowers of Striga emerging at base of crop early crop death in severe infestations patchy crop stand",
+         "description": "Striga hermonthica and S. asiatica. Parasitic weed devastating cereals Kenya ASAL regions. Most damaging constraint in Western Kenya causing 30-100% yield loss. ICIPE/KALRO developed push-pull technology.",
+         "treatment": "Use Imazapyr-treated sorghum or maize seed IR Maize. Plant Desmodium as intercrop using push-pull technology from ICIPE. Hand-pull Striga before flowering."},
+
+        {"id": "ANTHRAC_SORG", "crop": "sorghum",
+         "name": "Sorghum Anthracnose",
+         "symptoms": "Red or tan spots with dark borders on leaves small spots merging to large blighted areas pinkish spore masses on stem stalk rot in severe cases",
+         "description": "Caused by Colletotrichum sublineolum. Most important sorghum disease humid regions Kenya. Common in Western Kenya and Rift Valley highland areas.",
+         "treatment": "Use resistant varieties. Apply Mancozeb or Carbendazim. Destroy infected residue. Practice crop rotation."},
+
+        {"id": "SORG_MIDGE", "crop": "sorghum",
+         "name": "Sorghum Midge",
+         "symptoms": "Tiny orange maggots inside florets shrivelled empty grains chaffy heads pink-orange adult flies visible at flowering stage",
+         "description": "Stenodiplosis sorghicola. Small orange fly attacking sorghum heads at flowering. Widespread in Kenya sorghum areas.",
+         "treatment": "Plant early to avoid peak midge populations. Use resistant varieties with tight glumes. Apply Lambda-cyhalothrin at 50% flowering."},
+
+        {"id": "SHOOT_FLY_SORG", "crop": "sorghum",
+         "name": "Sorghum Shoot Fly",
+         "symptoms": "Dead hearts in young sorghum plants with yellowing central shoot that pulls out easily grubs at base of dead shoot plants may tiller but are weakened",
+         "description": "Atherigona soccata. Major pest of sorghum Kenya ASAL regions. Common in Machakos Kitui Tharaka Nithi Makueni.",
+         "treatment": "Plant early before peak fly population. Apply Carbofuran at planting. Use tolerant varieties with hairy or waxy leaves."},
+
+        # ── BANANA ─────────────────────────────────────────────────────────
+        {"id": "BXW", "crop": "banana",
+         "name": "Banana Xanthomonas Wilt",
+         "symptoms": "Wilting and yellowing of leaves starting with outer leaves premature ripening of individual fingers brown internal discolouration of fruit bacterial ooze from cut stem",
+         "description": "Caused by Xanthomonas vasicola pv. musacearum. Devastating banana disease. Present in Western Kenya Kisumu Kakamega Bungoma.",
+         "treatment": "Remove and destroy entire infected mat with surrounding soil. Disinfect machetes with bleach between plants. Male bud removal. Community-wide management essential."},
+
+        {"id": "FUSARIUM_WILT_BAN", "crop": "banana",
+         "name": "Banana Fusarium Wilt Panama Disease",
+         "symptoms": "Yellowing of outer leaves progressing inward leaf collapse at petiole yellow-brown vascular discolouration in pseudostem when cut plant death",
+         "description": "Caused by Fusarium oxysporum f.sp. cubense. Present in coastal Kenya affecting Cavendish varieties. Soil-borne disease that persists indefinitely.",
+         "treatment": "No effective fungicide control. Remove and destroy infected mats. Plant resistant varieties NARITA hybrids. Avoid movement of soil from infested areas."},
+
+        {"id": "BLACK_SIGATOKA", "crop": "banana",
+         "name": "Black Sigatoka",
+         "symptoms": "Small pale yellow spots on lower leaf surface spots enlarge to dark brown-black streaks leaves dry from tips premature leaf death",
+         "description": "Caused by Mycosphaerella fijiensis. Most serious banana leaf disease Kenya. Widespread in coastal and western banana areas.",
+         "treatment": "Apply Propiconazole or Chlorothalonil regularly. Remove infected leaves. Maintain proper spacing. Apply potassium to improve resistance."},
+
+        # ── COFFEE AND TEA ──────────────────────────────────────────────────
+        {"id": "CBD", "crop": "coffee",
+         "name": "Coffee Berry Disease",
+         "symptoms": "Dark brown-black lesions on green berries infected berries dry and remain on tree as mummies pinkish spore masses in wet conditions shrivelled brown berries",
+         "description": "Caused by Colletotrichum kahawae. Most economically important coffee disease Kenya. First discovered in Kenya. CRI managed by KALRO.",
+         "treatment": "Apply Copper oxychloride or Carbendazim spray programme 5-7 sprays per season. Plant resistant or tolerant varieties Ruiru 11 Batian."},
+
+        {"id": "CLR", "crop": "coffee",
+         "name": "Coffee Leaf Rust",
+         "symptoms": "Pale yellow spots on upper leaf surface orange powdery pustules on lower leaf surface premature defoliation",
+         "description": "Caused by Hemileia vastatrix. Increasingly important in Kenyan coffee. More severe in lower altitude zones.",
+         "treatment": "Apply Copper oxychloride or Triazole fungicides. Plant tolerant varieties Ruiru 11 Batian. Prune for air circulation."},
+
+        {"id": "BLISTER_BLIGHT", "crop": "tea",
+         "name": "Tea Blister Blight",
+         "symptoms": "Circular water-soaked blisters on young leaves turning white with powdery spore mass leaf curling around blister shoot distortion",
+         "description": "Caused by Exobasidium vexans. Most important tea disease Kenya. Severe during cool wet periods. Managed by TRFK under KALRO.",
+         "treatment": "Apply Copper oxychloride or Mancozeb at 10-day intervals. Improve shade regulation. Use tolerant clones recommended by TRFK."},
+
+        {"id": "ANTESTIA_BUG", "crop": "coffee",
+         "name": "Antestia Bug",
+         "symptoms": "Oozing sap on attacked berries spotted appearance on berries premature berry drop potato taste defect in processed coffee",
+         "description": "Antestiopsis spp. Major pest of Arabica coffee Kenya highlands. Causes potato taste defect and significant bean damage. Monitored by KALRO CRI.",
+         "treatment": "Apply Endosulfan or Pyrethroids when populations exceed threshold. Remove alternative host plants. Proper shade management."},
+
+        # ── MANGO AND AVOCADO ──────────────────────────────────────────────
+        {"id": "ANTH_MANGO", "crop": "mango",
+         "name": "Mango Anthracnose",
+         "symptoms": "Dark brown-black lesions on leaves flowers and fruits shot-hole symptoms on leaves blossom blight black spots on ripe fruit internal dark rot in stored mangoes",
+         "description": "Caused by Colletotrichum gloeosporioides. Most important mango disease Kenya affecting all mango-growing areas.",
+         "treatment": "Apply Mancozeb or Copper hydroxide during flowering and fruit development. Harvest promptly. Apply hot water treatment post-harvest 52 degrees Celsius for 5 minutes."},
+
+        {"id": "MANGO_WEEVIL", "crop": "mango",
+         "name": "Mango Seed Weevil",
+         "symptoms": "No external signs in fruit larvae and pupae found inside mango seed only adult exit holes in skin when mature premature fruit drop",
+         "description": "Sternochetus mangiferae. Quarantine pest of mango in Kenya. Restricts Kenyan mango export to EU markets. Monitored by KEPHIS.",
+         "treatment": "Bag fruits at marble size with paper or plastic bags. Early harvest and immediate processing. Certified pest-free areas maintained by KEPHIS."},
+
+        {"id": "AVOCADO_ROT", "crop": "avocado",
+         "name": "Avocado Root Rot",
+         "symptoms": "Yellowing of leaves small pale green leaves wilting during warm afternoons death of feeder roots black-brown discolouration of roots",
+         "description": "Caused by Phytophthora cinnamomi. Most serious avocado disease Kenya growing avocado export sector. Common in heavy poorly-drained soils. Constraint in Muranga Kiambu Meru.",
+         "treatment": "Plant in well-drained soils or raised beds. Apply Ridomil Gold to soil and as trunk injection. Use tolerant rootstocks Dusa Duke 7."},
+
+        {"id": "AVOCADO_SCAB", "crop": "avocado",
+         "name": "Avocado Scab",
+         "symptoms": "Rough corky lesions on young fruits cracking of fruit skin dirty brown scabby spots on skin fruit malformation in severe cases",
+         "description": "Caused by Sphaceloma perseae. Common in Kenyan highland avocado production. Reduces fruit quality and marketability.",
+         "treatment": "Apply Copper oxychloride or Mancozeb at fruit set. Prune for air circulation. Avoid wetting fruit during irrigation."},
+
+        # ── GENERAL VEGETABLE AND SOIL ─────────────────────────────────────
+        {"id": "PM_VEG", "crop": "vegetables",
+         "name": "Powdery Mildew",
+         "symptoms": "White powdery growth on upper leaf surfaces leaves turn yellow then brown premature defoliation distorted young shoots reduced fruit quality",
+         "description": "Caused by various Erysiphe and Podosphaera species. Affects many vegetables Kenya including cucurbits peas beans.",
+         "treatment": "Apply Sulfur-based fungicide Kumulus or Myclobutanil. Improve air circulation. Avoid overhead irrigation."},
+
+        {"id": "DOWNY_MILDEW", "crop": "vegetables",
+         "name": "Downy Mildew",
+         "symptoms": "Yellow patches on upper leaf surface grey-purple fuzzy sporulation on lower leaf surface leaves turn brown and dry",
+         "description": "Caused by Peronospora and Plasmopara species. Common in humid conditions Kenya. Affects many crops including onions cucumbers peas.",
+         "treatment": "Apply Ridomil Gold or Mancozeb preventively. Improve air circulation. Avoid overhead irrigation."},
+
+        {"id": "THRIPS_VEG", "crop": "vegetables",
+         "name": "Thrips",
+         "symptoms": "Silvery streaking on leaves white flecking on petals distortion of young tissue scarring on onion leaves reduced yield and quality",
+         "description": "Thrips tabaci and Frankliniella species. Major pest of onions French beans tomatoes many vegetables Kenya. Vector of tospoviruses.",
+         "treatment": "Apply Spinosad Abamectin or Chlorpyrifos. Use yellow and blue sticky traps. Encourage predatory mites."},
+
+        {"id": "WHITEFLY", "crop": "vegetables",
+         "name": "Whitefly",
+         "symptoms": "Tiny white flies rising from plant when disturbed sticky honeydew on leaves sooty mould growing on honeydew yellowing of leaves virus symptoms on host",
+         "description": "Bemisia tabaci and Trialeurodes vaporariorum. Major pest and virus vector across Kenya. Transmits TYLCV in tomatoes and CMD in cassava.",
+         "treatment": "Apply Thiamethoxam Spirotetramat or Pymetrozine. Rotate insecticide classes. Use yellow sticky traps. Introduce Encarsia formosa."},
+
+        {"id": "SPIDERMITE", "crop": "vegetables",
+         "name": "Red Spider Mite",
+         "symptoms": "Fine stippling on upper leaf surface bronzing or yellowing of leaves fine webbing on underside of leaves premature leaf drop",
+         "description": "Tetranychus urticae. Common pest many crops Kenya especially in dry seasons. Severe in greenhouses and during droughts.",
+         "treatment": "Apply Abamectin Bifenazate or Hexythiazox miticide. Maintain humidity. Introduce predatory mites Phytoseiulus persimilis."},
+
+        {"id": "PYTHIUM_DAMP", "crop": "vegetables",
+         "name": "Damping Off",
+         "symptoms": "Seedling collapse at soil level pinched brown stem at soil surface water-soaked lesion at base seedlings fall over in groups poor germination patches",
+         "description": "Caused by Pythium and Rhizoctonia species. Very common seedling disease Kenya affecting nurseries and direct-sown crops.",
+         "treatment": "Use well-drained nursery mix. Treat seeds with Thiram or Metalaxyl. Avoid overwatering. Apply Ridomil drench to nursery."},
+
+        {"id": "ROOT_KNOT_NEM", "crop": "vegetables",
+         "name": "Root Knot Nematode",
+         "symptoms": "Galls knots on roots stunted pale plants wilting in warm afternoons poor yield despite good rainfall roots with swollen sections",
+         "description": "Meloidogyne species. Most common nematode affecting vegetables tomatoes other crops Kenya. Widespread in sandy soils Central and Eastern regions.",
+         "treatment": "Apply Carbofuran or Ethoprophos nematicide at planting. Solarise soil with clear plastic 6-8 weeks. Apply Trichoderma and Paecilomyces bioagents."},
+
+        {"id": "DOWNY_BRASSICA", "crop": "vegetables",
+         "name": "Brassica Downy Mildew",
+         "symptoms": "Yellow patches on upper leaf surface white-grey fluffy growth on lower surface leaves turn brown and papery in severe cases seedling damping off",
+         "description": "Caused by Peronospora parasitica. Very common in kale sukuma wiki cabbage and other brassicas Kenya.",
+         "treatment": "Apply Ridomil Gold or Chlorothalonil. Avoid overcrowding. Improve air circulation. Avoid overhead irrigation."},
+
+        {"id": "DIAMONDBACK", "crop": "vegetables",
+         "name": "Diamondback Moth",
+         "symptoms": "Window pane feeding leaving translucent patches small caterpillars with characteristic wriggling when disturbed holes in leaves defoliation in severe cases",
+         "description": "Plutella xylostella. Most damaging pest of brassicas Kenya. Highly resistant to many insecticides. Found throughout Kenya all brassica growing areas.",
+         "treatment": "Apply Emamectin benzoate or Chlorantraniliprole and rotate to prevent resistance. Use pheromone traps for monitoring. Remove crop residues promptly."},
+
+        {"id": "BLACKROT_BRASSICA", "crop": "vegetables",
+         "name": "Black Rot of Brassica",
+         "symptoms": "Yellow V-shaped lesions at leaf margins pointing toward midrib black veins visible inside the V-shaped lesion leaves turn yellow and drop blackening of head in cabbage",
+         "description": "Caused by Xanthomonas campestris pv. campestris. Major bacterial disease of kale cabbage and other brassicas Kenya.",
+         "treatment": "Use certified disease-free seeds. Apply copper bactericide at transplanting. Avoid overhead irrigation. Remove and destroy infected plants."},
+
+        {"id": "ONION_BLIGHT", "crop": "vegetables",
+         "name": "Onion Purple Blotch",
+         "symptoms": "Small white lesions with purple centres on leaves lesions enlarge with yellow margins leaves collapse in severe cases storage rot on bulbs",
+         "description": "Caused by Alternaria porri. Common in all onion growing areas Kenya especially Karatina Isinya Mwea.",
+         "treatment": "Apply Mancozeb or Iprodione fungicide. Ensure good drainage and air circulation. Remove infected leaves."},
+
+        {"id": "ONION_NECK_ROT", "crop": "vegetables",
+         "name": "Onion Neck Rot",
+         "symptoms": "Grey mould at neck of bulb spreading inward soft watery rot of outer scales grey spore masses on infected tissue shrivelled necks",
+         "description": "Caused by Botrytis allii. Major post-harvest disease of onions Kenya causing storage losses.",
+         "treatment": "Cure bulbs at 28-35 degrees Celsius for 10-14 days before storage. Apply Iprodione at harvest. Store in well-ventilated conditions."},
+
+        {"id": "HALO_FB", "crop": "beans",
+         "name": "French Bean Halo Blight",
+         "symptoms": "Water-soaked spots with yellow halos on leaves and pods halos give disease its name greasy appearance of lesions pod spotting causing export rejection",
+         "description": "Caused by Pseudomonas syringae pv. phaseolicola. Major disease of French bean export crop Kenya. Causes rejection at European markets.",
+         "treatment": "Use certified disease-free seeds. Avoid overhead irrigation in mornings. Apply copper bactericide preventively."},
+
+        {"id": "ANGULAR_FB", "crop": "beans",
+         "name": "French Bean Angular Leaf Spot on Pods",
+         "symptoms": "Angular lesions on leaves and pods grey sporulation on lower leaf surface pod lesions cause export rejection at destination",
+         "description": "Same pathogen as bean ALS. Major export quality constraint Kenyan French bean production. Causes consignment rejection in Meru Kirinyaga Embu.",
+         "treatment": "Use certified disease-free seeds. Apply Mancozeb or Copper fungicide. Strict 3-year rotation."},
+
+        {"id": "SOIL_SALINITY", "crop": "vegetables",
+         "name": "Soil Salinity Damage",
+         "symptoms": "White crust on soil surface wilting of plants despite adequate water brown leaf margins stunted plants poor germination",
+         "description": "Increasingly common in irrigated areas Kenya including Mwea Ahero Perkerra and coastal plains.",
+         "treatment": "Improve drainage to leach salts below root zone. Apply gypsum to displace sodium. Use good quality low-salt irrigation water."},
+
+        {"id": "FE_DEF", "crop": "vegetables",
+         "name": "Iron Deficiency",
+         "symptoms": "Interveinal chlorosis on youngest leaves very pale yellow to white young leaves while older leaves remain normal-looking",
+         "description": "Occurs in alkaline and waterlogged soils Kenya. Common in Mwea rice scheme and in over-limed soils.",
+         "treatment": "Reduce soil pH below 6.5. Apply chelated iron Fe-EDTA foliar spray. Avoid overwatering. Apply sulphur to reduce pH."},
+
+        {"id": "BORON_DEF", "crop": "vegetables",
+         "name": "Boron Deficiency",
+         "symptoms": "Hollow or corky stem tissue in brassicas poor seed set and fruit formation distorted young leaves flower and bud abortion cracked fruit",
+         "description": "Increasingly reported in Kenyan soils especially areas with high rainfall leaching. Source KALRO soil bulletin.",
+         "treatment": "Apply Borax at 1 kg/ha to soil before planting. Foliar spray boric acid at 0.1% at flowering."},
+
+        # ── RICE AND GROUNDNUT ─────────────────────────────────────────────
+        {"id": "RICE_BLAST", "crop": "rice",
+         "name": "Rice Blast",
+         "symptoms": "Diamond-shaped grey-brown lesions on leaves with dark border lesions on panicle neck causing neck rot and empty panicles whitening of panicles",
+         "description": "Caused by Magnaporthe oryzae. Most serious rice disease Mwea Ahero Bunyala rice schemes Kenya. Can cause 50-100% yield loss. Source National Irrigation Authority.",
+         "treatment": "Apply Tricyclazole or Propiconazole fungicide preventively before heading. Use resistant varieties. Avoid excess N."},
+
+        {"id": "RICE_BLB", "crop": "rice",
+         "name": "Rice Bacterial Leaf Blight",
+         "symptoms": "Yellowing and wilting starting at leaf tips and margins water-soaked margins with wavy lines white to yellow lesions from tips milky bacterial ooze from cut leaf tip in water",
+         "description": "Caused by Xanthomonas oryzae pv. oryzae. Common in Mwea and Ahero rice schemes Kenya.",
+         "treatment": "Use resistant varieties. Apply copper bactericide at first sign. Drain flooded fields promptly."},
+
+        {"id": "ROSETTE", "crop": "groundnut",
+         "name": "Groundnut Rosette",
+         "symptoms": "Severe stunting of plants bunchy rosette appearance small yellow-green mottled leaves greatly reduced pod and seed production",
+         "description": "Caused by Groundnut rosette virus. Transmitted by aphid Aphis craccivora. Major groundnut disease Kenya especially Western and Nyanza regions. Source ICRISAT guide.",
+         "treatment": "Plant early at start of rains. Apply insecticide at emergence to control aphid vectors. Use resistant varieties."},
+
+        {"id": "CERCOSPORA_GNUT", "crop": "groundnut",
+         "name": "Groundnut Leaf Spots",
+         "symptoms": "Brown to black circular spots on leaves yellow halos on early leaf spot lesions dark lesions without halos on late leaf spot premature defoliation",
+         "description": "Early leaf spot Cercospora arachidicola and late leaf spot Cercosporidium personatum. Common in all groundnut areas Kenya. Source ICRISAT/KALRO guide.",
+         "treatment": "Apply Chlorothalonil or Mancozeb at 14-day intervals. Plant resistant varieties. Monitor from 30 days after planting."},
+
+        # ── REMAINING DISEASES ─────────────────────────────────────────────
+        {"id": "SUNFLOWER_ALT", "crop": "sunflower",
+         "name": "Sunflower Alternaria Blight",
+         "symptoms": "Dark brown circular lesions with yellow halos on leaves lesions on stems and seed heads premature defoliation dark-brown seed infection",
+         "description": "Caused by Alternaria helianthi. Common in sunflower growing areas Kenya Rift Valley Eastern Western Kenya.",
+         "treatment": "Apply Mancozeb at first sign. Use certified disease-free seeds. Practice crop rotation."},
+
+        {"id": "LOCUST", "crop": "maize",
+         "name": "Desert Locust",
+         "symptoms": "Complete defoliation of crop fields total stripping of crops and vegetation within hours large swarms visible in sky hopping bands of hoppers in early stage",
+         "description": "Schistocerca gregaria. Periodic devastating pest Kenya especially Northern Eastern Rift Valley. Major 2019-2021 outbreak affected 23 counties. KALRO provides technical guidance.",
+         "treatment": "Contact Ministry of Agriculture locust control unit immediately. Apply Chlorpyrifos or Malathion by air if authorised. Report to nearest agricultural extension office."},
+
+        {"id": "QUELEA", "crop": "maize",
+         "name": "Quelea Bird Damage",
+         "symptoms": "Stripped grain from cobs denuded cobs at milk and dough stage large flocks of small birds roosting in fields",
+         "description": "Red-billed quelea Quelea quelea. Seasonal pest affecting Kenya especially Trans Nzoia Uasin Gishu Rift Valley.",
+         "treatment": "Use bird scarers including noise and reflective tape. Plant early to avoid quelea season. Use bird-resistant varieties with tight husk cover."},
+
+        {"id": "HEAD_SMUT_SORG", "crop": "sorghum",
+         "name": "Sorghum Head Smut",
+         "symptoms": "Entire head replaced by smut ball covered in black powder plant looks normal until heading",
+         "description": "Caused by Sporisorium reilianum. Common sorghum disease Kenya ASAL regions. Related to maize head smut.",
+         "treatment": "Use resistant varieties. Treat seeds with Carboxin or Thiram. Remove smut balls before they burst."},
+
+        {"id": "SUNFLOWER_BRO", "crop": "sunflower",
+         "name": "Broomrape on Sunflower",
+         "symptoms": "Yellow-white flowering parasitic plants at crop base crops severely stunted and yellowed multiple broomrape shoots per crop plant",
+         "description": "Orobanche spp. Parasitic weed attacking sunflower and tomato in drier Kenya regions. Becoming more prevalent in Eastern and Rift Valley zones.",
+         "treatment": "Use resistant varieties. Apply Imazapic herbicide to resistant varieties. Practice 5+ year rotation."},
+
+        {"id": "PYRET_APHID", "crop": "pyrethrum",
+         "name": "Pyrethrum Aphid",
+         "symptoms": "Colonies of yellow-green aphids on young shoots and flower buds distortion of shoot tips reduced flower production",
+         "description": "Brachycaudus helichrysi. Serious pest of pyrethrum Kenya highlands Nakuru Nyandarua Meru zones. Source KALRO Pyrethrum Board.",
+         "treatment": "Apply Dimethoate or Pirimicarb. Monitor weekly October to March peak season."},
     ]
 }
 
-def setup_rag():
-    """Create RAG knowledge base and embeddings"""
-    
-    print("📚 Setting up RAG knowledge base...")
-    
-    # Save knowledge base
-    kb_file = Path("data/rag_kb.json")
-    kb_file.parent.mkdir(exist_ok=True)
-    
-    with open(kb_file, 'w') as f:
-        json.dump(KNOWLEDGE_BASE, f, indent=2)
-    print(f"✅ Saved knowledge base: {kb_file}")
-    
-    # Try to create embeddings with Chroma
-    print("\n🔗 Creating embeddings...")
-    
+
+def rebuild_chroma(diseases: list) -> bool:
+    """Embed all diseases into a PERSISTENT Chroma collection."""
     try:
         from sentence_transformers import SentenceTransformer
         import chromadb
-    except:
-        print("⚠️  sentence-transformers or chromadb not installed")
-        print("   Install with: pip install sentence-transformers chromadb")
-        print("   Knowledge base JSON created but embeddings skipped")
-        return True
-    
+    except ImportError:
+        print("❌  Install missing packages:")
+        print("    pip install sentence-transformers chromadb")
+        return False
+
+    # ── MULTILINGUAL MODEL (handles Swahili and local Kenyan languages) ────
+    print("📥 Loading multilingual embedding model...")
+    print("   paraphrase-multilingual-MiniLM-L12-v2 (~470 MB, downloads once)")
+    model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+    print("✅ Model loaded")
+
+    # ── PERSISTENT CLIENT — survives restarts ─────────────────────────────
+    db_path = Path("data/chroma_db")
+    db_path.mkdir(parents=True, exist_ok=True)
+
+    client = chromadb.PersistentClient(path=str(db_path))
+
+    # Wipe and rebuild so re-running is always clean
     try:
-        model = SentenceTransformer('all-MiniLM-L6-v2')
-        client = chromadb.Client()
-        
-        # Create collections
-        disease_collection = client.get_or_create_collection("diseases")
-        pest_collection = client.get_or_create_collection("pests")
-        
-        # Embed diseases
-        for disease in KNOWLEDGE_BASE['diseases']:
-            text = f"{disease['name']} {disease['symptoms']} {disease['description']}"
-            embedding = model.encode(text).tolist()
-            
-            disease_collection.add(
-                ids=[disease['id']],
-                embeddings=[embedding],
-                documents=[text],
-                metadatas=[{"name": disease['name']}]
-            )
-        
-        print(f"✅ Embedded {len(KNOWLEDGE_BASE['diseases'])} diseases")
-        
-        # Embed pests
-        for pest in KNOWLEDGE_BASE['pests']:
-            text = f"{pest['name']} {pest['symptoms']} {pest['description']}"
-            embedding = model.encode(text).tolist()
-            
-            pest_collection.add(
-                ids=[pest['id']],
-                embeddings=[embedding],
-                documents=[text],
-                metadatas=[{"name": pest['name']}]
-            )
-        
-        print(f"✅ Embedded {len(KNOWLEDGE_BASE['pests'])} pests")
-        
-        # Test search
-        print("\n🔍 Testing search...")
-        
-        test_query = "yellowing leaves starting from bottom"
-        test_embedding = model.encode(test_query).tolist()
-        
-        results = disease_collection.query(
-            query_embeddings=[test_embedding],
-            n_results=2
+        client.delete_collection("diseases")
+    except Exception:
+        pass
+
+    collection = client.get_or_create_collection(
+        name="diseases",
+        metadata={"hnsw:space": "cosine"}
+    )
+
+    print(f"\n🔗 Embedding {len(diseases)} diseases...")
+
+    ids, embeddings, documents, metadatas = [], [], [], []
+
+    for disease in diseases:
+        text = (
+            f"{disease['name']} "
+            f"{disease['symptoms']} "
+            f"{disease['description']} "
+            f"{disease['treatment']}"
         )
-        
-        if results['ids'] and results['ids'][0]:
-            print(f"✅ Search test successful!")
-            print(f"   Found: {results['ids'][0]}")
-        
-        return True
-        
-    except Exception as e:
-        print(f"⚠️  Error creating embeddings: {e}")
-        print("   Knowledge base JSON created. Embeddings skipped.")
-        return True
+        vec = model.encode(text).tolist()
+        ids.append(disease["id"])
+        embeddings.append(vec)
+        documents.append(text)
+        metadatas.append({
+            "name": disease["name"],
+            "crop": disease["crop"]
+        })
+
+    # Chroma recommends batches of ≤ 5 000
+    BATCH = 100
+    for i in range(0, len(ids), BATCH):
+        collection.add(
+            ids=ids[i:i + BATCH],
+            embeddings=embeddings[i:i + BATCH],
+            documents=documents[i:i + BATCH],
+            metadatas=metadatas[i:i + BATCH]
+        )
+
+    print(f"✅ Embedded {len(ids)} diseases into persistent Chroma")
+    return True
+
+
+def test_search(query: str = "pale green maize leaves starting from bottom") -> None:
+    """Quick smoke-test after setup."""
+    try:
+        from sentence_transformers import SentenceTransformer
+        import chromadb
+    except ImportError:
+        return
+
+    model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+    client = chromadb.PersistentClient(path="data/chroma_db")
+    collection = client.get_collection("diseases")
+
+    vec = model.encode(query).tolist()
+    results = collection.query(query_embeddings=[vec], n_results=3)
+
+    print(f"\n🔍 Test search: '{query}'")
+    for i, (did, doc) in enumerate(zip(
+        results["ids"][0], results["documents"][0]
+    )):
+        name = results["metadatas"][0][i]["name"]
+        print(f"   {i + 1}. {did} — {name}")
+
+
+def main() -> None:
+    print("=" * 60)
+    print("agroAdvisor RAG Setup — 105 diseases, persistent Chroma")
+    print("=" * 60)
+
+    # Save JSON backup
+    kb_file = Path("data/rag_kb_full.json")
+    kb_file.parent.mkdir(exist_ok=True)
+    with open(kb_file, "w") as f:
+        json.dump(KNOWLEDGE_BASE, f, indent=2)
+    print(f"✅ Saved JSON backup: {kb_file} ({len(KNOWLEDGE_BASE['diseases'])} diseases)")
+
+    # Build Chroma
+    ok = rebuild_chroma(KNOWLEDGE_BASE["diseases"])
+
+    if ok:
+        test_search("pale green yellowing maize leaves starting from bottom")
+        test_search("brown spots on potato leaves spreading fast")
+        test_search("beans with black spots on pods")
+        print("\n" + "=" * 60)
+        print("✅ RAG setup complete. Chroma is now PERSISTENT.")
+        print("   Data stored at: data/chroma_db/")
+        print("   Model: paraphrase-multilingual-MiniLM-L12-v2")
+        print("   Diseases: 105")
+        print("=" * 60)
+        print("\nNow update scripts/rag_search_simple.py — see comment below.")
+    else:
+        print("\n❌ Setup failed. Fix the errors above and retry.")
+
 
 if __name__ == "__main__":
-    success = setup_rag()
-    if success:
-        print("\n✅ RAG setup complete!")
-        print("   Next: python scripts/rag_search_simple.py")
-    else:
-        print("\n❌ RAG setup failed")
+    main()
+
+
+# ── HOW TO USE THIS IN rag_search_simple.py ─────────────────────────────────
+#
+#  Replace chromadb.Client() with:
+#
+#      client = chromadb.PersistentClient(path="data/chroma_db")
+#
+#  Replace the model with:
+#
+#      model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+#
+#  That is the only change needed. Everything else stays the same.

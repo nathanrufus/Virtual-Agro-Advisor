@@ -4,10 +4,8 @@
 #     HAS_ADVICE
 # }
 include backend.models;
+include backend.helpers;
 
-sv import from backend.helpers {
-    parse_cache_key
-}
 
 sv {
     walker:pub GetAllAdviceCache {

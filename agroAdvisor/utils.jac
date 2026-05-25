@@ -265,8 +265,14 @@ def system_call(args: list) -> str {
 
         return "";
 
-    } except Exception {
-        print("[system_call] Exception occurred");
+    } except Exception as e {
+
+        print("[system_call] EXCEPTION TYPE:");
+        print(type(e));
+
+        print("[system_call] EXCEPTION:");
+        print(str(e));
+
         return "";
     }
 }

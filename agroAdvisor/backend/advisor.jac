@@ -445,8 +445,9 @@ walker:pub AgroAdvisor {
 
         #  RAG STEP 2: FORMAT
        
+        # rag_context = format_disease_context(diseases);
+        rag_context = format_disease_context_graph(diseases);
 
-        rag_context = format_disease_context(diseases);
 
         # RAG STEP 3: NEW CONTEXT
         

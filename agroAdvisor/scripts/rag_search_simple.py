@@ -29,8 +29,8 @@ class SimpleRAG:
             from sentence_transformers import SentenceTransformer
             import chromadb
             
-            self.model = SentenceTransformer('all-MiniLM-L6-v2')
-            self.client = chromadb.Client()
+            self.model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+            self.client = chromadb.PersistentClient(path="data/chroma_db")
             
             # Try to get existing collections (don't create new ones)
             try:

@@ -2,7 +2,6 @@ import from dotenv { load_dotenv }
 import os;
 import json;
 include utils;
-# sv import from utils { system_call } 
 
 
 # WEATHER INTEGRATION (WeatherAPI Forecast)

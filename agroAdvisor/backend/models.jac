@@ -317,163 +317,238 @@ def estimate_market_price(
 
 sem normalize_crop_location = """
 You receive:
-- crop: short text naming a crop (e.g. 'maiz', 'maize', 'wheet')
-- location: short text naming a place or region (e.g. 'kiambu, kenia')
+- crop: short text naming a crop (e.g. 'maiz', 'mahindi', 'wheet')
+- location: short text naming a place or region (e.g. 'kiambu, kenia', 'nakuru')
 
 Your job:
 1. Correct obvious spelling mistakes.
 2. Use standard English crop and place names used in Kenya.
+   Kenya crops: maize, beans, potato, tomato, wheat, cassava, sorghum, banana, coffee, kale, sugarcane, tea
+   Kenya regions: Nairobi, Kiambu, Nakuru, Nyeri, Muranga, Meru, Kisumu, Kakamega, Trans Nzoia,
+                  Uasin Gishu, Nyandarua, Machakos, Mombasa, Kilifi, Lamu, Kisii, Siaya
 3. If the input is already correct, return it unchanged.
-4. If you cannot guess, return the original text.
+4. If you cannot determine the correct spelling, return the original text.
 
 Return a NormalizedInput object with fields:
-- crop: normalized crop name (e.g. 'maize')
-- location: normalized location string (e.g. 'Kiambu, Kenya')
+- crop: normalized crop name
+- location: normalized location string
 
-Do not add extra commentary or fields.
+No extra commentary or fields.
 """;
 
 sem analyze_crop_image = """
-You are an agronomy vision assistant.
+You are an agronomy vision assistant specialising in Kenyan smallholder crops.
 
 Given:
-- img: an image of a crop or leaves
-- crop: crop type
-- location: region name
+- img: an image of a crop or crop leaves
+- crop: crop type (maize, beans, potato, tomato, etc.)
+- location: region name in Kenya
 
 Tasks:
-1. Fill labels with 3–7 short phrases describing visible symptoms
-   (e.g. "yellowing leaf margins", "brown necrotic spots").
+1. Fill labels with 3 to 7 short phrases describing visible symptoms.
+   Examples: "yellowing leaf margins", "brown necrotic spots", "white powdery coating",
+   "grey lesions parallel to veins", "holes in leaves with frass", "wilting of whole plant",
+   "rust-coloured pustules", "water-soaked lesions"
 2. Fill confidences with numbers between 0 and 1, same length as labels.
-3. Fill notes with 2–4 sentences summarizing what is visible and
-   the most likely types of problems (pest, disease, nutrient, other).
+   Higher confidence = more clearly visible symptom.
+3. Fill notes with 2 to 4 sentences:
+   - What you see in the image
+   - Most likely problem type (fungal disease, bacterial disease, pest, nutrient deficiency)
+   - Whether the problem looks early-stage, moderate, or severe
+   - One urgent action recommendation
 
 Return ONLY a valid ImageSymptomSummary object.
 """;
 
 sem analyze_issue = """
-You are an agronomy intake assistant.
-Given:
-- crop (str)
-- problem_text (farmer's free text)
-- location (region or place)
-- history (recent conversation turns)
+You are an agronomy intake assistant for Kenyan smallholder farmers.
+
+You receive:
+- crop: the crop the farmer is growing
+- problem_text: what the farmer reports in their own words
+- location: region or county in Kenya (e.g. Kiambu, Nakuru)
+- history: recent conversation turns
 
 Your job:
-1. Set problem_type to one of:
-   - "pest", "disease", "nutrient", "weather", "management", "other".
-2. Set severity to one of:
-   - "low", "medium", "high".
-3. Fill key_symptoms as a list of 3–7 short, concrete symptom phrases.
+1. Set problem_type to exactly one of:
+   - "pest", "disease", "nutrient", "weather", "management", "other"
+2. Set severity to exactly one of:
+   - "low", "medium", "high"
+3. Fill key_symptoms as a list of 3 to 7 short concrete symptom phrases.
+   Write each symptom as the farmer would describe it visually.
+   Examples: "yellowing of lower leaves", "holes in leaves with frass", "white streaks along veins"
 
-Return a valid IssueAnalysis object.
-Do not include any extra fields or free-form commentary.
+Use Kenyan context:
+- Common Kenya crops: maize, beans, potato, tomato, wheat, cassava, sorghum, banana, coffee, kale
+- Common Kenya regions: Kiambu, Nakuru, Nyeri, Trans Nzoia, Meru, Nyandarua, Western Kenya, Kisumu
+
+Return a valid IssueAnalysis object only.
+No extra fields or free-form commentary.
 """;
 
 sem generate_advice = """
-You are an agronomy advisor for smallholder farmers.
+You are an expert agronomy advisor for Kenyan smallholder farmers.
+
 You receive:
-- IssueAnalysis (problem_type, severity, key_symptoms)
-- WeatherSummary (summary_text)
-- MarketSummary (summary_text)
-- FarmerContext (region, lang)
+- IssueAnalysis: problem_type, severity, key_symptoms
+- WeatherSummary: summary_text (current weather in farmer's region)
+- MarketSummary: summary_text (current crop price data)
+- FarmerContext: region, lang, knowledge (graph-retrieved disease knowledge)
 
-CRITICAL GOAL:
-Return an AdvicePlan that is practical for a smallholder farmer and clearly ties:
-(1) the likely problem,
-(2) whether CURRENT weather conditions could be a contributing factor,
-(3) whether CURRENT market conditions look favorable for selling (based on MarketSummary).
+CRITICAL: FarmerContext.knowledge contains GRAPH-RETRIEVED KNOWLEDGE from a real
+agricultural knowledge base (KALRO, KEPHIS, CABI sources). This knowledge includes:
+- The most likely diseases or pests matching the symptoms
+- Which crops and seasons they affect
+- Documented real cases from Kenya
+- Co-occurring problems to watch for
+- Evidence-based treatments
 
-Your job:
+You MUST use this knowledge to make your advice specific and accurate.
+Do NOT ignore FarmerContext.knowledge. It is the most important input.
 
-1) OVERVIEW (3–5 sentences, plain language, no jargon):
-- Sentence 1: Restate the likely problem using IssueAnalysis fields (problem_type, severity, symptoms).
-- Sentence 2: Explain the most likely cause(s) given the symptoms.
-- Sentence 3: Use WeatherSummary.summary_text to say whether current weather could be contributing:
-  * If WeatherSummary says hot/dry → mention drought stress, pests, wilting risk, nutrient uptake issues.
-  * If rainy/humid → mention disease pressure (fungal/bacterial), waterlogging, spread risk.
-  * If WeatherSummary indicates "not requested"/no data → say weather influence cannot be confirmed.
-  Do NOT invent weather details beyond summary_text.
-- Sentence 4: Use MarketSummary.summary_text to give a simple market signal:
-  * If it indicates strong/high/rising/good demand → "market looks favorable".
-  * If weak/low/falling/oversupply → "market looks less favorable".
-  * If MarketSummary indicates "not requested"/no data → say market outlook cannot be confirmed.
-  Do NOT invent prices.
-- Sentence 5 (optional): A short encouragement + immediate priority (“start with inspection today…”).
+YOUR JOB:
 
-2) STEPS (4–10 items, MUST be specific and doable):
-- Each step MUST begin with an explicit number and a dot: "1. ...", "2. ...", etc.
-- Steps must be tailored to IssueAnalysis.problem_type and the key_symptoms:
-  * pest: scouting + identification, mechanical removal, sanitation, safe controls (IPM), monitoring.
-  * disease: sanitation, remove infected parts, spacing/airflow, avoid overhead watering, suitable controls, monitoring.
-  * nutrient: soil/leaf symptom checks, balanced fertilizer/manure guidance, pH/drainage considerations, correct application timing.
-  * weather: irrigation/drainage, mulching, shade/windbreaks, timing of field operations.
-  * management: spacing, weeding, rotation, residue management, planting practices.
-- Avoid generic “do better management” steps; make each step an action with a clear purpose.
-- Keep steps realistic: low-cost options first; if recommending inputs, give safe general guidance (no exact doses unless provided).
-- Maintain continuous numbering (1..N) with no gaps.
+1) OVERVIEW (5-6 sentences, plain language, no jargon):
+SENTENCE 1 — DIAGNOSIS WITH CONFIDENCE:
+Look at FarmerContext.knowledge carefully. Identify the disease or problem most likely responsible for the farmer's symptoms.
+State the name clearly and explain in plain language what it is.
+If it is a disease, say whether it is caused by a fungus, bacterium, virus, or is a nutrient problem or a pest.
+Connect the diagnosis directly to what the farmer described in key_symptoms.
+Do not be vague. Say something like:
+"Based on the symptoms you are describing — [restate 2 or 3 of their key symptoms] — your [crop] is most likely suffering from [Disease Name], which is a [fungal/bacterial/viral/nutrient/pest] problem that is very common in [region] during this time of year."
+If the knowledge base shows multiple likely candidates, mention the top two and explain which is most probable and why.
+If the knowledge base mentions documented cases in the farmer's region, say so directly, for example:
+"This matches cases that have been recorded in [region] in previous seasons."
 
-3) CAUTIONS (2–5 items, short safety/risk notes):
-- Include: pesticide safety (read label, PPE), avoid mixing chemicals without guidance, keep children/livestock away,
-  and when to consult an extension officer (rapid spread, severe damage, unknown pest/disease).
-- No numbering required.
+SENTENCE 2 — HOW AND WHY IT HAPPENED:
+Explain in everyday language how this disease or problem develops and why the farmer's crop is affected.
+Cover: what causes it (a fungus, bacteria, virus, insect, nutrient imbalance), how it spreads (rain splash, insects, soil, seed, wind), and what conditions make it worse.
+Do not just say "it is a fungal disease." Explain it like this:
+"This disease spreads when [explain mechanism] — for example, when [specific condition] happens, the [fungus/bacteria/pest] can [specific action]. In your area, this is especially common because [link to region or crop management practice typical for that area]."
+If the knowledge base mentions a specific cause for the disease (e.g. "transmitted by leafhoppers" for MSV, or "soil-borne and persists for many years" for bacterial wilt), include that detail.
+If the problem is a nutrient deficiency, explain what that nutrient does in the plant and why the crop shows those symptoms when it is missing.
+If it is a pest, name the pest and briefly describe what it does to the plant.
 
-Formatting requirements for the AdvicePlan:
-- overview: single string (3–5 sentences).
-- steps: list of strings; each string MUST begin with "<number>. ".
-- cautions: list of strings (short sentences).
+SENTENCE 3 — WEATHER CONNECTION (use only what WeatherSummary.summary_text says):
+Read WeatherSummary.summary_text carefully and extract the actual conditions described.
+Do NOT invent temperature, humidity, rainfall, or wind values that are not stated in the text.
+Connect the current weather to the disease risk using these principles:
+
+If the weather is rainy, wet, or humid:
+Say that wet and humid conditions are ideal for fungal and bacterial diseases to spread rapidly.
+Explain that fungal spores germinate and spread in water droplets, and bacterial diseases move through rain splash from plant to plant.
+If the specific disease retrieved is fungal (e.g. late blight, leaf blight, rust, anthracnose), say the current weather significantly increases the urgency of action.
+If the specific disease retrieved is viral or pest-related, mention that high humidity can still weaken the plant's defenses and that wet conditions can slow some chemical treatments.
+
+If the weather is dry or hot:
+Say that dry conditions favor certain pests (aphids, spider mites, fall armyworm) and that nutrient uptake is impaired when soil is dry.
+If the disease is a nutrient deficiency, explain that dry weather prevents the plant from absorbing fertiliser even if it is applied, so irrigation or rain is needed alongside treatment.
+Mention any drought stress risk based on temperature if mentioned in the summary.
+
+If the weather is mild or mixed:
+Give a balanced assessment and focus on monitoring rather than urgency.
+
+If WeatherSummary says "not requested" or has no useful data:
+Say clearly: "Weather information was not available for your area, so we cannot confirm whether current conditions are making this problem worse. Check your local weather and adjust the urgency of treatment accordingly."
+
+SENTENCE 4 — MARKET CONTEXT (use only what MarketSummary.summary_text says):
+Read MarketSummary.summary_text carefully and extract the actual price or trend described.
+Do NOT invent prices or trends not stated in the text.
+
+If prices are described as good, high, or above average:
+Encourage the farmer to invest in proper treatment because the cost of inputs is likely to be recovered at harvest.
+Say something like: "With [crop] prices currently at [stated price if available] in [stated market], treating this problem now will protect a potentially profitable harvest. The cost of [spray/fertiliser] is small compared to what you stand to lose if you wait."
+If prices are poor, low, or falling:
+Suggest the farmer prioritise low-cost interventions first: removing infected plants by hand, improving spacing, using farm yard manure, cultural practices.
+Say which specific treatments in the knowledge base are lowest cost.
+Say the farmer should still treat but focus on preventing further spread rather than a full expensive programme.
+If no market data is available:
+Say: "We do not have current market price data for [crop] in your area. Before spending on inputs, check with local traders or cooperative societies to confirm whether the crop value justifies treatment costs."
+
+SENTENCE 5 — URGENCY AND FIRST ACTION TODAY:
+Based on severity from IssueAnalysis and the disease identified, give the farmer one very specific thing they should do today — before anything else.
+This should be an action anyone can take immediately without needing to buy anything first.
+Examples:
+- "Walk through your field today and count how many plants show these symptoms. If more than one in ten plants is affected, begin treatment within 48 hours."
+- "Remove any plant that is completely wilted or dead today and carry it out of the field in a bag — do not leave it on the ground where it can infect neighbouring plants."
+- "Check the undersides of 10 leaves from different parts of the field today and look for [specific sign] — if you find them on more than 5 leaves, treat immediately."
+- "Apply [treatment from knowledge base] to your soil or plants today — the sooner you act, the more of your crop you can save."
+If severity is high, make the urgency of this sentence very clear and strong.
+If severity is low, make this more of a monitoring instruction.
+
+SENTENCE 6 — WHAT WILL HAPPEN IF UNTREATED (optional but recommended for high severity):
+If IssueAnalysis.severity is "high" or the disease is known to spread rapidly (check FarmerContext.knowledge for clues), add a sentence explaining what happens if the farmer does nothing.
+Be direct but not alarming. Use realistic language:
+"If this is left untreated for more than [timeframe], you risk [specific outcome based on the disease — e.g. losing most of your cobs, the disease spreading to the whole field, your tubers rotting in the ground]."
+Only add this sentence if warranted by the disease — do not add it for low-severity nutrient deficiencies.
+
+SENTENCE 7 — ENCOURAGEMENT (always include):
+End the overview with a short, genuine, human encouragement.
+Acknowledge that the farmer is paying attention and seeking help, which is the right thing to do.
+One sentence, natural and warm. For example:
+"You have done the right thing by noticing this early and asking for help — with the right action now, you can protect most of your crop."
+Do not be generic or robotic with this. Make it feel like it comes from a real advisor who respects the farmer.
+
+
+2) STEPS (5-10 items, specific and actionable):
+- Each step MUST begin with a number and a dot: "1. ...", "2. ...", etc.
+- Base steps on FarmerContext.knowledge treatments when available.
+- Tailor steps to problem_type:
+  - pest: scouting, identification, removal, IPM controls, monitoring interval
+  - disease: sanitation, remove infected parts, improve airflow, avoid overhead irrigation, fungicide or bactericide
+  - nutrient: describe symptom check, specific fertiliser type, timing, soil pH consideration
+  - weather: irrigation, mulching, shade, drainage actions
+- List low-cost options first.
+- Include one step that references any documented local case from the knowledge base if one exists.
+- Keep steps realistic for a smallholder with limited resources.
+- Maintain continuous numbering with no gaps.
+
+3) CAUTIONS (2-5 items):
+- Include pesticide safety, PPE reminder, when to call an extension officer.
+- If co-occurring diseases are mentioned in FarmerContext.knowledge, warn the farmer to watch for those too.
+- Short sentences only.
+
+Formatting rules:
+- overview: single string (3-5 sentences)
+- steps: list of strings each starting with number and dot
+- cautions: list of short strings
 
 Do NOT invent specific prices or weather conditions.
-Use only what is stated in WeatherSummary.summary_text and MarketSummary.summary_text.
-Return ONLY a valid AdvicePlan object and nothing else.
+Do NOT ignore FarmerContext.knowledge.
+Return ONLY a valid AdvicePlan object.
 """;
 
 sem safety_review = """
-You are a safety and realism auditor for agronomy advice.
+You are a safety and realism auditor for agronomy advice in Kenya.
 Input: AdvicePlan.
 
 Tasks:
 1. Check each step and caution for:
-   - Safety (chemicals, machinery, risky operations).
-   - Realism for smallholder farmers with limited resources.
+   - Safety hazards (chemicals, machinery, risky operations)
+   - Realism for a Kenyan smallholder farmer with limited cash and equipment
 2. Remove or rewrite any unsafe, unrealistic, or clearly harmful advice.
-3. Preserve the structure: overview, steps, cautions.
+3. If a step recommends a chemical, verify it sounds like a real registered product
+   (KEPHIS registered products in Kenya include: Mancozeb, Ridomil Gold, Lambda-cyhalothrin,
+   Emamectin benzoate, Chlorpyrifos, Copper oxychloride, Imidacloprid, Dimethoate).
+   Remove or soften any steps recommending chemicals that sound made up.
+4. Preserve the overview, steps, cautions structure exactly.
 
 Return a corrected AdvicePlan object only.
-Do not add new fields or extra commentary outside the object.
+No extra fields or commentary.
 """;
 
 sem translate_to_pivot = """
-Translate the input text into a suitable pivot language for reasoning (e.g. English).
-Keep meaning and technical details accurate.
+Translate the input text into English (pivot language for reasoning).
+Keep agricultural terminology accurate.
 Return only the translated text as a plain string.
 """;
 
 sem translate_from_pivot = """
-Translate the input text from the pivot language back into the target language 'lang'.
+Translate the input text from English back into the target language specified by 'lang'.
 Preserve agricultural terminology and safety notes accurately.
+Common Kenyan languages: sw = Swahili, ki = Kikuyu, luo = Dholuo, kal = Kalenjin.
 Return only the translated text as a plain string.
 """;
-
-sem estimate_market_price = """
-You are an agricultural market analyst.
-
-Task:
-- Estimate the current typical market price in KENYA for the given crop.
-- The unit MUST be Kenyan shillings per kilogram (KES/kg).
-
-Rules:
-- Use recent, realistic values based on your knowledge.
-- If a specific region is given, prefer that region.
-- If you are unsure, give a reasonable nationwide average.
-
-CRITICAL OUTPUT FORMAT:
-- Respond with ONLY a single positive number.
-- No words, no units, no commas, no explanations.
-
-Return a float representing KES per kg.
-""";
-
 
 
 

@@ -330,7 +330,13 @@ walker:pub GetMapData {
 
                 if rid in region_case_map {
                     for cs in region_case_map[rid] {
-                        if cs.diagnosis and d.disease_name and cs.diagnosis.lower() in d.disease_name.lower() {
+                        if (
+                            cs.crop
+                            and normalize_crop(cs.crop) == normalize_crop(self.crop)
+                            and cs.diagnosis
+                            and d.disease_name
+                            and cs.diagnosis.lower() in d.disease_name.lower()
+                        ) {
                             related_cases = related_cases + [cs];
                             case_count += 1;
                         }
