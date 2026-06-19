@@ -1,0 +1,290 @@
+[
+  {
+    "id": "WHEAT_FUSARIUM_HB",
+    "crop": "wheat",
+    "name": "Wheat Fusarium Head Blight (Scab)",
+    "symptoms": "Bleached spikelets with pink or orange salmon-coloured fungal growth at base of glumes, partially or fully bleached heads, shrivelled grain with pink mycelium, premature ripening of individual spikelets while rest of head is still green, tombstone grain with pinkish discolouration",
+    "description": "Caused by Fusarium graminearum (sexual stage Gibberella zeae). Reported as an emerging wheat disease in Kenya by Wanyera and Wamalwa (KALRO Njoro). Also known as Scab. Produces trichothecene mycotoxins including deoxynivalenol (DON) which contaminate grain and make it unfit for human and livestock consumption. Severe in wet humid conditions during flowering. Common in highland wheat zones of Uasin Gishu, Trans Nzoia and Nyandarua. Source: Wanyera & Wamalwa, 'Past Current and Future of Wheat Diseases in Kenya', IntechOpen.",
+    "treatment": "Apply Tebuconazole or Metconazole fungicide at early flowering stage (anthesis). Avoid late planting into wet seasons. Use moderately resistant varieties. Harvest grain at correct maturity and dry immediately. Do not feed infected grain to livestock. Crop rotation away from maize reduces inoculum as both crops share this pathogen."
+  },
+  {
+    "id": "WHEAT_SPOT_BLOTCH",
+    "crop": "wheat",
+    "name": "Wheat Spot Blotch",
+    "symptoms": "Small oval to elliptical tan-brown lesions on leaves and leaf sheaths, lesions have dark brown borders and tan centres, lesions enlarge and coalesce causing leaf death, severe infection results in premature head death (head blight phase), blackening of node area",
+    "description": "Caused by Bipolaris sorokiniana (also called Cochliobolus sativus). Reported as a wheat disease in Kenya by Wanyera and Wamalwa. More common in warm humid conditions in lower altitude wheat zones. Can cause both foliar blight and head blight. Associated with warm nights and heavy dew. Found in wheat-growing areas of Kenya. Source: Wanyera & Wamalwa, 'Past Current and Future of Wheat Diseases in Kenya', IntechOpen.",
+    "treatment": "Apply Mancozeb or Propiconazole fungicide when disease first appears. Use resistant or moderately resistant varieties. Crop rotation away from cereals. Plough in infected crop residue. Avoid dense planting that traps humidity."
+  },
+  {
+    "id": "WHEAT_LOOSE_SMUT",
+    "crop": "wheat",
+    "name": "Wheat Loose Smut",
+    "symptoms": "Entire head replaced by black powdery mass of smut spores soon after emergence, black sooty spore clouds released when plant moves in wind, no grain formed, infected plants emerge and smut before neighbouring plants are even flowering, straw and leaves appear normal but head is completely smutted",
+    "description": "Caused by Ustilago tritici. Seed-borne disease reported in Kenya wheat by Wanyera and Wamalwa. Infection occurs at flowering when airborne spores land on open flowers. Managed through certified seed treatment in Kenya's national seed programme. Still found when uncertified farm-saved seed is used. Different from bunt as spores are released before harvest. Source: Wanyera & Wamalwa, 'Past Current and Future of Wheat Diseases in Kenya', IntechOpen.",
+    "treatment": "Treat seed with systemic fungicide Carboxin or Triadimenol before planting. Use certified disease-free seed. Do not save seed from fields where loose smut was observed. Rogue infected plants before spores are released. Systemic fungicides penetrate seed and protect the embryo unlike contact fungicides."
+  },
+  {
+    "id": "WHEAT_BARLEY_YDV",
+    "crop": "wheat",
+    "name": "Barley Yellow Dwarf Virus on Wheat",
+    "symptoms": "Yellow or orange discolouration starting at leaf tips and spreading downward, leaf tip yellowing on outer leaves while inner leaves remain green, severe stunting of plants infected early, erect stiff leaves, poor tillering, reduced grain fill, some varieties show reddening of leaves",
+    "description": "Caused by Barley Yellow Dwarf Virus (BYDV) transmitted by aphids. Reported as a wheat disease constraint in Kenya by Wanyera and Wamalwa. Widespread in all wheat-growing zones. No cure once infected. Spread by several aphid species including Rhopalosiphum padi and Sitobion avenae. Severity depends on time of infection with early infections causing most damage. Source: Wanyera & Wamalwa, 'Past Current and Future of Wheat Diseases in Kenya', IntechOpen.",
+    "treatment": "Plant early to reduce aphid pressure and virus infection risk. Apply systemic insecticide Imidacloprid as seed treatment to protect early growth. Monitor aphid populations from emergence and spray when above threshold. Use tolerant varieties. Remove volunteer wheat and grass weeds that serve as virus reservoirs."
+  },
+  {
+    "id": "WHEAT_TAKE_ALL",
+    "crop": "wheat",
+    "name": "Wheat Take-All Root Rot",
+    "symptoms": "Blackening of crown, stem base and roots, rotted roots with black discolouration, plants turn prematurely yellow and die in patches, white heads (whiteheads) with empty grain, affected plants pull out easily from soil due to rotted roots, circular dead patches in field",
+    "description": "Caused by Gaeumannomyces graminis var. tritici. Soil-borne root disease reported in Kenya wheat by Wanyera and Wamalwa. Soil-borne pathogen that survives on infected root debris. Worst where wheat is grown continuously on the same land without rotation. Severity increases when soil pH is high and soil is waterlogged. Source: Wanyera & Wamalwa, 'Past Current and Future of Wheat Diseases in Kenya', IntechOpen.",
+    "treatment": "Mandatory 2-year crop rotation away from wheat or other grass crops. Maintain soil pH below 7.0 by avoiding over-liming. Improve soil drainage. Balanced fertilisation especially adequate phosphorus and manganese. No effective fungicide once established. Prevention through rotation is the only reliable control."
+  },
+  {
+    "id": "PYTHIUM_MAYDIS",
+    "crop": "maize",
+    "name": "Pythium Maize Stalk Rot",
+    "symptoms": "Lesions concentrated in upper canopy and top leaves unlike other leaf diseases, stalk rot and lodging at late growth stage, waterlogged root area, rapid plant collapse in dense stands, lesions of 6mm by 3mm on leaves, dense infection in upper third of plant canopy, found concurrently with NCLB and SCLB",
+    "description": "Caused by Pythium maydis. Reported in epidemic proportions in western Kenya highlands, Lake Victoria basin and central regions by CHAPTER3 Kenya maize disease study. Previously considered of minor importance in Kenya. Found dominant in upper canopy unlike E. turcicum which occupies middle and lower canopy. Favoured by waterlogged soils. Multiple leaf diseases often found on a single plant in western Kenya fields. Source: Chapter 3, Kenya maize disease symptomatology study, unpublished thesis data.",
+    "treatment": "Improve field drainage to prevent waterlogging. Avoid dense planting in humid areas especially Lake Victoria basin. Plant on raised beds where field flooding is common. Use good soil preparation and drainage channels. Seed treatment with Metalaxyl helps reduce Pythium seedling damping off."
+  },
+  {
+    "id": "BIPOLARIS_MAYDIS_SOUTHERN",
+    "crop": "maize",
+    "name": "Bipolaris Maize Leaf Blight",
+    "symptoms": "Oblong to elongated tan lesions occurring in diffuse manner across whole plant, lesions more common in lower leaves but occurring throughout canopy, lesions 60mm by 5mm visible on leaves, tan centres with dark water-soaked margins, leaves turn brown and die from base, found concurrently with E. turcicum and P. maydis",
+    "description": "Caused by Bipolaris maydis (also causing Southern Corn Leaf Blight). Documented as serious pathogen in Kenya alongside E. turcicum in Chapter 3 Kenya maize disease study. Lesions in Kenya reported larger than worldwide literature values suggesting highly virulent local races. Often found co-infecting plants together with NCLB and Pythium maydis especially in western Kenya highlands. Source: Chapter 3, Kenya maize disease symptomatology study.",
+    "treatment": "Use resistant varieties where available. Apply Mancozeb or Propiconazole fungicide when first symptoms appear. Practice crop rotation to reduce residue inoculum. Remove infected crop residue after harvest. Avoid overhead irrigation which spreads spores."
+  },
+  {
+    "id": "GIBBERELLA_EAR_ROT",
+    "crop": "maize",
+    "name": "Gibberella Ear Rot",
+    "symptoms": "Pink to reddish mould starting from tip of cob and progressing downward, husks tightly bound to cob surface, red-pink discolouration visible through husks, grain shrivelled with pink-red staining, affected cobs have musty or fermented smell, husks turn tan to red before grains fully dry",
+    "description": "Caused by Fusarium graminearum (Gibberella zeae). Documented in Western Kenya by Owuor et al 2018 (ICIPE study in Butere, Kisumu, Siaya, Vihiga). Found to produce Zearalenone (ZEA) and Deoxynivalenol (DON) mycotoxins in Western Kenya maize samples. Incidence was higher in maize monoculture (0.84 severity) than push-pull cropping system (0.62 severity). ZEA contamination found in 100% of symptomatic samples in Western Kenya. Source: Owuor et al 2018, African Journal of Agricultural Research, ICIPE.",
+    "treatment": "Adopt push-pull cropping system with Desmodium and Napier grass to reduce ear rot incidence. Harvest at correct physiological maturity. Dry grain below 13% moisture immediately. Remove visibly mouldy grain before storage. Do not feed infected grain to livestock. Apply Aflasafe biological control to reduce fungal colonisation of cobs."
+  },
+  {
+    "id": "PENICILLIUM_EAR_ROT",
+    "crop": "maize",
+    "name": "Penicillium Ear Rot",
+    "symptoms": "Blue-green powdery mould on kernels especially at cob tip or where husks are damaged, mouldy musty smell from stored grain, discoloured kernels with blue-green fungal growth, found especially on grain damaged by insects or birds, stored grain shows more symptoms than field samples",
+    "description": "Caused by Penicillium species. Documented in Western Kenya maize by Owuor et al 2018 (ICIPE). Found in both monoculture maize (0.05 severity) and push-pull plots. Associated with post-harvest storage conditions and grain damage by Sitophilus weevils and other insects. Produces ochratoxin mycotoxin. Less common than Aspergillus and Fusarium ear rots but contributes to total mycotoxin load in stored Western Kenya maize. Source: Owuor et al 2018, African Journal of Agricultural Research, ICIPE.",
+    "treatment": "Prevent grain damage from insects during storage as Penicillium enters through wounds. Apply Actellic Super insecticide to stored grain. Use hermetic PICS bags. Ensure grain is below 13% moisture before storage. Clean storage facilities before use. Sort out visibly mouldy grain."
+  },
+  {
+    "id": "CPMMV",
+    "crop": "beans",
+    "name": "Cowpea Mild Mottle Virus on Bean",
+    "symptoms": "Mild mosaic and mottle on leaves, interveinal chlorosis, slight leaf distortion, reduced plant height, fewer pods than healthy plants, seeds may show discolouration, symptoms less severe than BCMV, often mixed infection with other bean viruses",
+    "description": "Caused by Cowpea mild mottle virus (CPMMV, genus Carlavirus). Second most prevalent bean virus in Western Kenya found by Osogo et al (MMUST/KALRO Alupe), detected in 47.3% of surveyed fields in Vihiga, Nandi and Bungoma counties. Transmitted by whitefly Bemisia tabaci in a semi-persistent manner. Seed transmission has been reported. Often found in co-infection with BCMV making it difficult to diagnose from field symptoms alone. Source: Osogo et al, MMUST/KALRO Alupe, bean viruses Western Kenya.",
+    "treatment": "Control Bemisia tabaci whitefly vector with Thiamethoxam or Imidacloprid. Use yellow sticky traps to monitor and reduce whitefly populations. Use certified disease-free seeds. Remove and destroy infected plants early. Intercrop with non-host crops to reduce virus spread. No resistant varieties specifically for CPMMV registered in Kenya."
+  },
+  {
+    "id": "BGMV",
+    "crop": "beans",
+    "name": "Bean Golden Mosaic Virus",
+    "symptoms": "Bright yellow golden mosaic or mottle on leaves, severe yellowing and leaf distortion, stunted plants with small malformed leaves, reduced pod set and seed fill, youngest leaves show brightest golden yellow discolouration",
+    "description": "Caused by Bean golden mosaic virus (BGMV, genus Begomovirus). Third most prevalent bean virus in Western Kenya found by Osogo et al (MMUST/KALRO Alupe), detected in 44.0% of surveyed fields. Transmitted by Bemisia tabaci whitefly. First confirmed in Western Kenya in this study. More common in Vihiga County where it reached 41.92% average incidence. A serious emerging threat to bean production in Western Kenya. Source: Osogo et al, MMUST/KALRO Alupe, bean viruses Western Kenya.",
+    "treatment": "Strict whitefly management is the primary control. Apply Thiamethoxam or Imidacloprid at emergence. Install yellow sticky traps. Remove infected plants immediately as they are source of inoculum for whitefly acquisition. Use reflective mulch to repel whitefly in small plots. Avoid planting near cassava which is a major BGMV and whitefly reservoir."
+  },
+  {
+    "id": "BCMNV",
+    "crop": "beans",
+    "name": "Bean Common Mosaic Necrosis Virus",
+    "symptoms": "Severe necrosis starting at growing tips progressing down the plant, black stem necrosis called black root, wilting and death of shoot tips, different from BCMV in causing systemic necrosis rather than mosaic, can cause whole plant death faster than BCMV alone, leaf curling and mosaic also present",
+    "description": "Caused by Bean common mosaic necrosis virus (BCMNV). Fourth most prevalent bean virus in Western Kenya found by Osogo et al (MMUST/KALRO Alupe), detected in 25.3% of surveyed fields. Transmitted by aphids including Aphis fabae in a non-persistent manner and also seed-borne. More damaging than BCMV alone because it causes systemic necrosis. Related to BCMV but causes more severe symptoms. Strains that cause necrosis bypass some BCMV resistance genes. Source: Osogo et al, MMUST/KALRO Alupe, bean viruses Western Kenya.",
+    "treatment": "Use BCMV/BCMNV resistant varieties. Check variety resistance specifically covers necrosis strains. Control aphid vectors Aphis fabae with Dimethoate or Imidacloprid. Use certified disease-free seed. Remove infected plants immediately. Varieties: Lyamungu 85 and KK22 may provide partial resistance."
+  },
+  {
+    "id": "BYMV",
+    "crop": "beans",
+    "name": "Bean Yellow Mosaic Virus",
+    "symptoms": "Yellow mosaic and mottling on leaves, distortion of young leaves, bright yellow patches between veins on older leaves, reduced plant growth and pod set, some varieties show necrosis",
+    "description": "Caused by Bean yellow mosaic virus (BYMV, genus Potyvirus). Detected in 24.2% of surveyed bean fields in Western Kenya by Osogo et al (MMUST/KALRO Alupe). Transmitted by aphids including Aphis craccivora and Myzus persicae in a non-persistent manner. Not seed-borne. Wide host range including many legumes and ornamentals which serve as inoculum reservoirs. Source: Osogo et al, MMUST/KALRO Alupe, bean viruses Western Kenya.",
+    "treatment": "Control aphid vectors immediately. Apply Dimethoate or Imidacloprid. Remove weed hosts around bean fields especially leguminous weeds. Use reflective mulch to repel aphids. Early planting to avoid peak aphid season. No specific resistant varieties registered in Kenya for BYMV."
+  },
+  {
+    "id": "CABMV",
+    "crop": "beans",
+    "name": "Cowpea Aphid-Borne Mosaic Virus on Bean",
+    "symptoms": "Mosaic and distortion of leaves, dark green and light green patches on leaves, severe leaf distortion and crumpling, blistering of leaf surface, plant stunting and reduced pod fill",
+    "description": "Caused by Cowpea aphid-borne mosaic virus (CABMV, genus Potyvirus). Least prevalent of eight viruses detected in Western Kenya bean fields by Osogo et al (MMUST/KALRO Alupe), found in 7.7% of surveyed fields. Transmitted by several aphid species. Wide host range including cowpeas and other legumes. Can cause significant losses in susceptible cowpea and bean varieties when aphid pressure is high. Source: Osogo et al, MMUST/KALRO Alupe, bean viruses Western Kenya.",
+    "treatment": "Control aphid vectors. Apply Dimethoate or Pirimicarb. Remove infected plants. Use certified seeds. Keep field borders free of leguminous weeds. CABMV resistance not well characterised in Kenyan bean varieties."
+  },
+  {
+    "id": "BEAN_SCAB",
+    "crop": "beans",
+    "name": "Bean Scab",
+    "symptoms": "Circular to irregular small brown scabby lesions on pods giving a rough texture, lesions on leaves as small circular light brown spots with darker margins, corky or scab-like raised pustules on pod surface reducing marketability, stem lesions with elongated dark brown spots, seeds from scabby pods may show discolouration, premature pod drop in severe cases",
+    "description": "Caused by Elsinoe phaseoli. FIRST REPORT of this disease in Kenya by Masheti et al 2024 (KALRO Kakamega/University of Nairobi/University of Embu). Bean scab was confirmed in all surveyed clusters across multiple agro-ecological zones of Kenya. Survey conducted in 2021-2023 covering 84 farms. Farmers use uncertified seeds (83%) and practice limited crop rotation due to small farm sizes, which facilitates disease spread. The study was supported by Kirkhouse Trust and identifies this as an increasingly important but poorly known constraint. Source: Masheti et al 2024, Plant-Environment Interactions, DOI:10.1002/pei3.70013, KALRO/UoN/UoEmbu.",
+    "treatment": "Use certified disease-free seeds as the primary control. Seed source is critical because farmers currently rely on uncertified seeds which spread the disease. Practice crop rotation of at least 2 seasons away from beans. Remove infected crop debris after harvest. Apply copper-based fungicide Copper hydroxide as a preventive measure. Contact KALRO Kakamega Non-Ruminant Research Institute for latest management advice as this is a newly confirmed disease with ongoing research."
+  },
+  {
+    "id": "VERTICILLIUM_WILT_TOM",
+    "crop": "tomato",
+    "name": "Tomato Verticillium Wilt",
+    "symptoms": "Yellowing of leaves beginning with lower and older leaves, yellowing following vein pattern starting from margins, affected leaves wilt during hot part of day then recover at night in early stages, brown vascular discolouration in lower stem and crown when cut, plant decline is slower than Fusarium wilt, some plants show one-sided yellowing",
+    "description": "Caused by Verticillium dahliae and V. albo-atrum. Reported as a fungal wilt disease affecting tomato production in Mwea West sub-county Kirinyaga County by Mwangi et al 2015 (University of Nairobi). Listed alongside Fusarium wilt and Rhizoctonia in the same fields where Bacterial wilt Ralstonia solanacearum was the most prevalent. Survives in soil for many years as microsclerotia. Favoured by cool soils. Common in Kirinyaga irrigated tomato. Source: Mwangi et al 2015, Journal of Natural Sciences Research, UoN.",
+    "treatment": "Crop rotation 3-4 years away from solanaceous crops. Soil solarisation before planting using clear plastic during hot dry season. Use resistant or tolerant tomato varieties (check variety catalogue for V resistance). Improve soil health with compost. No effective fungicide for soil Verticillium. Grafting onto resistant rootstocks can help where disease pressure is high."
+  },
+  {
+    "id": "RHIZOCTONIA_WILT_TOM",
+    "crop": "tomato",
+    "name": "Tomato Rhizoctonia Crown and Root Rot",
+    "symptoms": "Brown-black lesion at crown at soil level girdling the stem, wilting of entire plant despite adequate water, sunken lesion at base of stem, roots show brown rot, plants collapse suddenly, seedlings may damp off in nursery, adults plants die more slowly showing wilting over days to weeks",
+    "description": "Caused by Rhizoctonia solani. Reported as a fungal wilt disease affecting tomato in Mwea West sub-county Kirinyaga County by Mwangi et al 2015 (University of Nairobi). Soil-borne pathogen that affects many crops. Common in poorly drained soils with frequent irrigation. Also causes damping off in tomato nurseries. One of three fungal wilts recorded alongside Fusarium and Verticillium in Mwea West tomato fields. Source: Mwangi et al 2015, Journal of Natural Sciences Research, UoN, Mwea Kirinyaga.",
+    "treatment": "Soil solarisation before transplanting. Apply Trichoderma harzianum to nursery and transplanting holes as biological control. Improve field drainage. Avoid overhead irrigation. Do not deep planting as it creates wounds favourable for Rhizoctonia entry. Crop rotation. Seed treatment with Thiram for nursery damping off control."
+  },
+  {
+    "id": "PVY",
+    "crop": "potato",
+    "name": "Potato Virus Y",
+    "symptoms": "Mosaic and mottling on leaves, leaf drop syndrome in some strains, severe leaf rugosity and distortion, brown streaks on stems and petioles in necrotic strains, vein necrosis, tubers from infected plants smaller with internal brown necrotic rings visible when cut (necrotic ring spot in tubers)",
+    "description": "Caused by Potato virus Y (PVY, genus Potyvirus). One of six viruses detected in Kenya potato fields by Were et al 2014 survey of 101 farms in 21 districts. Recombinant necrotic strains NTN and Wilga of PVY were confirmed in Kenya by molecular sequencing \u2014 these are more damaging than older strains. The NTN strain causes potato tuber necrotic ringspot (PTNRD) making tubers unmarketable. Transmitted by aphids including Myzus persicae in non-persistent manner. Source: Were et al 2014, Potato Research, Springer, 101 farms 21 districts Kenya.",
+    "treatment": "Use certified virus-free seed potato from KEPHIS certified sources. Apply systemic insecticide Imidacloprid as seed treatment to control aphid vectors. Remove infected plants and volunteer potatoes. Practice 3-year crop rotation. Remove solanaceous weeds. Districts east of Rift Valley had lower aphid numbers and are more suitable for seed potato production."
+  },
+  {
+    "id": "PVX",
+    "crop": "potato",
+    "name": "Potato Virus X",
+    "symptoms": "Mild mosaic or mottling on leaves, slight leaf rugosity, plants show little or no obvious symptoms when infected alone (latent infection), in double infection with PVY causes severe rugose mosaic, stunting and leaf drop, combined PVX and PVY is called rugose mosaic disease",
+    "description": "Caused by Potato virus X (PVX, genus Potexvirus). Detected in Kenya potato fields by Were et al 2014 survey across 21 districts. Mechanically transmitted through infected seed, farming tools and contact between plants. Not transmitted by aphids. Also seed-borne. Alone causes mild symptoms but in combination with PVY causes devastating rugose mosaic reducing yields by 50-70%. Found in all major potato growing regions of Kenya. Source: Were et al 2014, Potato Research, Springer, 101 farms 21 districts Kenya.",
+    "treatment": "Use certified disease-free seed potato. Disinfect cutting tools with bleach between plants. Prevent contact between infected and healthy plants during operations. Rogue infected plants. Crop rotation. PVX is not aphid-transmitted so insecticide management is less critical than for PVY and PLRV."
+  },
+  {
+    "id": "PVS",
+    "crop": "potato",
+    "name": "Potato Virus S",
+    "symptoms": "Very mild or symptomless infection in most cases, slight rugosity on some varieties, deep green vein banding on some susceptible varieties, early maturity, significant yield losses of up to 20% even without visible symptoms",
+    "description": "Caused by Potato virus S (PVS, genus Carlavirus). Detected in Kenya potato survey by Were et al 2014 across 21 districts. Often causes symptomless infection making it difficult to rogue from fields. However even without symptoms it reduces yield by up to 20%. Transmitted by aphids but also mechanically and through infected seed tubers. Common in all major Kenya potato growing regions. Source: Were et al 2014, Potato Research, Springer, 101 farms 21 districts Kenya.",
+    "treatment": "Use certified disease-free seed potato as primary control since visual roguing is ineffective for symptomless infections. KEPHIS certification uses ELISA testing to detect PVS. Crop rotation. Control aphid vectors. Disinfect tools."
+  },
+  {
+    "id": "SORGHUM_LEAF_BLIGHT",
+    "crop": "sorghum",
+    "name": "Sorghum Leaf Blight",
+    "symptoms": "Elliptical to oblong tan lesions with dark margins on leaves, lesions of various sizes that merge causing large blighted areas, premature leaf death from bottom of plant upward, infected leaves turn light tan then paper-brown, grain not affected directly but yield reduced through premature leaf death",
+    "description": "Caused by Curvularia lunata and Bipolaris cynodontis. Second most prevalent sorghum disease in lower eastern Kenya with 70.18% field prevalence across 384 farms surveyed by Koima et al 2022 (University of Nairobi/SEKU). Found across all agro-ecological zones of lower eastern Kenya. Morpho-cultural identification confirmed association with Curvularia and Bipolaris species. Disease prevalence varied significantly across agro-ecological zones. Source: Koima et al 2022, Microbiology Research, UoN/SEKU, Lower Eastern Kenya.",
+    "treatment": "Use tolerant varieties. Apply Mancozeb or Propiconazole fungicide when first symptoms appear. Improve plant spacing for air circulation. Remove crop residue after harvest to reduce inoculum. Avoid overhead irrigation which spreads spores."
+  },
+  {
+    "id": "SORGHUM_DOWNY_MILDEW",
+    "crop": "sorghum",
+    "name": "Sorghum Downy Mildew",
+    "symptoms": "Pale green to yellow systemic striping on leaves of young plants, white downy sporulation on leaf undersides in humid mornings, excessive tillering producing many small sterile tillers (crazy top), plants stunted with narrow upright leaves, infected plants rarely produce grain, plants with crazy top symptom have massively proliferated leaf-like structures replacing head",
+    "description": "Caused by Peronosclerospora sorghi. Fifth most prevalent sorghum disease in lower eastern Kenya with 55.33% field prevalence across 384 farms surveyed by Koima et al 2022 (UoN/SEKU). Also reported by Ngugi et al 2002 in western Kenya (ICRISAT/KARI). Soil-borne and seed-borne. Soil-borne oospores infect seedling roots. Produces systemic infection. Source: Koima et al 2022 Microbiology Research UoN/SEKU AND Ngugi et al 2002 ICRISAT/KARI.",
+    "treatment": "Use downy mildew resistant varieties. Treat seeds with Metalaxyl fungicide before planting. Remove and destroy infected plants before sporulation to prevent spread. Crop rotation for 2 seasons away from sorghum and maize. Avoid planting sorghum into fields where downy mildew has been severe."
+  },
+  {
+    "id": "SORGHUM_ALTERNARIA",
+    "crop": "sorghum",
+    "name": "Sorghum Alternaria Leaf Spot",
+    "symptoms": "Small circular to oval dark brown spots with yellow halos on leaves and leaf sheaths, spots grow to 3-5mm and may have lighter tan centres with dark margins, multiple spots coalesce causing large dead areas, grain infection causes seed discolouration and mould, severe infection on grain panicles reduces grain quality and germination",
+    "description": "Caused by Alternaria alternata. Sixth most prevalent sorghum disease in lower eastern Kenya with 48.39% field prevalence across 384 farms surveyed by Koima et al 2022 (UoN/SEKU). Also affects sorghum grain in storage causing seed rot and reduced germination. Common in all agro-ecological zones of lower eastern Kenya. Source: Koima et al 2022, Microbiology Research, UoN/SEKU, lower eastern Kenya.",
+    "treatment": "Use certified disease-free seeds as Alternaria is seed-borne. Treat seeds with Thiram or Mancozeb before planting. Apply foliar Mancozeb when disease first appears. Harvest grain promptly and dry thoroughly to prevent grain infection in field. Store grain at low moisture below 13%."
+  },
+  {
+    "id": "COVERED_KERNEL_SMUT",
+    "crop": "sorghum",
+    "name": "Sorghum Covered Kernel Smut",
+    "symptoms": "Individual grain replaced by oval-shaped smut sori covered with thin grey membrane, smut sori remain intact in the head unlike loose smut where spores are released, infected heads contain mixture of normal grain and smut sori, smut sori release dark chocolate-brown powder when broken, partial infection of heads common with some grain normal",
+    "description": "Caused by Sporisorium sorghi (Sphacelotheca sorghi). Fourth most prevalent sorghum disease in lower eastern Kenya with 63.02% field prevalence across 384 farms surveyed by Koima et al 2022 (UoN/SEKU). Also extensively reported in western Kenya by Ngugi et al 2002 (ICRISAT/KARI) who documented high variability by agro-ecological zone. Seed-borne and soil-borne. Varies greatly in severity by location and soil type. Source: Koima et al 2022 UoN/SEKU AND Ngugi et al 2002 ICRISAT/KARI.",
+    "treatment": "Treat seeds with Carboxin or Thiram fungicide before planting. Use resistant varieties where available. Crop rotation for 2-3 seasons. Remove smutted plants before spores are released to reduce soil inoculum. Use certified clean seed."
+  },
+  {
+    "id": "SORGHUM_ROUGH_LEAF_SPOT",
+    "crop": "sorghum",
+    "name": "Sorghum Rough Leaf Spot",
+    "symptoms": "Small round to irregular spots that give leaves a rough texture when rubbed, lesions with dark brown to black centres on straw-coloured background, pycnidia visible as small black dots inside lesions, leaves develop papery texture in severe infections",
+    "description": "Caused by Ascochyta sorghi. Seventh most prevalent sorghum disease in lower eastern Kenya with 46.02% field prevalence across 384 farms surveyed by Koima et al 2022 (UoN/SEKU). Less studied than other sorghum diseases. Found across all agro-ecological zones. Seed-borne and spread by rain splash. Source: Koima et al 2022, Microbiology Research, UoN/SEKU, lower eastern Kenya.",
+    "treatment": "Treat seeds with Thiram to reduce seed-borne inoculum. Use certified disease-free seeds. Crop rotation to reduce debris inoculum. Remove infected plant material after harvest. Mancozeb spray when disease first appears in humid conditions."
+  },
+  {
+    "id": "SORGHUM_RUST",
+    "crop": "sorghum",
+    "name": "Sorghum Rust",
+    "symptoms": "Small orange-brown pustules on leaf surfaces rupturing to release reddish-brown powder, pustules mostly on upper leaf surface scattered randomly unlike stripe pattern, severe infection causes premature leaf death, late season infection on grain heads reduces grain fill",
+    "description": "Caused by Puccinia purpurea. Third most prevalent sorghum disease in lower eastern Kenya with 68.41% field prevalence across 384 farms surveyed by Koima et al 2022 (UoN/SEKU). Also documented by Ngugi et al 2002 in western Kenya (ICRISAT/KARI) where sorghum rust varied significantly by agro-ecological zone. Common across all sorghum-growing zones of Kenya. Worse in humid conditions. Source: Koima et al 2022 UoN/SEKU AND Ngugi et al 2002 ICRISAT/KARI, Kenya.",
+    "treatment": "Use resistant varieties. Apply Mancozeb or Triazole fungicide at first sign. Early planting to avoid peak rust season. Monitor fields weekly during humid periods. Spray preventively at early tillering if rust was severe in previous season."
+  },
+  {
+    "id": "RICE_BROWN_SPOT",
+    "crop": "rice",
+    "name": "Rice Brown Spot",
+    "symptoms": "Circular to oval brown spots on leaves with grey or tan centres and brown margins, lesions up to 1cm in diameter unlike blast's diamond-shaped lesions, spots often have yellow halos, severe infection causes entire leaf to turn brown and die, grain spots causing grain discolouration and reduced quality, seedling blight in nurseries",
+    "description": "Caused by Cochliobolus miyabeanus (Bipolaris oryzae). Confirmed in Kenya rice farming areas by Nganga et al 2022 (KALRO/BecA-ILRI/Maseno University) survey in Busia, Kirinyaga and Kisumu counties. Found alongside Rice blast (Magnaporthe oryzae) in all three counties. All cultivars surveyed were susceptible to brown spot except KEH10005 (Arize Tej Gold). Associated with nutrient-deficient soils especially silicon and potassium deficiency. Source: Nganga et al 2022, Plants journal, KALRO/BecA-ILRI/Maseno University/University of Embu.",
+    "treatment": "Balanced fertilisation especially applying potassium and silicon. Apply Mancozeb or Iprodione fungicide when disease first appears. Use KEH10005 (Arize Tej Gold) variety which showed resistance in Kenya trial. Avoid water stress as it predisposes plants to brown spot. Treat seeds with Thiram before planting to reduce seed-borne inoculum."
+  },
+  {
+    "id": "ACMV",
+    "crop": "cassava",
+    "name": "African Cassava Mosaic Virus",
+    "symptoms": "Chlorotic mosaic with distinct green and yellow patches on leaves, leaf distortion and reduction in leaf size, compound leaves show uneven leaflet development, plants stunted with reduced root yield, new growth is most severely affected",
+    "description": "Caused by African cassava mosaic virus (ACMV, genus Begomovirus). One of three CMD-causing viruses confirmed in Kenya by Were et al 2004 survey (Bungoma, Busia, Kakamega, Teso, Vihiga in Western province, Suba and Siaya in Nyanza, Kilifi and Kwale in Coast). ACMV was the most widely distributed CMD-causing virus in Kenya. Transmitted by Bemisia tabaci whitefly. Coast region showed high CMD incidence with ACMV co-occurring with EACMV-UG. Source: Were et al 2004, Plant Disease, Masinde Muliro/DSMZ/University Hanover.",
+    "treatment": "Use CMD-resistant varieties that carry resistance to ACMV: Tajirika, Sili, MM8. Use certified virus-free cuttings. Rogue infected plants. Control Bemisia tabaci whitefly vector. Never use cuttings from fields with CMD symptoms. The recombinant EACMV-UG variant is more virulent than ACMV alone."
+  },
+  {
+    "id": "EACMV_UG",
+    "crop": "cassava",
+    "name": "East African Cassava Mosaic Virus Uganda Variant",
+    "symptoms": "Severe mosaic with strongly contrasting green and yellow patches, extreme leaf distortion and curling, very stunted plants producing small tubers, symptoms more severe than ACMV alone, co-infection with ACMV produces synergistic effect causing epidemic CMD outbreak symptoms, rapid spread through a field",
+    "description": "Caused by East African cassava mosaic virus Uganda variant (EACMV-UG). Confirmed in Kenya coastal region especially Kilifi and Kwale by Were et al 2004 survey. The Uganda variant is a recombinant strain more virulent than original EACMV or ACMV. Implicated in CMD epidemic outbreaks in East Africa. Transmitted by Bemisia tabaci whitefly. The Uganda variant spreads faster and causes more severe symptoms than the original strains. Source: Were et al 2004, Plant Disease, Coast cassava survey, Kenya.",
+    "treatment": "Immediate roguing and destruction of infected plants is critical as EACMV-UG spreads fast. Use varieties with resistance specifically to EACMV-UG: Tajirika, Migyera. Strong whitefly management with Thiamethoxam. Community-wide action needed as the virus can spread from neighbouring fields. Do not source cuttings from coastal areas with high CMD incidence."
+  },
+  {
+    "id": "CABYV",
+    "crop": "groundnut",
+    "name": "Cucurbit Aphid-Borne Yellows Virus on Groundnut",
+    "symptoms": "Interveinal yellowing of leaves with veins remaining green, leaf stiffening and slight upward cupping of affected leaves, yellowing most pronounced on older leaves, plant stunting and reduced pod set in severe infections",
+    "description": "Caused by Cucurbit aphid-borne yellows virus (CABYV, genus Polerovirus). FIRST REPORT of CABYV infecting groundnut (Arachis hypogaea) in Kenya confirmed by Mabele et al 2023 (MMUST Kakamega). Two disease surveys conducted in short and long rains 2020 and 2021 in Bungoma, Busia, Kakamega and Siaya counties. Higher incidence during short rains (73.61%) than long rains (42.65%). Transmitted by aphids including Aphis gossypii, Myzus persicae and Macrosiphum euphorbiae. Causes up to 80% yield loss. Source: Mabele et al 2023, Plant Health Progress, MMUST Kakamega.",
+    "treatment": "Control aphid vectors as the primary management strategy. Apply Dimethoate or Imidacloprid when aphid colonies first detected. Monitor from early crop establishment in Bungoma, Busia, Kakamega and Siaya. Remove infected plants from field. No resistant groundnut varieties identified yet in Kenya. Short rains plantings carry higher risk than long rains plantings."
+  },
+  {
+    "id": "SWEET_POTATO_VIRUS",
+    "crop": "sweet potato",
+    "name": "Sweet Potato Virus Disease",
+    "symptoms": "Mosaic and chlorosis of leaves, leaf distortion and curling, interveinal yellowing on older leaves, purple discolouration on some varieties, severely stunted plants, much reduced storage root yield, roots show internal discolouration and corky texture in severe cases",
+    "description": "Caused primarily by Sweet potato feathery mottle virus (SPFMV) and Sweet potato chlorotic stunt virus (SPCSV). Documented by Theberge IITA as major constraint of sweet potato in East Africa. In Kenya sweet potato is an important food security crop in Western, Nyanza and Coastal regions. Combined SPFMV and SPCSV infection causes sweet potato virus disease (SPVD), the most damaging form. Transmitted by aphids (SPFMV) and whitefly Bemisia tabaci (SPCSV). Source: Theberge 1985 IITA, Common African Pests and Diseases of Cassava Yam Sweet Potato.",
+    "treatment": "Use certified virus-free planting material. Rogue infected plants immediately. Control aphid and whitefly vectors. Use resistant varieties where available. Maintain plant health through good nutrition. Do not replant from infected fields. Contact KALRO for current virus-free sweet potato planting material programmes."
+  },
+  {
+    "id": "SWEET_POTATO_SCAB",
+    "crop": "sweet potato",
+    "name": "Sweet Potato Scab",
+    "symptoms": "Corky rough scabby lesions on storage roots and vines, roots have pitted scabby surface reducing marketability, vine lesions appear as dark spots with raised rough texture, severe infection can crack roots causing secondary rot",
+    "description": "Caused by Elsinoe batatas (same genus as bean scab). Documented by Theberge IITA as important disease of sweet potato in Africa. Sweet potato is grown for food and income in Western Kenya, Nyanza and Coast regions. Favoured by humid conditions. Source: Theberge 1985 IITA, Common African Pests and Diseases of Cassava Yam Sweet Potato.",
+    "treatment": "Use certified disease-free planting material. Avoid dense planting. Copper fungicide application in nursery. Crop rotation 2 seasons. Harvest carefully to avoid wounding which promotes secondary infection."
+  },
+  {
+    "id": "YAM_MOSAIC",
+    "crop": "yam",
+    "name": "Yam Mosaic Disease",
+    "symptoms": "Mosaic and mottling on leaves, leaf distortion, interveinal chlorosis, plant stunting, tuber yield significantly reduced in infected plants",
+    "description": "Caused by Yam mosaic virus (YMV, genus Potyvirus). Documented by Theberge IITA as major virus disease of yam in Africa. Yam is an important crop in Western Kenya and Coastal regions. Transmitted by aphids. Spread rapidly by use of infected planting material. Source: Theberge 1985 IITA, Common African Pests and Diseases of Cassava Yam Sweet Potato.",
+    "treatment": "Use virus-free planting material. Rogue infected plants. Control aphid vectors. Do not use planting material from infected fields. Maintain healthy plants through proper nutrition."
+  },
+  {
+    "id": "MSV_MWEA",
+    "crop": "maize",
+    "name": "Maize Streak Virus Mwea Ecotype",
+    "symptoms": "Yellow-white continuous streaks parallel to leaf veins, severe stunting of young plants infected early, reduced ear development and grain fill, pale yellow entire plants in severe cases, found as most important maize disease by farmers in Mwea West",
+    "description": "Maize Streak Virus (MSV) confirmed as most important maize disease pest by smallholder farmers in Mwea West Kenya in survey by Constantine et al 2020 (Cogent Food & Agriculture). Alongside stalk borers and cutworms, MSV was among top constraints reported in this rice-maize farming system. Mwea farmers identify MSV as major production constraint in the mixed maize-rice farming context. Leafhoppers (Cicadulina mbila) are the primary vector in the Mwea environment. Source: Constantine et al 2020, Cogent Food & Agriculture, Mwea West Kirinyaga County.",
+    "treatment": "Plant resistant maize varieties H614 or WE3128 in Mwea area. Control leafhoppers Cicadulina mbila with Lambda-cyhalothrin. Remove infected plants early to prevent further leafhopper inoculation. Practise crop rotation and avoid continuous maize. In Mwea irrigated system use push-pull with Desmodium which reduces leafhopper numbers."
+  },
+  {
+    "id": "GLS_DETAIL",
+    "crop": "maize",
+    "name": "Grey Leaf Spot Advanced Stage",
+    "symptoms": "Mature rectangular grey lesions with tan centres strictly bounded by leaf veins, lesions running parallel to leaf veins giving a rectangular slot appearance, grey-white sporulation on lesion surface in humid conditions, entire leaves turning grey-white then brown, plant death by severe defoliation, lodging when stalk is weakened by extensive defoliation",
+    "description": "Caused by Cercospora zeae-maydis (teleomorph Mycosphaerella zeae-maydis). Confirmed as endemic biotic stress of maize Kenya by Njeru et al 2023 PeerJ review. Yield losses reported at 30-100% in Kenya depending on variety and conditions. Common in Uasin Gishu, Trans Nzoia and highland maize zones. Maize monoculture and conservation tillage increases disease severity. Resistant varieties are the most effective management tool. Source: Njeru et al 2023, PeerJ, Chuka University/University of Nairobi.",
+    "treatment": "Use certified GLS-resistant hybrid varieties recommended by KALRO for highland zones. Practise crop rotation of minimum 2 seasons away from maize. Plough in infected crop residue to reduce surface inoculum. Apply Azoxystrobin or Trifloxystrobin strobilurin fungicide at first sign. Improve plant spacing to reduce humidity within canopy. Avoid conservation tillage when GLS is a known problem in your area."
+  },
+  {
+    "id": "EXPORT_BEAN_RUST",
+    "crop": "beans",
+    "name": "Snap Bean Export Rust",
+    "symptoms": "Small uredia pustules on leaves and pods releasing rusty brown powder, pustules most dense on leaf underside, yellow halos on upper leaf surface above pustules, premature leaf drop, rusty staining on pod surface causing export rejection, severe infection causes complete defoliation",
+    "description": "Caused by Uromyces appendiculatus. Identified as the most severe disease in snap bean export variety trials in Kenya by Wahome et al 2011 (University of Nairobi). Rust severity was higher than angular leaf spot in the Kenya trials. Resistant lines KSB 10 W, KSB 10 BR (bush types) and HAV 130 (climbing type) showed consistent multiple resistance to rust, angular leaf spot and anthracnose. Rust on pods directly causes export rejection due to EU phytosanitary requirements. Source: Wahome et al 2011, African Crop Science Journal, University of Nairobi.",
+    "treatment": "Use resistant varieties KSB 10 W and KSB 10 BR for export production. Apply Mancozeb or Triazole fungicide starting at early plant growth to protect pods. Apply preventively before rain rather than curatively. Check export standards as zero pod rust is required for EU market. Maintain clean field hygiene and remove infected leaves. Spray every 7-10 days during disease-prone humid periods."
+  }
+]
