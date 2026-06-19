@@ -3,13 +3,13 @@ import from dotenv { load_dotenv }
 include utils;
 include intergrations;
 
-glob llm1 = Model(
+glob llm = Model(
     model_name="groq/llama-3.3-70b-versatile",
 );
 
-glob llm = Model(
-    model_name="gemini/gemini-2.5-flash-lite",
-);
+# glob llm = Model(
+#     model_name="gemini/gemini-2.5-flash-lite",
+# );
 
 node Memory {
     has id: str = "memory_root";
