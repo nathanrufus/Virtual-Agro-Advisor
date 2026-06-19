@@ -2,16 +2,6 @@ include utils;
 include intergrations;
 include backend.models;
 
-# sv import from backend.models {
-#     AdvicePlan,
-#     DiseaseDoc,
-#     Crop
-# }
-
-# sv import from backend.models {
-#     translate_from_pivot
-# }
-
 def generate_session_id() -> str {
     ts = get_current_datetime();
     clean = ts.replace(" ", "_").replace(":", "-");
@@ -39,34 +29,37 @@ def normalize_region(region: str) -> str {
     return region.strip().lower();
 }
 
+def strip_country_from_location(location: str) -> str {
+    if not location {
+        return "";
+    }
+    loc = location.lower();
+    loc = loc.replace(", kenya", "");
+    loc = loc.replace(" kenya", "");
+    return loc.strip();
+}
+
 def normalize_region_to_id(location: str) -> str {
     if not location {
         return "";
     }
-
     loc = location.strip().lower();
 
-    if "kiambu" in loc {
-        return "ke-kiambu";
-    } elif "nairobi" in loc {
-        return "ke-nairobi";
-    } elif "nakuru" in loc {
-        return "ke-nakuru";
-    } elif "uasin gishu" in loc or "eldoret" in loc {
-        return "ke-uasin-gishu";
-    } elif "kisumu" in loc {
-        return "ke-kisumu";
-    } elif "meru" in loc {
-        return "ke-meru";
-    } elif "machakos" in loc {
-        return "ke-machakos";
-    } elif "mombasa" in loc {
-        return "ke-mombasa";
-    } elif "kakamega" in loc {
-        return "ke-kakamega";
-    } elif "nyeri" in loc {
-        return "ke-nyeri";
-    }
+    if "kiambu" in loc { return "ke-kiambu"; }
+    elif "nairobi" in loc { return "ke-nairobi"; }
+    elif "nakuru" in loc { return "ke-nakuru"; }
+    elif "uasin gishu" in loc or "eldoret" in loc { return "ke-uasin-gishu"; }
+    elif "kisumu" in loc { return "ke-kisumu"; }
+    elif "meru" in loc { return "ke-meru"; }
+    elif "machakos" in loc { return "ke-machakos"; }
+    elif "mombasa" in loc or "kilifi" in loc or "kwale" in loc { return "ke-mombasa"; }
+    elif "kakamega" in loc { return "ke-kakamega"; }
+    elif "nyeri" in loc { return "ke-nyeri"; }
+    elif "muranga" in loc { return "ke-muranga"; }
+    elif "nyandarua" in loc { return "ke-nyandarua"; }
+    elif "trans nzoia" in loc or "kitale" in loc { return "ke-transnzoia"; }
+    elif "bungoma" in loc or "busia" in loc or "siaya" in loc or "vihiga" in loc { return "ke-western"; }
+    elif "kitui" in loc or "makueni" in loc or "tharaka" in loc { return "ke-machakos"; }
 
     return "";
 }
@@ -103,7 +96,6 @@ def parse_cache_key(key: str) -> dict {
 
     if key {
         parts = key.split("|");
-
         if len(parts) >= 7 {
             crop = parts[0];
             location = parts[1];
@@ -112,15 +104,12 @@ def parse_cache_key(key: str) -> dict {
             if "w=True" in parts[3] or "w=true" in parts[3] {
                 include_weather = True;
             }
-
             if "m=True" in parts[4] or "m=true" in parts[4] {
                 include_market = True;
             }
-
             if "img=True" in parts[5] or "img=true" in parts[5] {
                 include_image = True;
             }
-
             problem_preview = parts[6];
         }
     }
@@ -137,6 +126,68 @@ def parse_cache_key(key: str) -> dict {
     };
 }
 
+def parse_datetime_safe(dt_str: str) -> any {
+    try {
+        return datetime.fromisoformat(dt_str);
+    } except Exception {
+        try {
+            return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S.%f");
+        } except Exception {
+            try {
+                return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S");
+            } except Exception {
+                return None;
+            }
+        }
+    }
+}
+
+def hours_since(dt_str: str) -> float {
+    dt = parse_datetime_safe(dt_str);
+    if not dt {
+        return 10000.0;
+    }
+    try {
+        delta = datetime.now() - dt;
+        return delta.total_seconds() / 3600.0;
+    } except Exception {
+        return 10000.0;
+    }
+}
+
+def ensure_numbered_steps(advice: AdvicePlan) -> AdvicePlan {
+    if not advice or not advice.steps {
+        return advice;
+    }
+    fixed_steps = [];
+    counter = 1;
+    for step in advice.steps {
+        step_str = str(step).strip();
+        if not step_str {
+            continue;
+        }
+        has_number = False;
+        if len(step_str) > 2 {
+            first_char = step_str[0];
+            second_char = step_str[1];
+            if first_char.isdigit() and (second_char == "." or second_char == ")") {
+                has_number = True;
+            }
+        }
+        if has_number {
+            fixed_steps = fixed_steps + [step_str];
+        } else {
+            fixed_steps = fixed_steps + [str(counter) + ". " + step_str];
+        }
+        counter = counter + 1;
+    }
+    return AdvicePlan(
+        overview=advice.overview,
+        steps=fixed_steps,
+        cautions=advice.cautions
+    );
+}
+
 def translate_advice_if_needed(
     advice: AdvicePlan,
     target_lang: str
@@ -145,47 +196,29 @@ def translate_advice_if_needed(
         return advice;
     }
 
-    new_overview = translate_from_pivot(
-        text=advice.overview,
-        lang=target_lang
-    );
+    new_overview = translate_from_pivot(text=advice.overview, lang=target_lang);
 
     new_steps = [];
     for s in advice.steps {
-        new_steps = new_steps + [
-            translate_from_pivot(text=s, lang=target_lang)
-        ];
+        new_steps = new_steps + [translate_from_pivot(text=s, lang=target_lang)];
     }
 
     new_cautions = [];
     for c in advice.cautions {
-        new_cautions = new_cautions + [
-            translate_from_pivot(text=c, lang=target_lang)
-        ];
+        new_cautions = new_cautions + [translate_from_pivot(text=c, lang=target_lang)];
     }
 
-    return AdvicePlan(
-        overview=new_overview,
-        steps=new_steps,
-        cautions=new_cautions
-    );
+    return AdvicePlan(overview=new_overview, steps=new_steps, cautions=new_cautions);
 }
 
-def translate_summary_text_if_needed(
-    text: str,
-    target_lang: str
-) -> str {
+def translate_summary_text_if_needed(text: str, target_lang: str) -> str {
     if not target_lang or target_lang == "en" {
         return text;
     }
     if not text {
         return text;
     }
-
-    return translate_from_pivot(
-        text=text,
-        lang=target_lang
-    );
+    return translate_from_pivot(text=text, lang=target_lang);
 }
 
 def get_ui_titles(lang: str) -> dict {
@@ -218,292 +251,368 @@ def get_ui_titles(lang: str) -> dict {
     };
 }
 
-def parse_datetime_safe(dt_str: str) -> any {
+# ============================================================
+# EMBEDDING SEARCH via Chroma
+# Called first, results merged with graph traversal
+# ============================================================
+
+def search_chroma(problem: str, crop: str, region: str) -> list {
+    region_clean = strip_country_from_location(region);
+    crop_clean = normalize_crop(crop);
+
+    raw = system_call(["/media/nathanruf/New Volume/Virtual-Agro-Advisor/.venv/bin/python", "scripts/rag_search_chroma.py", problem, crop_clean, region_clean]);
+
+    if not raw {
+        print("[CHROMA] No response from search script");
+        return [];
+    }
+
     try {
-        return datetime.fromisoformat(dt_str);
-    } except Exception {
-        try {
-            return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S.%f");
-        } except Exception {
-            try {
-                return datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S");
-            } except Exception {
-                return None;
-            }
-        }
+        matches = json.loads(raw);
+        print(f"[CHROMA] Embedding search returned {len(matches)} candidates");
+        return matches;
+    } except Exception as e {
+        print("[CHROMA] Failed to parse search response" ,e );
+        print(f"[CHROMA] Error: {e}");
+        return [];
     }
 }
 
-
-# RAG FUNCTIONS
-def retrieve_relevant_diseases(problem: str) -> list {
-
-    print("\n[RAG] ========================================");
-    print("[RAG] SEARCHING KNOWLEDGE BASE");
-
-    preview = problem;
-    if len(problem) > 100 {
-        preview = problem[0:100];
-    }
-
-    print("[RAG] Query: " + preview + "...");
-    print("[RAG] ========================================");
-
-    results = [];
-    problem_lower = problem.lower();
-
-    all_diseases = [root -->][?:DiseaseDoc];
-    print("[RAG] Total diseases in knowledge base: " + str(len(all_diseases)));
-
-    for d in all_diseases {
-
-        score = 0;
-
-        if problem_lower in d.symptoms.lower() {
-            score = score + 2;
-            print("[RAG]   ✓ Symptom match in: " + d.disease_name);
-        }
-
-        if problem_lower in d.description.lower() {
-            score = score + 1;
-            print("[RAG]   ✓ Description match in: " + d.disease_name);
-        }
-
-        if problem_lower in d.disease_name.lower() {
-            score = score + 3;
-            print("[RAG]   ✓ Name match in: " + d.disease_name);
-        }
-
-        if score > 0 {
-            results.append({"d": d, "score": score});
-            print("[RAG]   → " + d.disease_name + ": score = " + str(score));
+def build_disease_id_set(chroma_matches: list) -> dict {
+    id_set = {};
+    for m in chroma_matches {
+        did = m.get("id", "");
+        score = m.get("similarity", 0.0);
+        if did {
+            id_set[did] = float(score);
         }
     }
-
-    sorted_results = [];
-
-    while len(results) > 0 {
-
-        best = results[0];
-
-        for r in results {
-            if r["score"] > best["score"] {
-                best = r;
-            }
-        }
-
-        sorted_results.append(best["d"]);
-        results.remove(best);
-    }
-
-    print("\n[RAG] FOUND " + str(len(sorted_results)) + " RELEVANT DISEASES");
-
-    i = 0;
-    for d in sorted_results {
-
-        if i < 5 {
-            print("[RAG]   " + str(i + 1) + ". " + d.disease_name);
-        }
-
-        i = i + 1;
-    }
-
-    print("[RAG] ========================================\n");
-
-    return sorted_results;
+    return id_set;
 }
-def format_disease_context(diseases: list) -> str {
-    # Format disease information for LLM context
-    # WITH LOGGING to show what's being sent to LLM
 
-    context = "";
+# ============================================================
+# MAIN RAG FUNCTION: 6-hop graph traversal + Chroma embedding
+# ============================================================
 
-    print("\n[RAG] ========================================");
-    print("[RAG] FORMATTING CONTEXT FOR LLM");
-    print("[RAG] Number of diseases: " + str(len(diseases)));
-    print("[RAG] ========================================");
-
-    for d in diseases {
-        context += "Disease: " + d.disease_name + "\n";
-        context += "Symptoms: " + d.symptoms + "\n";
-        context += "Treatment: " + d.treatments + "\n\n";
-
-        print("[RAG] Added to context: " + d.disease_name);
-    }
-
-    print("[RAG] Total context length: " + str(len(context)) + " characters");
-    print("[RAG] ========================================\n");
-
-    return context;
-}
-def strip_country_from_location(location: str) -> str {
-
-    if not location {
-        return "";
-    }
-
-    loc = location.lower();
-
-    # remove country suffixes
-    loc = loc.replace(", kenya", "");
-    loc = loc.replace(" kenya", "");
-
-    return loc.strip();
-}
 def retrieve_relevant_diseases_graph(
     problem: str,
     crop: str,
     region: str,
     season: str = ""
 ) -> list {
-   
-    # Graph-RAG search: Find diseases using graph relationships
-    
-    
-    print("\n[GRAPH-RAG] ========================================");
-    print(f"[GRAPH-RAG] SEARCHING WITH GRAPH CONTEXT");
-    print(f"[GRAPH-RAG] Problem: {problem[:80]}...");
-    print(f"[GRAPH-RAG] Crop: {crop}");
+
+    print("\n[GRAPH-RAG] ==========================================");
+    print("[GRAPH-RAG] STARTING RETRIEVAL");
+    print(f"[GRAPH-RAG] Crop:   {crop}");
     print(f"[GRAPH-RAG] Region: {region}");
-    print("[GRAPH-RAG] ========================================");
-    
-    results = [];
-    problem_lower = problem.lower();
+    print("[GRAPH-RAG] ==========================================");
+
+    # ── Step 0: Chroma embedding pre-search ──────────────────────────────
+    # This runs first and gives us a map of disease_id → similarity score
+    # The graph traversal then uses this to boost or surface results
+
+    print("[GRAPH-RAG] Step 0: Chroma embedding search...");
+    chroma_matches = search_chroma(problem, crop, region);
+    chroma_scores = build_disease_id_set(chroma_matches);
+
+    if chroma_scores {
+        print(f"[GRAPH-RAG] Chroma found: {list(chroma_scores.keys())[:5]}");
+    }
+
+    # ── Scoring map: disease_id → {d: node, score: int, reasons: list} ──
+    results = {};
+
     crop_lower = crop.lower();
-    
-    # STEP 1: Find diseases that affect this crop
-    crop_diseases = [];
-    
+    region_lower = strip_country_from_location(region).lower();
+    problem_lower = problem.lower();
+    problem_words = problem_lower.split();
+
+    # ── HOP 1: Crop node → AFFECTS_CROP back-edges → DiseaseDoc ──────────
+    # Only diseases that affect this crop are in the candidate pool
+
+    print("[GRAPH-RAG] HOP 1: Crop → Disease edges...");
+    crop_node_found = None;
+
     for crop_node in [root -->][?:Crop] {
         if crop_lower in crop_node.crop_name.lower() {
-            print(f"[GRAPH-RAG] Found crop: {crop_node.crop_name}");
-            
-            # Get all diseases affecting this crop
+            crop_node_found = crop_node;
+            print(f"[GRAPH-RAG]   Crop node: {crop_node.crop_name}");
+
             for disease in [crop_node <-:AFFECTS_CROP:<-] {
-                crop_diseases = crop_diseases + [disease];
-                print(f"[GRAPH-RAG]   → Affects: {disease.disease_name}");
+                did = disease.disease_id;
+                if did not in results {
+                    results[did] = {"d": disease, "score": 0, "reasons": []};
+                }
+                results[did]["score"] = results[did]["score"] + 4;
+                results[did]["reasons"] = results[did]["reasons"] + [f"Affects {crop}"];
             }
         }
     }
-    
-    # STEP 2: Score diseases by symptom match + graph context
-    for disease in crop_diseases {
-        score = 0;
-        
-        # Symptom matching (as before)
-        if problem_lower in disease.symptoms.lower() {
-            score += 3;
+
+    print(f"[GRAPH-RAG]   HOP 1 found {len(results)} crop-specific diseases");
+
+    # If no crop node matched, fall through to all diseases
+    if not results {
+        print("[GRAPH-RAG]   No crop node found — using all DiseaseDoc nodes");
+        for d in [root -->][?:DiseaseDoc] {
+            results[d.disease_id] = {"d": d, "score": 1, "reasons": ["Global fallback"]};
         }
-        
-        if problem_lower in disease.description.lower() {
-            score += 1;
+    }
+
+    # ── HOP 2: Region node → COMMON_IN_REGION back-edges → DiseaseDoc ───
+    # Diseases documented as prevalent in this county get a score boost
+
+    print("[GRAPH-RAG] HOP 2: Region boost...");
+    for region_node in [root -->][?:RegionProfile] {
+        node_name = region_node.display_name.lower();
+        node_county = region_node.county.lower();
+
+        if region_lower in node_name or region_lower in node_county {
+            print(f"[GRAPH-RAG]   Region: {region_node.display_name}");
+
+            for disease in [region_node <-:COMMON_IN_REGION:<-] {
+                did = disease.disease_id;
+                if did in results {
+                    results[did]["score"] = results[did]["score"] + 5;
+                    results[did]["reasons"] = results[did]["reasons"] + [f"Common in {region_node.display_name}"];
+                    print(f"[GRAPH-RAG]   +5 region match: {disease.disease_name}");
+                }
+            }
         }
-        
-        #  BONUS: Disease is for this crop
-        score += 2;
-        
-        #  BONUS: Check if disease common in this region
-        for region_profile in [root -->][?:RegionProfile] {
-            if region.lower() in region_profile.display_name.lower() {
-                for common_disease in [region_profile <-:COMMON_IN_REGION:<-] {
-                    if common_disease.disease_id == disease.disease_id {
-                        score += 3;
-                        print(f"[GRAPH-RAG]   ✓ Common in {region}: +3 score");
+    }
+
+    # ── HOP 3: Season node → OCCURS_IN_SEASON back-edges → DiseaseDoc ───
+    # Diseases active in current season get a boost
+
+    if season {
+        print(f"[GRAPH-RAG] HOP 3: Season boost ({season})...");
+        season_lower = season.lower();
+
+        for season_node in [root -->][?:Season] {
+            if season_lower in season_node.season_name.lower() {
+                for disease in [season_node <-:OCCURS_IN_SEASON:<-] {
+                    did = disease.disease_id;
+                    if did in results {
+                        results[did]["score"] = results[did]["score"] + 2;
+                        results[did]["reasons"] = results[did]["reasons"] + [f"Active in {season_node.season_name}"];
                     }
                 }
             }
         }
-        
-        if score > 0 {
-            results = results + [{"d": disease, "score": score}];
-            print(f"[GRAPH-RAG]   {disease.disease_name}: score = {score}");
-        }
     }
-    
-    # STEP 3: Add co-occurring diseases
-    for result in results {
-        disease = result["d"];
-        
-        for co_disease in [disease ->:CO_OCCURS_WITH:->] {
-            # Add co-occurring disease if not already in results
-            found = False;
-            for r in results {
-                if r["d"].disease_id == co_disease.disease_id {
-                    found = True;
+
+    # ── HOP 4a: Symptom keyword matching within graph node text ──────────
+    # Keyword match on the problem text against disease symptoms/description
+    # This uses the existing data in DiseaseDoc nodes
+
+    print("[GRAPH-RAG] HOP 4a: Symptom keyword matching...");
+    for did in results {
+        disease = results[did]["d"];
+        sym_lower = disease.symptoms.lower();
+        desc_lower = disease.description.lower();
+
+        # Full phrase match — highest score
+        if problem_lower in sym_lower {
+            results[did]["score"] = results[did]["score"] + 6;
+            results[did]["reasons"] = results[did]["reasons"] + ["Full symptom phrase match"];
+            print(f"[GRAPH-RAG]   +6 phrase match: {disease.disease_name}");
+        }
+
+        # Individual word matching
+        for word in problem_words {
+            if len(word) > 4 {
+                if word in sym_lower {
+                    results[did]["score"] = results[did]["score"] + 2;
+                }
+                if word in desc_lower {
+                    results[did]["score"] = results[did]["score"] + 1;
                 }
             }
-            
-            if not found {
-                results = results + [{"d": co_disease, "score": 1}];
-                print(f"[GRAPH-RAG]   + Co-occurs: {co_disease.disease_name}");
+        }
+
+        # Disease name mentioned in query
+        if disease.disease_name.lower() in problem_lower {
+            results[did]["score"] = results[did]["score"] + 7;
+            results[did]["reasons"] = results[did]["reasons"] + ["Disease name in query"];
+        }
+    }
+
+    # ── HOP 4b: Chroma embedding score boost ─────────────────────────────
+    # Merge the semantic similarity scores from ChromaDB
+    # This catches cases where farmer uses different words for same disease
+
+    print("[GRAPH-RAG] HOP 4b: Chroma embedding score boost...");
+    for did in chroma_scores {
+        similarity = chroma_scores[did];
+
+        if did in results {
+            # Convert similarity (0-100) to score points (max 8)
+            boost = int((similarity / 100.0) * 8.0);
+            results[did]["score"] = results[did]["score"] + boost;
+            results[did]["reasons"] = results[did]["reasons"] + [f"Semantic match {similarity}%"];
+            print(f"[GRAPH-RAG]   +{boost} semantic boost: {did} ({similarity}%)");
+        } else {
+            # Chroma found a disease that graph traversal missed
+            # Look it up by ID and add it
+            for d in [root -->][?:DiseaseDoc] {
+                if d.disease_id == did {
+                    boost = int((similarity / 100.0) * 5.0);
+                    results[did] = {
+                        "d": d,
+                        "score": boost,
+                        "reasons": [f"Semantic only {similarity}%"]
+                    };
+                    print(f"[GRAPH-RAG]   +{boost} semantic discovery: {did}");
+                }
             }
         }
     }
-    
-    #  STEP 4: Sort by score
+
+    # ── HOP 5: Disease → CO_OCCURS_WITH → Disease ────────────────────────
+    # Surface co-occurring diseases for the top scoring results
+
+    print("[GRAPH-RAG] HOP 5: Co-occurrence expansion...");
+    top_ids = [];
+    for did in results {
+        if results[did]["score"] >= 6 {
+            top_ids = top_ids + [did];
+        }
+    }
+
+    for did in top_ids {
+        disease = results[did]["d"];
+        for co_disease in [disease ->:CO_OCCURS_WITH:->] {
+            co_did = co_disease.disease_id;
+            if co_did not in results {
+                results[co_did] = {
+                    "d": co_disease,
+                    "score": 2,
+                    "reasons": [f"Co-occurs with {disease.disease_name}"]
+                };
+                print(f"[GRAPH-RAG]   +co-occur: {co_disease.disease_name}");
+            }
+        }
+    }
+
+    # ── HOP 6: Disease → DOCUMENTED_CASE → CaseStudy → Region ───────────
+    # Boost diseases with documented cases in the farmer's region
+
+    print("[GRAPH-RAG] HOP 6: Case study evidence...");
+    for did in results {
+        disease = results[did]["d"];
+        for cs in [disease ->:DOCUMENTED_CASE:->] {
+            for cs_region in [cs ->:CASE_IN_REGION:->] {
+                if region_lower in cs_region.display_name.lower() or region_lower in cs_region.county.lower() {
+                    results[did]["score"] = results[did]["score"] + 4;
+                    results[did]["reasons"] = results[did]["reasons"] + [f"Documented case in {cs_region.display_name}"];
+                    print(f"[GRAPH-RAG]   +4 local case: {disease.disease_name}");
+                }
+            }
+        }
+    }
+
+    # ── Sort all results by score (descending) ────────────────────────────
+    items = [];
+    for did in results {
+        items = items + [results[did]];
+    }
+
     sorted_results = [];
-    while results {
-        best = results[0];
-        for r in results {
-            if r["score"] > best["score"] {
-                best = r;
+    while len(items) > 0 {
+        best = items[0];
+        for item in items {
+            if item["score"] > best["score"] {
+                best = item;
             }
         }
         sorted_results = sorted_results + [best["d"]];
-        results.remove(best);
+        items.remove(best);
     }
-    
-    print(f"\n[GRAPH-RAG] FOUND {len(sorted_results)} DISEASES");
-    print("[GRAPH-RAG] ========================================\n");
-    
+
+    print(f"\n[GRAPH-RAG] TOP RESULTS:");
+    i = 0;
+    for d in sorted_results {
+        if i < 7 {
+            item = results[d.disease_id];
+            sc = item["score"];
+            print(f"[GRAPH-RAG]   {i+1}. {d.disease_name} (score={sc})");
+        }
+        i = i + 1;
+    }
+    print("[GRAPH-RAG] ==========================================\n");
+
     return sorted_results;
 }
+
+# Keep backward compat — advisor.jac calls this directly
+def retrieve_relevant_diseases(problem: str) -> list {
+    return retrieve_relevant_diseases_graph(
+        problem=problem,
+        crop="",
+        region=""
+    );
+}
+
+# ============================================================
+# CONTEXT FORMATTING — builds rich text block for the LLM
+# ============================================================
+
 def format_disease_context_graph(diseases: list) -> str {
-    
-    # Format disease information WITH GRAPH CONTEXT for LLM
-    
-    
-    context = "KNOWLEDGE BASE (Graph-Enhanced):\n\n";
+
+    print(f"\n[GRAPH-RAG] Formatting context for LLM ({len(diseases)} diseases)...");
+
+    context = "GRAPH-RETRIEVED KNOWLEDGE BASE:\n\n";
 
     for disease in diseases {
-        context += "Disease: " + disease.disease_name + "\n";
-        context += "Symptoms: " + disease.symptoms + "\n";
-        context += "Treatment: " + disease.treatments + "\n";
-        
-        # Add graph-derived information
-        
-        # Which crops affected
-        crops = [disease ->:AFFECTS_CROP:->];
-        if crops {
+        context = context + "Disease/Problem: " + disease.disease_name + "\n";
+        context = context + "Symptoms: " + disease.symptoms + "\n";
+        context = context + "What to do: " + disease.treatments + "\n";
+
+        # Crops affected (from graph edges)
+        crop_nodes = [disease ->:AFFECTS_CROP:->];
+        if len(crop_nodes) > 0 {
             crop_names = [];
-            for c in crops {
+            for c in crop_nodes {
                 crop_names = crop_names + [c.crop_name];
             }
-            context += "Affects crops: " + ", ".join(crop_names) + "\n";
+            context = context + "Affects crops: " + ", ".join(crop_names) + "\n";
         }
-        
-        # Which seasons
-        seasons = [disease ->:OCCURS_IN_SEASON:->];
-        if seasons {
+
+        # Seasons (from graph edges)
+        season_nodes = [disease ->:OCCURS_IN_SEASON:->];
+        if len(season_nodes) > 0 {
             season_names = [];
-            for s in seasons {
+            for s in season_nodes {
                 season_names = season_names + [s.season_name];
             }
-            context += "Common in seasons: " + ", ".join(season_names) + "\n";
+            context = context + "Worst seasons: " + ", ".join(season_names) + "\n";
         }
-        
-        # Co-occurring diseases
-        co_diseases = [disease ->:CO_OCCURS_WITH:->];
-        if co_diseases {
+
+        # Co-occurring diseases (from graph edges)
+        co_nodes = [disease ->:CO_OCCURS_WITH:->];
+        if len(co_nodes) > 0 {
             co_names = [];
-            for cd in co_diseases {
+            for cd in co_nodes {
                 co_names = co_names + [cd.disease_name];
             }
-            context += "Often co-occurs with: " + ", ".join(co_names) + "\n";
+            context = context + "Often co-occurs with: " + ", ".join(co_names) + "\n";
         }
-        
-        context += "\n";
+
+        # Documented local case (from graph edges)
+        case_nodes = [disease ->:DOCUMENTED_CASE:->];
+        if len(case_nodes) > 0 {
+            cs = case_nodes[0];
+            context = context + "Real Kenya case: " + cs.outcome + "\n";
+        }
+
+        context = context + "\n";
     }
 
+    print(f"[GRAPH-RAG] Context: {len(context)} chars");
     return context;
+}
+
+# Keep backward compat — advisor.jac calls format_disease_context
+def format_disease_context(diseases: list) -> str {
+    return format_disease_context_graph(diseases);
 }

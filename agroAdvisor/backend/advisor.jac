@@ -5,50 +5,10 @@ sv import from intergrations {
     build_weather_snapshot_data,
     fetch_weather_raw
 }
-# sv import from backend.models {
-#     Memory,
-#     Session,
-#     AdviceCache,
-#     WeatherSnapshot,
-#     MarketSnapshot,
-#     ImageAnalysisResult,
-#     AuditLog,
-#     HAS_SESSION,
-#     HAS_WEATHER,
-#     HAS_MARKET,
-#     HAS_ADVICE,
-#     HAS_IMAGE_ANALYSIS,
-#     HAS_AUDIT,
-#     FarmerContext,
-#     WeatherSummary,
-#     MarketSummary
-# }
 include backend.models;
 include backend.helpers;
 
-# sv import from backend.helpers {
-#     generate_session_id,
-#     normalize_location,
-#     normalize_crop,
-#     normalize_region,
-#     normalize_region_to_id,
-#     make_cache_key,
-#     translate_advice_if_needed,
-#     translate_summary_text_if_needed,
-#     get_ui_titles,
-#     ensure_numbered_steps,
-#     hours_since,
-#     retrieve_relevant_diseases,
-#     format_disease_context
-# }
 
-# sv import from backend.models {
-#     normalize_crop_location,
-#     analyze_issue,
-#     generate_advice,
-#     safety_review,
-#     analyze_crop_image
-# }
 
 walker ImageAnalysisAgent {
     has image_data: str;
@@ -460,7 +420,7 @@ walker:pub AgroAdvisor {
 
         if not issue {
             report {
-                "error": "analyze_issue returned null",
+                "error": "analyze_issue returned None",
                 "stage": "analyze_issue"
             };
             disengage;
@@ -475,7 +435,7 @@ walker:pub AgroAdvisor {
 
         if not raw_advice {
             report {
-                "error": "generate_advice returned null",
+                "error": "generate_advice returned None",
                 "stage": "generate_advice",
                 "issue_analysis": issue
             };
@@ -486,7 +446,7 @@ walker:pub AgroAdvisor {
 
         if not safe_advice {
             report {
-                "error": "safety_review returned null",
+                "error": "safety_review returned None",
                 "stage": "safety_review",
                 "raw_advice": raw_advice
             };
@@ -502,7 +462,7 @@ walker:pub AgroAdvisor {
 
         if not final_advice {
             report {
-                "error": "translate_advice_if_needed returned null",
+                "error": "translate_advice_if_needed returned None",
                 "stage": "translate_advice_if_needed",
                 "safe_advice": safe_advice
             };

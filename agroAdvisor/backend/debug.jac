@@ -39,7 +39,7 @@ walker:pub LLMAnalyzeDebug {
 
         if not issue {
             report {
-                "error": "analyze_issue returned null",
+                "error": "analyze_issue returned None",
                 "stage": "analyze_issue",
                 "crop": self.crop,
                 "location": self.location,
@@ -109,7 +109,7 @@ walker:pub LLMAdviceDebug {
 
         if not issue {
             report {
-                "error": "analyze_issue returned null",
+                "error": "analyze_issue returned None",
                 "stage": "analyze_issue"
             };
             disengage;
@@ -124,7 +124,7 @@ walker:pub LLMAdviceDebug {
 
         if not raw_advice {
             report {
-                "error": "generate_advice returned null",
+                "error": "generate_advice returned None",
                 "stage": "generate_advice",
                 "issue_analysis": issue
             };
@@ -134,7 +134,7 @@ walker:pub LLMAdviceDebug {
         reviewed = safety_review(advice=raw_advice);
         if not reviewed {
             report {
-                "error": "safety_review returned null",
+                "error": "safety_review returned None",
                 "stage": "safety_review",
                 "raw_advice": raw_advice
             };
@@ -150,7 +150,7 @@ walker:pub LLMAdviceDebug {
 
         if not final_advice {
             report {
-                "error": "translate_advice_if_needed returned null",
+                "error": "translate_advice_if_needed returned None",
                 "stage": "translate_advice_if_needed",
                 "safe_advice": safe_advice
             };
