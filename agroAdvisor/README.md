@@ -40,3 +40,10 @@ jac add --cl react-router-dom
 
 
 pip install requests sentence-transformers chromadb
+
+[KAMIS] Command: python scripts/kamis_search_downloader.py --crop maize --market kiambu, kenya --days 30
+
+python scripts/rag_search_chroma.py \
+"stunted growth" \
+maize \
+kiambu

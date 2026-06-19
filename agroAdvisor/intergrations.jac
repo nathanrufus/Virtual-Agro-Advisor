@@ -466,7 +466,7 @@ def fetch_kamis_raw(crop: str, market: str) -> str {
     }
 
     args = [
-        "python",
+        "/media/nathanruf/New Volume/Virtual-Agro-Advisor/.venv/bin/python",
         "scripts/kamis_search_downloader.py",
         "--crop",
         crop,
@@ -481,7 +481,7 @@ def fetch_kamis_raw(crop: str, market: str) -> str {
     try {
         response_text = system_call(args);
 
-        if response_text == null or response_text.strip() == "" {
+        if response_text == None or response_text.strip() == "" {
             print("[KAMIS] Empty response from script");
             return "";
         }
@@ -489,8 +489,8 @@ def fetch_kamis_raw(crop: str, market: str) -> str {
         print("[KAMIS] Response received:", len(response_text));
         return response_text;
 
-    } except Exception {
-        print("[KAMIS] Error calling system");
+    } except Exception as e {
+        print("[KAMIS] Error calling system" ,e);
         return "";
     }
 }
@@ -584,7 +584,7 @@ def fetch_best_kamis_price(crop: str, region: str) -> dict {
                 latest = data[0];
                 price = latest["price"];
 
-                if price != null and price > 0 {
+                if price != None and price > 0 {
 
                     all_prices = all_prices + [{
                         "market": latest["market"],

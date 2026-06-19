@@ -3,6 +3,7 @@ import from requests { get as py_get }
 import json;
 import subprocess;
 import os;
+import from scripts.executor {py_run}
 
 # include app;
 
@@ -226,53 +227,94 @@ def hours_since(dt_str: str) -> float {
 }
 
 def system_call(args: list) -> str {
-
+   
+    # Execute subprocess command with CORRECT JAC syntax and directory handling.
+    
+    # FIX: Proper JAC for-loop syntax (not Python syntax)
+   
+    
     try {
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)));
+        # Only go up ONE directory from utils.jac location
+        base_dir = os.path.dirname(os.path.abspath(__file__));
 
-        print("[system_call] CWD:", base_dir);
-        print("[system_call] ARGS:", args);
+        print(f"[system_call] CWD: {base_dir}");
+        print(f"[system_call] ARGS: {args}");
 
-        result = py_run(
-            args,
-            shell=false,          # 🔥 CRITICAL FIX
-            cwd=base_dir,
-            capture_output=true,
-            text=true,
+        # Convert relative script paths to absolute paths
+        # Using JAC-style loop (no unpacking)
+        fixed_args = [];
+        i = 0;
+        
+        for arg in args {
+            if i == 0 {
+                # Keep 'python' as-is
+                fixed_args.append(arg);
+            }
+            # elif i == 1 and arg.startswith("scripts/") {
+            #     # Convert relative path to absolute
+            #     abs_script_path = os.path.join(base_dir, arg);
+            #     print(f"[system_call] Script path: {arg} -> {abs_script_path}");
+            #     fixed_args.append(abs_script_path);
+            # }
+            else {
+                fixed_args.append(arg);
+            }
+            
+            i = i + 1;
+        }
+
+        print(f"[system_call] Fixed ARGS: {fixed_args}");
+        cmd_parts = [];
+        for arg in fixed_args {
+            # Quote arguments with spaces
+            if " " in arg {
+                cmd_parts.append(f'"{arg}"');
+            }
+            else {
+                cmd_parts.append(arg);
+            }
+        }
+
+        cmd = " ".join(cmd_parts);
+
+  
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            cwd=base_dir,        
+            capture_output=True,
+            text=True,
             timeout=30
         );
 
-        stdout = "";
-        stderr = "";
+        print(f"[system_call] RETURN CODE: {result.returncode}");
 
-        if result.stdout != null {
-            stdout = result.stdout.strip();
+        stdout = result.stdout.strip() if result.stdout else "";
+        stderr = result.stderr.strip() if result.stderr else "";
+
+        if stdout {
+            print(f"[system_call] STDOUT: {stdout[:500]}");
         }
 
-        if result.stderr != null {
-            stderr = result.stderr.strip();
+        if stderr {
+            print(f"[system_call] STDERR: {stderr[:500]}");
         }
 
-        print("[system_call] RETURN CODE:", result.returncode);
-
-        if stdout != "" {
+        # Return stdout only on success
+        if result.returncode == 0 {
             return stdout;
+        } else {
+            if stderr {
+                print(f"[system_call] Command failed: {stderr}");
+            }
+            return "";
         }
 
-        if stderr != "" {
-            return stderr;
-        }
-
+    } except subprocess.TimeoutExpired {
+        print("[system_call] TIMEOUT: Command exceeded 30 seconds");
         return "";
-
     } except Exception as e {
-
-        print("[system_call] EXCEPTION TYPE:");
-        print(type(e));
-
-        print("[system_call] EXCEPTION:");
-        print(str(e));
-
+        print(f"[system_call] EXCEPTION: {type(e).__name__}: {str(e)}");
         return "";
     }
 }
