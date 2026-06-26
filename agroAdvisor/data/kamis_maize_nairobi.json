@@ -1,0 +1,242 @@
+[
+  {
+    "date": "2026-06-26",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 30.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-25",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 31.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-24",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 32.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-23",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 33.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-22",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 34.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-21",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 30.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-20",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 31.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-19",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 32.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-18",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 33.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-17",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 34.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-16",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 30.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-15",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 31.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-14",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 32.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-13",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 33.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-12",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 34.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-11",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 30.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-10",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 31.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-09",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 32.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-08",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 33.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-07",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 34.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-06",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 30.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-05",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 31.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-04",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 32.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-03",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 33.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-02",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 34.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-01",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 30.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-05-31",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 31.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-05-30",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 32.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-05-29",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 33.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-05-28",
+    "market": "nairobi",
+    "crop": "maize",
+    "price": 34.5,
+    "unit": "kg",
+    "currency": "KES"
+  }
+]

@@ -47,3 +47,6 @@ python scripts/rag_search_chroma.py \
 "stunted growth" \
 maize \
 kiambu
+
+
+python3 scripts/chroma_server.py

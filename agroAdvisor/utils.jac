@@ -3,7 +3,6 @@ import from requests { get as py_get }
 import json;
 import subprocess;
 import os;
-import from scripts.executor {py_run}
 
 # include app;
 

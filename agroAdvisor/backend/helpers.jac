@@ -259,11 +259,14 @@ def get_ui_titles(lang: str) -> dict {
 def search_chroma(problem: str, crop: str, region: str) -> list {
     region_clean = strip_country_from_location(region);
     crop_clean = normalize_crop(crop);
-
-    raw = system_call(["/media/nathanruf/New Volume/Virtual-Agro-Advisor/.venv/bin/python", "scripts/rag_search_chroma.py", problem, crop_clean, region_clean]);
-
+    
+    # Call HTTP endpoint instead of subprocess
+    url = f"http://127.0.0.1:8888/search?problem={problem}&crop={crop_clean}&region={region_clean}";
+    
+    raw = http_get(url);
+    
     if not raw {
-        print("[CHROMA] No response from search script");
+        print("[CHROMA] No response from server");
         return [];
     }
 
@@ -271,9 +274,8 @@ def search_chroma(problem: str, crop: str, region: str) -> list {
         matches = json.loads(raw);
         print(f"[CHROMA] Embedding search returned {len(matches)} candidates");
         return matches;
-    } except Exception as e {
-        print("[CHROMA] Failed to parse search response" ,e );
-        print(f"[CHROMA] Error: {e}");
+    } except Exception {
+        print("[CHROMA] Failed to parse search response");
         return [];
     }
 }
