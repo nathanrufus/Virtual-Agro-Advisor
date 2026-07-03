@@ -1,9 +1,81 @@
 [
   {
-    "date": "2026-06-24",
+    "date": "2026-07-03",
     "market": "narok",
     "crop": "maize",
     "price": 30.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-07-02",
+    "market": "narok",
+    "crop": "maize",
+    "price": 31.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-07-01",
+    "market": "narok",
+    "crop": "maize",
+    "price": 32.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-30",
+    "market": "narok",
+    "crop": "maize",
+    "price": 33.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-29",
+    "market": "narok",
+    "crop": "maize",
+    "price": 34.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-28",
+    "market": "narok",
+    "crop": "maize",
+    "price": 30.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-27",
+    "market": "narok",
+    "crop": "maize",
+    "price": 31.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-26",
+    "market": "narok",
+    "crop": "maize",
+    "price": 32.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-25",
+    "market": "narok",
+    "crop": "maize",
+    "price": 33.5,
+    "unit": "kg",
+    "currency": "KES"
+  },
+  {
+    "date": "2026-06-24",
+    "market": "narok",
+    "crop": "maize",
+    "price": 34.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -11,7 +83,7 @@
     "date": "2026-06-23",
     "market": "narok",
     "crop": "maize",
-    "price": 31.5,
+    "price": 30.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -19,7 +91,7 @@
     "date": "2026-06-22",
     "market": "narok",
     "crop": "maize",
-    "price": 32.5,
+    "price": 31.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -27,7 +99,7 @@
     "date": "2026-06-21",
     "market": "narok",
     "crop": "maize",
-    "price": 33.5,
+    "price": 32.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -35,7 +107,7 @@
     "date": "2026-06-20",
     "market": "narok",
     "crop": "maize",
-    "price": 34.5,
+    "price": 33.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -43,7 +115,7 @@
     "date": "2026-06-19",
     "market": "narok",
     "crop": "maize",
-    "price": 30.5,
+    "price": 34.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -51,7 +123,7 @@
     "date": "2026-06-18",
     "market": "narok",
     "crop": "maize",
-    "price": 31.5,
+    "price": 30.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -59,7 +131,7 @@
     "date": "2026-06-17",
     "market": "narok",
     "crop": "maize",
-    "price": 32.5,
+    "price": 31.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -67,7 +139,7 @@
     "date": "2026-06-16",
     "market": "narok",
     "crop": "maize",
-    "price": 33.5,
+    "price": 32.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -75,7 +147,7 @@
     "date": "2026-06-15",
     "market": "narok",
     "crop": "maize",
-    "price": 34.5,
+    "price": 33.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -83,7 +155,7 @@
     "date": "2026-06-14",
     "market": "narok",
     "crop": "maize",
-    "price": 30.5,
+    "price": 34.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -91,7 +163,7 @@
     "date": "2026-06-13",
     "market": "narok",
     "crop": "maize",
-    "price": 31.5,
+    "price": 30.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -99,7 +171,7 @@
     "date": "2026-06-12",
     "market": "narok",
     "crop": "maize",
-    "price": 32.5,
+    "price": 31.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -107,7 +179,7 @@
     "date": "2026-06-11",
     "market": "narok",
     "crop": "maize",
-    "price": 33.5,
+    "price": 32.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -115,7 +187,7 @@
     "date": "2026-06-10",
     "market": "narok",
     "crop": "maize",
-    "price": 34.5,
+    "price": 33.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -123,7 +195,7 @@
     "date": "2026-06-09",
     "market": "narok",
     "crop": "maize",
-    "price": 30.5,
+    "price": 34.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -131,7 +203,7 @@
     "date": "2026-06-08",
     "market": "narok",
     "crop": "maize",
-    "price": 31.5,
+    "price": 30.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -139,7 +211,7 @@
     "date": "2026-06-07",
     "market": "narok",
     "crop": "maize",
-    "price": 32.5,
+    "price": 31.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -147,7 +219,7 @@
     "date": "2026-06-06",
     "market": "narok",
     "crop": "maize",
-    "price": 33.5,
+    "price": 32.5,
     "unit": "kg",
     "currency": "KES"
   },
@@ -155,84 +227,12 @@
     "date": "2026-06-05",
     "market": "narok",
     "crop": "maize",
-    "price": 34.5,
+    "price": 33.5,
     "unit": "kg",
     "currency": "KES"
   },
   {
     "date": "2026-06-04",
-    "market": "narok",
-    "crop": "maize",
-    "price": 30.5,
-    "unit": "kg",
-    "currency": "KES"
-  },
-  {
-    "date": "2026-06-03",
-    "market": "narok",
-    "crop": "maize",
-    "price": 31.5,
-    "unit": "kg",
-    "currency": "KES"
-  },
-  {
-    "date": "2026-06-02",
-    "market": "narok",
-    "crop": "maize",
-    "price": 32.5,
-    "unit": "kg",
-    "currency": "KES"
-  },
-  {
-    "date": "2026-06-01",
-    "market": "narok",
-    "crop": "maize",
-    "price": 33.5,
-    "unit": "kg",
-    "currency": "KES"
-  },
-  {
-    "date": "2026-05-31",
-    "market": "narok",
-    "crop": "maize",
-    "price": 34.5,
-    "unit": "kg",
-    "currency": "KES"
-  },
-  {
-    "date": "2026-05-30",
-    "market": "narok",
-    "crop": "maize",
-    "price": 30.5,
-    "unit": "kg",
-    "currency": "KES"
-  },
-  {
-    "date": "2026-05-29",
-    "market": "narok",
-    "crop": "maize",
-    "price": 31.5,
-    "unit": "kg",
-    "currency": "KES"
-  },
-  {
-    "date": "2026-05-28",
-    "market": "narok",
-    "crop": "maize",
-    "price": 32.5,
-    "unit": "kg",
-    "currency": "KES"
-  },
-  {
-    "date": "2026-05-27",
-    "market": "narok",
-    "crop": "maize",
-    "price": 33.5,
-    "unit": "kg",
-    "currency": "KES"
-  },
-  {
-    "date": "2026-05-26",
     "market": "narok",
     "crop": "maize",
     "price": 34.5,

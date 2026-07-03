@@ -25,7 +25,7 @@ cl {
         [imagePreviewUrl, setImagePreviewUrl] = useState("");
         [activeTab, setActiveTab] = useState("advice");
 
-        async def handleGetAdvice() -> None {
+       async def handleGetAdvice() -> None {
             if not problemText or not problemText.trim() {
                 setError("Please describe the problem you are facing.");
                 return;

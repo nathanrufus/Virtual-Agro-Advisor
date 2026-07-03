@@ -172,229 +172,163 @@ def price_to_trend(price: float) -> str {
 walker:pub GetMapData {
     has crop: str = "maize";
     has disease_filter: str = "";
+    has region: str = "";
 
     can run with Root entry {
         payload = MapDataPayload();
 
-        mem_list = [root -->][?:Memory];
-        if not mem_list {
+        # Fetch FRESH weather for this region
+        if self.region {
+            raw_weather = fetch_weather_raw(self.region);
+            weather_data = build_weather_snapshot_data(raw_weather, self.region);
+            
+            region_id = normalize_region_to_id(self.region);
+            coords = get_coords(region_id);
+            
+            if coords {
+                weather_points = [MapWeatherPoint(
+                    region_id=region_id,
+                    region_name=self.region,
+                    lat=coords.get("lat", 0.0),
+                    lon=coords.get("lon", 0.0),
+                    temperature_c=weather_data["temperature_c"],
+                    humidity_pct=weather_data["humidity_pct"],
+                    disease_risk_level=weather_data["disease_risk_level"],
+                    disease_risk_score=weather_data["disease_risk_score"],
+                    risk_color=risk_to_color(weather_data["disease_risk_level"]),
+                    summary=weather_data["summary"]
+                )];
+                
+                payload.weather_points = weather_points;
+                
+                if weather_data["disease_risk_level"] == "HIGH" {
+                    alert_points = [MapAlertPoint(
+                        alert_id="alert_" + region_id,
+                        region_name=self.region,
+                        lat=coords.get("lat", 0.0),
+                        lon=coords.get("lon", 0.0),
+                        alert_type="disease_risk",
+                        alert_message="High disease risk: " + weather_data["disease_risk_reason"],
+                        severity="high"
+                    )];
+                    payload.alert_points = alert_points;
+                }
+            }
+        }
+
+        # Fetch FRESH market data for this crop/region
+        if self.crop and self.region {
+            kamis_result = fetch_best_kamis_price(self.crop, self.region);
+            
+            if kamis_result.get("success") {
+                region_id = normalize_region_to_id(self.region);
+                coords = get_coords(region_id);
+                
+                if coords {
+                    market_points = [MapMarketPoint(
+                        region_id=region_id,
+                        region_name=self.region,
+                        market_name=kamis_result.get("best_market", self.region),
+                        lat=coords.get("lat", 0.0),
+                        lon=coords.get("lon", 0.0),
+                        crop=self.crop,
+                        price=kamis_result.get("best_price", 0.0),
+                        currency="KES",
+                        unit="kg",
+                        trend=price_to_trend(kamis_result.get("best_price", 0.0)),
+                        price_color=price_to_color(kamis_result.get("best_price", 0.0))
+                    )];
+                    payload.market_points = market_points;
+                }
+            }
+        }
+
+        # Show ONLY diseases for this crop
+        disease_points = [];
+        case_points = [];
+        
+        crop_key = normalize_crop(self.crop);
+        region_key = normalize_region(self.region);
+        region_id = normalize_region_to_id(self.region);
+        coords = get_coords(region_id);
+
+        if not coords {
             report payload;
             disengage;
         }
 
-        memory = mem_list[0];
-
-        weather_points = [];
-        market_points = [];
-        alert_points = [];
-        seen_weather = [];
-        seen_market = [];
-
-        # =========================
-        # WEATHER + ALERTS
-        # =========================
-        for session in [memory ->:HAS_SESSION:->] {
-
-            for ws in [session ->:HAS_WEATHER:->] {
-                rid = ws.region_id;
-
-                if not rid {
-                    continue;
-                }
-                if rid in seen_weather {
-                    continue;
-                }
-                if hours_since(ws.created_at) > 24.0 {
-                    continue;
-                }
-
-                coords = get_coords(rid);
-                if not coords {
-                    continue;
-                }
-
-                seen_weather = seen_weather + [rid];
-
-                weather_points = weather_points + [MapWeatherPoint(
-                    region_id=rid,
-                    region_name=ws.region_name or coords.get("name", rid),
-                    lat=coords.get("lat", 0.0),
-                    lon=coords.get("lon", 0.0),
-                    temperature_c=ws.temperature_c,
-                    humidity_pct=ws.humidity_pct,
-                    disease_risk_level=ws.disease_risk_level,
-                    disease_risk_score=ws.disease_risk_score,
-                    risk_color=risk_to_color(ws.disease_risk_level),
-                    summary=ws.summary
-                )];
-
-                if ws.disease_risk_level == "HIGH" {
-                    alert_msg = "High disease risk in " + ws.region_name + ": " + ws.disease_risk_reason;
-                    alert_points = alert_points + [MapAlertPoint(
-                        alert_id="alert_" + rid,
-                        region_name=ws.region_name or coords.get("name", rid),
-                        lat=coords.get("lat", 0.0),
-                        lon=coords.get("lon", 0.0),
-                        alert_type="disease_risk",
-                        alert_message=alert_msg,
-                        severity="high"
-                    )];
-                }
-            }
-
-            # =========================
-            # MARKET DATA
-            # =========================
-            crop_key = normalize_crop(self.crop);
-
-            for ms in [session ->:HAS_MARKET:->] {
-                if ms.crop_key != crop_key {
-                    continue;
-                }
-
-                rid = ms.region_id;
-                if not rid {
-                    continue;
-                }
-
-                mkey = crop_key + "|" + rid;
-                if mkey in seen_market {
-                    continue;
-                }
-                if ms.price <= 0.0 {
-                    continue;
-                }
-
-                coords = get_coords(rid);
-                if not coords {
-                    continue;
-                }
-
-                seen_market = seen_market + [mkey];
-
-                market_points = market_points + [MapMarketPoint(
-                    region_id=rid,
-                    region_name=ms.region_name or coords.get("name", rid),
-                    market_name=ms.market_name or coords.get("name", rid),
-                    lat=coords.get("lat", 0.0),
-                    lon=coords.get("lon", 0.0),
-                    crop=self.crop,
-                    price=ms.price,
-                    currency=ms.currency,
-                    unit=ms.unit,
-                    trend=price_to_trend(ms.price),
-                    price_color=price_to_color(ms.price)
-                )];
-            }
-        }
-
-        payload.weather_points = weather_points;
-        payload.market_points = market_points;
-        payload.alert_points = alert_points;
-
-        # =========================
-        # GRAPH-RAG DISEASE + CASES
-        # =========================
-
-        disease_points = [];
-        case_points = [];
-
-        # Build region → case map
-        region_case_map = {};
-
-        for cs in [root -->][?:CaseStudy] {
-            region_key = normalize_region(cs.region);
-            rid = "ke-" + region_key;
-
-            if not (rid in region_case_map) {
-                region_case_map[rid] = [];
-            }
-
-            region_case_map[rid] = region_case_map[rid] + [cs];
-        }
-
-        # Traverse diseases properly
+        # Get diseases for this crop from graph
         for d in [root -->][?:DiseaseDoc] {
-
             if self.disease_filter and self.disease_filter.lower() not in d.disease_name.lower() {
                 continue;
             }
+            
+            # Only show if disease affects this crop
+            # Check description for crop mention
+            if crop_key.lower() not in d.description.lower() and crop_key.lower() not in d.disease_name.lower() {
+                continue;
+            }
 
-            for rid in KENYA_REGIONS {
-
-                coords = KENYA_REGIONS[rid];
-
-                # === CASE LINK ===
-                related_cases = [];
-                case_count = 0;
-
-                if rid in region_case_map {
-                    for cs in region_case_map[rid] {
-                        if (
-                            cs.crop
-                            and normalize_crop(cs.crop) == normalize_crop(self.crop)
-                            and cs.diagnosis
-                            and d.disease_name
-                            and cs.diagnosis.lower() in d.disease_name.lower()
-                        ) {
-                            related_cases = related_cases + [cs];
-                            case_count += 1;
-                        }
+            # Get cases for this disease in this region
+            case_count = 0;
+            related_cases = [];
+            
+            for cs in [root -->][?:CaseStudy] {
+                cs_region_key = normalize_region(cs.region);
+                cs_crop_key = normalize_crop(cs.crop);
+                
+                if cs_region_key == region_key and cs_crop_key == crop_key {
+                    if cs.diagnosis and d.disease_name and cs.diagnosis.lower() in d.disease_name.lower() {
+                        case_count += 1;
+                        related_cases = related_cases + [cs];
                     }
                 }
+            }
 
-                # === WEATHER LINK ===
-                weather_risk = "low";
+            # Get weather risk for this region
+            weather_risk = "low";
+            if payload.weather_points and len(payload.weather_points) > 0 {
+                weather_risk = payload.weather_points[0].disease_risk_level.lower();
+            }
 
-                for wp in weather_points {
-                    if wp.region_id == rid {
-                        weather_risk = wp.disease_risk_level.lower();
-                    }
-                }
+            # Score the disease
+            risk_score = case_count;
+            if weather_risk == "high" {
+                risk_score += 3;
+            } elif weather_risk == "medium" {
+                risk_score += 1;
+            }
 
-                # === GRAPH-RAG SCORING ===
-                risk_score = case_count;
+            risk_level = "low";
+            if risk_score >= 4 {
+                risk_level = "high";
+            } elif risk_score >= 2 {
+                risk_level = "medium";
+            }
 
-                if weather_risk == "high" {
-                    risk_score += 3;
-                } elif weather_risk == "medium" {
-                    risk_score += 1;
-                }
+            disease_points = disease_points + [MapDiseasePoint(
+                region_id=region_id,
+                region_name=coords.get("name", self.region),
+                lat=coords.get("lat", 0.0),
+                lon=coords.get("lon", 0.0),
+                disease_name=d.disease_name,
+                cases_reported=case_count,
+                risk_level=risk_level,
+                radius=15000 + (risk_score * 2000)
+            )];
 
-                risk_level = "low";
-                if risk_score >= 4 {
-                    risk_level = "high";
-                } elif risk_score >= 2 {
-                    risk_level = "medium";
-                }
-
-                disease_points = disease_points + [MapDiseasePoint(
-                    region_id=rid,
-                    region_name=coords.get("name", rid),
+            # Add case points
+            for cs in related_cases {
+                case_points = case_points + [MapCasePoint(
+                    case_id=cs.case_id,
+                    region_name=cs.region,
                     lat=coords.get("lat", 0.0),
                     lon=coords.get("lon", 0.0),
-                    disease_name=d.disease_name,
-                    cases_reported=case_count,
-                    risk_level=risk_level,
-                    radius=15000 + (risk_score * 2000)
+                    title="Case: " + cs.crop + " - " + cs.diagnosis,
+                    disease_name=cs.diagnosis,
+                    outcome=cs.outcome,
+                    success=True
                 )];
-
-                # === CASE POINTS ===
-                for cs in related_cases {
-
-                    case_title = "Case in " + cs.region + ": " + cs.crop;
-
-                    case_points = case_points + [MapCasePoint(
-                        case_id=cs.case_id,
-                        region_name=cs.region,
-                        lat=coords.get("lat", 0.0),
-                        lon=coords.get("lon", 0.0),
-                        title=case_title,
-                        disease_name=cs.diagnosis,
-                        outcome=cs.outcome,
-                        success=True
-                    )];
-                }
             }
         }
 

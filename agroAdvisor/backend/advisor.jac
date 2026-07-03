@@ -7,6 +7,8 @@ sv import from intergrations {
 }
 include backend.models;
 include backend.helpers;
+sv import from jac_cloud.plugin { WEBSOCKET_MANAGER as socket }
+
 
 
 
@@ -50,6 +52,7 @@ walker ImageAnalysisAgent {
         report analysis_node;
     }
 }
+# @restspec(protocol=APIProtocol.WEBSOCKET)
 
 walker:pub AgroAdvisor {
     has crop: str;
@@ -62,7 +65,7 @@ walker:pub AgroAdvisor {
     has include_image: bool = False;
     has image_data: str = "";
 
-    can run with Root entry {
+   can run with Root entry {
         mem_list = [root -->][?:Memory];
         if not mem_list {
             memory = Memory();
@@ -101,6 +104,9 @@ walker:pub AgroAdvisor {
         }
 
         session.last_active_at = get_current_datetime();
+
+        # socket.notify_self({"stage": "weather", "status": "fetching"});
+
 
         norm = normalize_crop_location(
             crop=self.crop,
@@ -213,10 +219,13 @@ walker:pub AgroAdvisor {
                 summary_text=snapshot_w.summary
             );
         }
+        # socket.notify_self({"stage": "weather", "status": "done", "data": weather_summary.summary_text});
 
                 # -------------------------------
                 # UPDATED MARKET FLOW
                 # -------------------------------
+        # socket.notify_self({"stage": "market", "status": "fetching"});
+
           if self.include_market {
                 crop_key = normalize_crop(self.crop);
                 market_region_key = normalize_region(self.location);
@@ -277,6 +286,7 @@ walker:pub AgroAdvisor {
                     );
                 }
             }
+        # socket.notify_self({"stage": "market", "status": "done", "data": market_summary.summary_text});
 
         if existing_cache {
             existing_cache.touch();
@@ -398,6 +408,7 @@ walker:pub AgroAdvisor {
             crop=self.crop,
             region=self.location,
         );
+        # socket.notify_self({"stage": "diagnosis", "status": "done"});
 
         if len(diseases) > 5 {
             diseases = diseases[:5];
@@ -432,6 +443,7 @@ walker:pub AgroAdvisor {
             market=market_summary,
             context=farmer_ctx
         );
+        # socket.notify_self({"stage": "advice", "status": "done", "overview": raw_advice.overview});
 
         if not raw_advice {
             report {

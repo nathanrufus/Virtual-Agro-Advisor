@@ -23,6 +23,7 @@ cl {
         });
 
         crop = props.crop or "maize";
+        location = props.location or "Kiambu";
 
         async def load() -> None {
             setLoading(True);
@@ -30,7 +31,8 @@ cl {
             try {
                 result = await root spawn GetMapData(
                     crop=crop,
-                    disease_filter=""
+                    disease_filter="",
+                    region=location 
                 );
                 if result and result.reports and result.reports.length > 0 {
                     setMapData(result.reports[result.reports.length - 1]);

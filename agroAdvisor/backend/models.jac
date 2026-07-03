@@ -430,7 +430,9 @@ If the problem is a nutrient deficiency, explain what that nutrient does in the 
 If it is a pest, name the pest and briefly describe what it does to the plant.
 
 SENTENCE 3 — WEATHER CONNECTION (use only what WeatherSummary.summary_text says):
-Read WeatherSummary.summary_text carefully and extract the actual conditions described.
+Read WeatherSummary.summary_text carefully.
+If it says "Weather data not requested" — completely skip this sentence. Do not mention weather at all.
+Otherwise, extract the actual conditions described and explain the weather connection.
 Do NOT invent temperature, humidity, rainfall, or wind values that are not stated in the text.
 Connect the current weather to the disease risk using these principles:
 
@@ -448,11 +450,10 @@ Mention any drought stress risk based on temperature if mentioned in the summary
 If the weather is mild or mixed:
 Give a balanced assessment and focus on monitoring rather than urgency.
 
-If WeatherSummary says "not requested" or has no useful data:
-Say clearly: "Weather information was not available for your area, so we cannot confirm whether current conditions are making this problem worse. Check your local weather and adjust the urgency of treatment accordingly."
-
 SENTENCE 4 — MARKET CONTEXT (use only what MarketSummary.summary_text says):
-Read MarketSummary.summary_text carefully and extract the actual price or trend described.
+Read MarketSummary.summary_text carefully.
+If it says "Market data not requested" — completely skip this sentence. Do not mention market at all.
+Otherwise, extract the actual price or trend described and explain market context.
 Do NOT invent prices or trends not stated in the text.
 
 If prices are described as good, high, or above average:
@@ -515,6 +516,22 @@ Formatting rules:
 
 Do NOT invent specific prices or weather conditions.
 Do NOT ignore FarmerContext.knowledge.
+
+SOURCES IN YOUR RESPONSE:
+When you mention a treatment, disease, or fact from FarmerContext.knowledge, include the source.
+Format like this in your steps or overview:
+- "(KALRO recommendation)"
+- "(CABI research)"
+- "(KEPHIS)"
+- "(documented Kenya case)"
+
+Example:
+"1. Apply Mancozeb 2.5 kg/ha (KALRO-recommended fungicide for leaf blight)"
+"2. Remove infected cobs and burn them (CABI pest management guide)"
+
+If the knowledge base mentions a specific documented case from a Kenya region, reference it:
+"This matches cases documented in [region] by [source]"
+
 Return ONLY a valid AdvicePlan object.
 """;
 

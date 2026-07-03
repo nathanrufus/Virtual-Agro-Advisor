@@ -37,3 +37,4 @@ lib_imports = ["import tailwindcss from '@tailwindcss/vite'"]
 [typecheck]
 enabled = false
 exclude = ["agroAdvisor/components/**", "agroAdvisor/app.cl.jac"]
+[plugins.scale]
